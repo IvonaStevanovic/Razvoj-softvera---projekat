@@ -22,4 +22,8 @@ public class Grupa {
 
 	@ManyToMany
 	private List<Predmet> predmeti;
+
+    public void setStudijskiProgram(StudijskiProgram studijskiProgram) {
+
+    }
 }

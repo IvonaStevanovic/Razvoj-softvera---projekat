@@ -21,4 +21,20 @@ public class StudijskiProgram {
     @ManyToOne
     @JoinColumn(name = "predmet_id")
     private Predmet predmet;
+
+    public void setGodinaAkreditacije(int i) {
+    }
+
+    public void setTrajanjeGodina(int i) {
+    }
+
+    public void setTrajanjeSemestara(int i) {
+    }
+
+    public void setVrstaStudija(String oas) {
+    }
+
+    public void setUkupnoEspb(int i) {
+
+    }
 }

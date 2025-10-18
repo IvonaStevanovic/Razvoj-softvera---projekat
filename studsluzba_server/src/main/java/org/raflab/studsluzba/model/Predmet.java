@@ -50,4 +50,7 @@ public class Predmet {
 		return true;
 	}
 
+    public void setStudProgram(StudijskiProgram studijskiProgram) {
+
+    }
 }

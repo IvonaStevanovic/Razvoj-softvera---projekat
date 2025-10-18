@@ -24,4 +24,8 @@ public class StudentIndeks {
 	private StudentPodaci student;
 
 	private Integer ostvarenoEspb;
+
+    public void setStudijskiProgram(StudijskiProgram studijskiProgram) {
+
+    }
 }
