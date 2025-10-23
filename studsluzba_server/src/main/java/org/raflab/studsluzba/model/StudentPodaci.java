@@ -3,6 +3,7 @@ package org.raflab.studsluzba.model;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import javax.persistence.*;
 
@@ -33,4 +34,13 @@ public class StudentPodaci {
 	 private String mestoStanovanja;
 	 private String adresaStanovanja;   // u toku studija
 
+
+
+   /* @ManyToOne
+    private SrednjaSkola srednjaSkola;  // šifarnik
+    private Double uspehSrednja;
+    private Double uspehPrijemni;
+
+    @ManyToOne
+    private VisokoskolskaUstanova ustanovaPrelaska; */
 }
