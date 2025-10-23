@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/studsluzba_server.iml" filepath="$PROJECT_DIR$/.idea/studsluzba_server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Razvoj-softvera---projekat.iml" filepath="$PROJECT_DIR$/.idea/Razvoj-softvera---projekat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/studsluzba_server/studsluzba_server.iml" filepath="$PROJECT_DIR$/studsluzba_server/studsluzba_server.iml" />
     </modules>
   </component>
 </project>
