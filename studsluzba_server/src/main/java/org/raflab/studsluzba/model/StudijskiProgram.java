@@ -20,13 +20,13 @@ public class StudijskiProgram {
 	private String zvanje;
 	private Integer trajanjeGodina;
 	private Integer trajanjeSemestara;
-	//private String vrstaStudija; // OAS - osnovne akademske studje, OSS - osnovne strukovne, 	MAS - master akademske studije
+	private String vrstaStudija; // OAS - osnovne akademske studje, OSS - osnovne strukovne, 	MAS - master akademske studije
 	private Integer ukupnoEspb;
 	
 	@JsonIgnore
 	@OneToMany(mappedBy = "studProgram")
 	private List<Predmet> predmeti;
 
-    @ManyToOne
-    private VrstaStudija vrstaStudija;
+ /*   @ManyToOne
+    private VrstaStudija vrstaStudija;*/
 }
