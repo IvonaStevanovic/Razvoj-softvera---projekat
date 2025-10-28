@@ -34,7 +34,8 @@ public class Ispit {
     @ManyToOne
     private IspitniRok ispitniRok;
 
+
     @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
-          private Set<IzlazakNaIspit> izlazci; // svi studenti koji su izašli na ispit
+          private Set<IzlazakNaIspit> izlazci;
 
 }
