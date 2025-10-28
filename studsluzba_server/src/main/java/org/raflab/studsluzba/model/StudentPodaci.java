@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -21,26 +22,27 @@ public class StudentPodaci {
 	 private LocalDate datumRodjenja;
 	 private String mestoRodjenja; 
 	 private String mestoPrebivalista;
-	 private String drzavaRodjenja;   
+	 private String drzavaRodjenja;
 	 private String drzavljanstvo;
 	 private String nacionalnost;   // samoizjasnjavanje, moze bilo sta  
 	 private Character pol;
 	 private String adresa;
 	 private String brojTelefonaMobilni;  
 	 private String brojTelefonaFiksni;
-	 private String email;
-	 private String brojLicneKarte; 
+	 private String emailFakultet;
+	 private String emailPrivatni;
+	 private String brojLicneKarte;
 	 private String licnuKartuIzdao;
 	 private String mestoStanovanja;
 	 private String adresaStanovanja;   // u toku studija
 
-
-
-   /* @ManyToOne
-    private SrednjaSkola srednjaSkola;  // šifarnik
-    private Double uspehSrednja;
-    private Double uspehPrijemni;
-
     @ManyToOne
-    private VisokoskolskaUstanova ustanovaPrelaska; */
+    private SrednjaSkola srednjaSkola;  // šifarnik
+    @ManyToOne
+    private VisokoskolskaUstanova ustanovaPrelaska;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "student")
+    private Set<StudentIndeks> indeksi;
+
 }

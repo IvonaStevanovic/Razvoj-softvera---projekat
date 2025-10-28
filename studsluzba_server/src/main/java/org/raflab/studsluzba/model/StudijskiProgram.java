@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.*;
 
@@ -20,13 +21,17 @@ public class StudijskiProgram {
 	private String zvanje;
 	private Integer trajanjeGodina;
 	private Integer trajanjeSemestara;
-	private String vrstaStudija; // OAS - osnovne akademske studje, OSS - osnovne strukovne, 	MAS - master akademske studije
+	///private String vrstaStudija; // OAS - osnovne akademske studje, OSS - osnovne strukovne, 	MAS - master akademske studije
 	private Integer ukupnoEspb;
 	
 	@JsonIgnore
-	@OneToMany(mappedBy = "studProgram")
+	@OneToMany(mappedBy = "studProgram")//mora ManyToMany????
 	private List<Predmet> predmeti;
 
- /*   @ManyToOne
-    private VrstaStudija vrstaStudija;*/
+   @ManyToOne
+    private VrstaStudija vrstaStudija;
+
+    @OneToMany(mappedBy = "studijskiProgram")
+    private Set<StudentIndeks> studenti;
+
 }

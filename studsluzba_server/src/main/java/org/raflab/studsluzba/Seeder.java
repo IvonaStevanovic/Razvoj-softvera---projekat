@@ -42,7 +42,7 @@ public class Seeder implements CommandLineRunner {
             sp.setZvanje("Zvanje " + i);
             sp.setTrajanjeGodina(4);
             sp.setTrajanjeSemestara(8);
-            sp.setVrstaStudija("OAS");
+           /// sp.setVrstaStudija("OAS");
             sp.setUkupnoEspb(240);
             spList.add(studijskiProgramRepository.save(sp));
         }
@@ -102,7 +102,8 @@ public class Seeder implements CommandLineRunner {
             s.setPol(i % 2 == 0 ? 'F' : 'M');
             s.setAdresa("Adresa " + i);
             s.setBrojTelefonaMobilni("06123456" + i);
-            s.setEmail("student" + i + "@example.com");
+            s.setEmailFakultet("student" + i + "@example.com");
+            s.setEmailPrivatni("student" + i + "@example.com");
             studentPodaciList.add(studentPodaciRepository.save(s));
         }
 

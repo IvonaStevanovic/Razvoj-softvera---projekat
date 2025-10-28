@@ -2,12 +2,11 @@ package org.raflab.studsluzba.model;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -18,8 +17,9 @@ public class IspitniRok {
     private LocalDate datumPocetka;
     private LocalDate datumZavrsetka;
 
-    @ManyToMany
-    private List<Ispit> ispiti;
+    @OneToMany(mappedBy = "ispitniRok", cascade = CascadeType.ALL)
+    private Set<Ispit> ispiti;
 
-
+    @ManyToOne
+    private SkolskaGodina skolskaGodina;
 }

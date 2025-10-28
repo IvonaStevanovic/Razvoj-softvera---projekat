@@ -3,6 +3,7 @@ package org.raflab.studsluzba.model;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Data
@@ -15,6 +16,6 @@ public class VisokoskolskaUstanova {
     private String mesto;
     private String vrsta;
 
-   /* @OneToMany(mappedBy = "visokoskolska_ustanova")
-    private StudentPodaci  studentPodaci; */
+    @OneToMany(mappedBy = "ustanovaPrelaska")
+    private Set<StudentPodaci> studentPodaci;
 }

@@ -1,12 +1,10 @@
 package org.raflab.studsluzba.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 import lombok.Data;
+
+import java.util.Set;
 
 @Entity
 @Data
@@ -24,4 +22,8 @@ public class DrziPredmet {
 
     @ManyToOne
     private SkolskaGodina skolskaGodina;
+
+    @OneToMany(mappedBy = "drziPredmet", cascade = CascadeType.ALL)
+    private Set<SlusaPredmet> studentiKojiSlusaju;
+
 }

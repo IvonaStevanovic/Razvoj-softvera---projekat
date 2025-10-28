@@ -14,7 +14,7 @@ public class PredispitneObaveze {
     private String vrsta;
     private Integer maksPoeni;
 
-   /* @ManyToOne
-    private SlusaPredmet slusaPredmet;*/
+    @ManyToOne
+    private SlusaPredmet slusaPredmet;
 
 }

@@ -2,10 +2,8 @@ package org.raflab.studsluzba.model;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Data
@@ -16,5 +14,6 @@ public class VrstaStudija {
 
     private String oznaka;    // "OAS"
     private String punNaziv;  // "Osnovne akademske studije"
-
+    @OneToMany(mappedBy = "vrstaStudija")
+    private Set<StudijskiProgram> programi;
 }
