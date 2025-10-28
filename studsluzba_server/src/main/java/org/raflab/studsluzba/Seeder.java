@@ -6,10 +6,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Component
+@Transactional
 public class Seeder implements CommandLineRunner {
 
     @Autowired
@@ -170,5 +173,159 @@ public class Seeder implements CommandLineRunner {
             g.setPredmeti(Collections.singletonList(predmetList.get(i - 1)));
             grupaRepository.save(g);
         }
-    }
+
+        List<SrednjaSkola> srednjaSkolaList = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            SrednjaSkola ss = new SrednjaSkola();
+            ss.setNaziv("Srednja Skola " + i);
+            ss.setMesto("Mesto " + i);
+            ss.setVrsta("Gimnazija");
+            srednjaSkolaList.add(srednjaSkolaRepository.save(ss));
+        }
+
+        List<VisokoskolskaUstanova> ustanovaList = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            VisokoskolskaUstanova vu = new VisokoskolskaUstanova();
+            vu.setNaziv("Ustanova " + i);
+            vu.setMesto("Grad " + i);
+            ustanovaList.add(visokoskolskaUstanovaRepository.save(vu));
+        }
+
+        List<SkolskaGodina> skolskaGodinaList = new ArrayList<>();
+        for (int i = 2022; i <= 2026; i++) {
+            SkolskaGodina sg = new SkolskaGodina();
+            sg.setNaziv(i + "/" + (i + 1));
+            sg.setAktivna(i == 2025);
+            skolskaGodinaList.add(skolskaGodinaRepository.save(sg));
+        }
+
+        List<IspitniRok> ispitniRokList = new ArrayList<>();
+        for (SkolskaGodina sg : skolskaGodinaList) {
+            IspitniRok ir = new IspitniRok();
+            ir.setDatumPocetka(LocalDate.of(2025, 6, 1));
+            ir.setDatumZavrsetka(LocalDate.of(2025, 6, 15));
+            ir.setSkolskaGodina(sg);
+
+            if (sg.getIspitniRokovi() == null) {
+                sg.setIspitniRokovi(new HashSet<>());
+            }
+            sg.getIspitniRokovi().add(ir);
+
+            ispitniRokList.add(ispitniRokRepository.save(ir));
+        }
+
+
+
+        List<Ispit> ispitList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Ispit ispit = new Ispit();
+            ispit.setDatumOdrzavanja(LocalDate.of(2025, 6, i + 1));
+            ispit.setVremePocetka(LocalTime.of(10 + i, 0));
+            ispit.setPredmet(predmetList.get(i));
+            ispit.setNastavnik(nastavnikList.get(i));
+            ispit.setZakljucen(i % 2 == 0);
+
+            ispit.setIspitniRok(ispitniRokList.get(i % ispitniRokList.size()));
+
+            ispitList.add(ispitRepository.save(ispit));
+        }
+
+        List<PredispitneObaveze> obavezeList = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            PredispitneObaveze po = new PredispitneObaveze();
+            po.setVrsta(i % 2 == 0 ? "Test" : "Kolokvijum");
+            po.setMaksPoeni(10 + i * 5);
+            po.setDrziPredmet(drziPredmetList.get(i - 1));
+            po.setSkolskaGodina(skolskaGodinaList.get(i % skolskaGodinaList.size()));
+            obavezeList.add(predispitneObavezeRepository.save(po));
+        }
+
+        List<VrstaStudija> vrstaStudijaList = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            VrstaStudija vs = new VrstaStudija();
+            vs.setOznaka("OAS" + i);
+            vs.setPunNaziv("Osnovne akademske studije " + i);
+            vrstaStudijaList.add(vrstaStudijaRepository.save(vs));
+        }
+
+        List<IzlazakNaIspit> izlazakList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            IzlazakNaIspit izlazak = new IzlazakNaIspit();
+            izlazak.setOstvarenoNaIspitu(50 + i * 10);
+            izlazak.setNapomena("Napomena " + (i + 1));
+            izlazak.setPonistio(i % 2 == 0);
+            izlazak.setIzasao(true);
+            izlazak.setStudentIndeks(indeksList.get(i));
+            izlazak.setIspit(ispitList.get(i));
+            izlazak.setSlusaPredmet(slusaPredmetList.get(i));
+            izlazakList.add(izlazakNaIspitRepository.save(izlazak));
+        }
+
+        List<PrijavaIspita> prijavaList = new ArrayList<>();
+        for (int i = 0; i < indeksList.size(); i++) {
+            PrijavaIspita pi = new PrijavaIspita();
+            pi.setStudentIndeks(indeksList.get(i));
+            pi.setIspit(ispitList.get(i % ispitList.size()));
+            pi.setDatumPrijave(LocalDate.now());
+            prijavaList.add(prijavaIspitaRepository.save(pi));
+        }
+
+        List<PredispitniPoeni> poeniList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            PredispitniPoeni poeni = new PredispitniPoeni();
+            poeni.setPoeni(5 + i * 2);
+            poeni.setStudentIndeks(indeksList.get(i));
+            poeni.setPredispitnaObaveza(obavezeList.get(i));
+            poeni.setSlusaPredmet(slusaPredmetList.get(i));
+            poeni.setSkolskaGodina(skolskaGodinaList.get(i));
+            poeniList.add(predispitniPoeniRepository.save(poeni));
+        }
+
+        List<UpisGodine> upisGodineList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            UpisGodine upis = new UpisGodine();
+            upis.setGodinaStudija(i + 1);
+            upis.setDatum(LocalDate.of(2023, 10, i + 1));
+            upis.setNapomena("Napomena " + (i + 1));
+            upis.setStudentIndeks(indeksList.get(i));
+
+            Set<Predmet> preneti = new HashSet<>();
+            preneti.add(predmetList.get(0));
+            preneti.add(predmetList.get(1));
+            upis.setPrenetiPredmeti(preneti);
+
+            upisGodineList.add(upisGodineRepository.save(upis));
+        }
+
+        List<ObnovaGodine> obnovaGodineList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ObnovaGodine obnova = new ObnovaGodine();
+            obnova.setGodinaStudija(i + 1);
+            obnova.setDatum(LocalDate.of(2023, 10, i + 1));
+            obnova.setNapomena("Napomena obnove " + (i + 1));
+            obnova.setStudentIndeks(indeksList.get(i));
+
+            Set<Predmet> predmeti = new HashSet<>();
+            predmeti.add(predmetList.get(0));
+            predmeti.add(predmetList.get(1));
+            obnova.setPredmetiKojeUpisuje(predmeti);
+
+            obnovaGodineList.add(obnovaGodineRepository.save(obnova));
+        }
+
+        List<PolozeniPredmeti> polozeniPredmetiList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            PolozeniPredmeti pp = new PolozeniPredmeti();
+            pp.setStudentIndeks(indeksList.get(i));
+            pp.setPredmet(predmetList.get(i));
+            pp.setOcena(6 + i % 5);
+            pp.setPriznat(i % 2 == 0);
+            pp.setIzlazakNaIspit(izlazakList.get(i));
+
+            polozeniPredmetiList.add(polozeniPredmetiRepository.save(pp));
+        }
+
+
+        }
+
 }
