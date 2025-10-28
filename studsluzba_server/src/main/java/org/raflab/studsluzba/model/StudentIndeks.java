@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import java.time.LocalDate;
+import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
 
@@ -24,5 +25,21 @@ public class StudentIndeks {
 	@ManyToOne
 	private StudijskiProgram studijskiProgram;   // na koji studijski program je upisan
 	private Integer ostvarenoEspb;
+
+
+     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+     private Set<IzlazakNaIspit> izlazakNaIspite; // veza sa izlaskom na ispit
+
+     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+     private Set<PrijavaIspita> prijaveIspita; // veza sa prijavom ispita
+
+     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+     private Set<UpisGodine> upisiGodina;
+
+     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+     private Set<ObnovaGodine> obnoveGodina;
+
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    private Set<PredispitniPoeni> predispitniPoeni;
 
 }

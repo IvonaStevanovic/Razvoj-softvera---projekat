@@ -5,6 +5,7 @@ import lombok.Data;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Set;
 
 @Entity
 @Data
@@ -26,5 +27,14 @@ public class Ispit {
     private LocalTime vremePocetka;
 
     private boolean zakljucen;
+
+    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
+    private Set<PrijavaIspita> prijave;
+
+    @ManyToOne
+    private IspitniRok ispitniRok;
+
+    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
+          private Set<IzlazakNaIspit> izlazci; // svi studenti koji su izašli na ispit
 
 }

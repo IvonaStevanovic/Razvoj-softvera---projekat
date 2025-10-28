@@ -1,14 +1,11 @@
 package org.raflab.studsluzba.model;
 
-import javax.persistence.Entity;
-
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.Set;
 
 @Entity
 @Data
@@ -26,9 +23,18 @@ public class Predmet {
 
 	@ManyToOne
 	private StudijskiProgram studProgram;
-
+    private Integer fondVezbe;
+    private Integer fondPredavanja;
 	private boolean obavezan;
 
+
+
+    @OneToMany(mappedBy = "drziPredmet", cascade = CascadeType.ALL)
+          private Set<SlusaPredmet> slusaPredmetSet;
+    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+          private Set<DrziPredmet> drziPredmetSet;
+    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private Set<PredispitniPoeni> predispitniPoeni;
 
 	@Override
 	public int hashCode() {

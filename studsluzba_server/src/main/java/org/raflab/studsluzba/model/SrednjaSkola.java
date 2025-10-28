@@ -4,6 +4,7 @@ import lombok.Data;
 import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Data
@@ -16,5 +17,6 @@ public class SrednjaSkola {
     private String mesto;
     private String vrsta;
 
-
+    @OneToMany(mappedBy = "srednjaSkola")
+    private Set<StudentPodaci> studentPodaci;
 }
