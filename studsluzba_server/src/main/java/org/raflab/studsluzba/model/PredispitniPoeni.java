@@ -4,22 +4,28 @@ import lombok.Data;
 
 import javax.persistence.*;
 
+
+
 @Entity
 @Data
 public class PredispitniPoeni {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer poeni;
-    @ManyToOne
-    private StudentIndeks studentIndeks;   // čiji su poeni
+
+    private Integer poeni;  // poeni koje je student ostvario
 
     @ManyToOne
-    private Predmet predmet;               // predmet na kojem su poeni ostvareni
+    private StudentIndeks studentIndeks;          // čiji su poeni
 
     @ManyToOne
-    private SkolskaGodina skolskaGodina;   // školska godina po kojoj se poeni računaju
+    private PredispitneObaveze predispitnaObaveza; // kojoj predispitnoj obavezi pripadaju
 
     @ManyToOne
-    private SlusaPredmet slusaPredmet;
+    private SlusaPredmet slusaPredmet;            // opcionalno, vezano za konkretnog studenta i predmet u školskoj godini
+
+    @ManyToOne
+    private SkolskaGodina skolskaGodina;
+
 }

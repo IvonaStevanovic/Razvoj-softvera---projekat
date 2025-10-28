@@ -23,9 +23,9 @@ public class IzlazakNaIspit {
     @ManyToOne
     private SlusaPredmet slusaPredmet;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    /* @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "polozen_predmet_id")
     private PolozeniPredmeti polozenPredmet;
-
+    */
 
 }

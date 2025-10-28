@@ -33,8 +33,8 @@ public class Predmet {
           private Set<SlusaPredmet> slusaPredmetSet;
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
           private Set<DrziPredmet> drziPredmetSet;
-    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
-    private Set<PredispitniPoeni> predispitniPoeni;
+   /* @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private Set<PredispitniPoeni> predispitniPoeni; */
 
 	@Override
 	public int hashCode() {

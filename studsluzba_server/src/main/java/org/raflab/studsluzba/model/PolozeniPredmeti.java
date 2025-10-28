@@ -20,7 +20,11 @@ public class PolozeniPredmeti {
     private boolean priznat;
 
 
-      @OneToOne(mappedBy = "polozenPredmet")
+     /* @OneToOne(mappedBy = "polozenPredmet")
           private IzlazakNaIspit izlazakNaIspit;
+*/
 
+    @OneToOne
+    @JoinColumn(name = "izlazak_na_ispit_id")
+    private IzlazakNaIspit izlazakNaIspit;
 }
