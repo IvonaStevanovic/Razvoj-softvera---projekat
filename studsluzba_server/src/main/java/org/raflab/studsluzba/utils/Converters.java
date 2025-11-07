@@ -2,6 +2,7 @@ package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.*;
 import org.raflab.studsluzba.controllers.response.IspitResponse;
+import org.raflab.studsluzba.controllers.response.IspitniRokResponse;
 import org.raflab.studsluzba.controllers.response.NastavnikResponse;
 import org.raflab.studsluzba.model.*;
 
@@ -142,6 +143,40 @@ public class Converters {
     public static List<IspitResponse> toIspitResponseList(Iterable<Ispit> ispiti) {
         List<IspitResponse> responses = new ArrayList<>();
         ispiti.forEach(ispit -> responses.add(toIspitResponse(ispit)));
+        return responses;
+    }
+
+    public static IspitniRok toIspitniRok(IspitniRokRequest request) {
+        IspitniRok rok = new IspitniRok();
+        rok.setDatumPocetka(request.getDatumPocetka());
+        rok.setDatumZavrsetka(request.getDatumZavrsetka());
+
+        if (request.getSkolskaGodinaId() != null) {
+            SkolskaGodina godina = new SkolskaGodina();
+            godina.setId(request.getSkolskaGodinaId());
+            rok.setSkolskaGodina(godina);
+        }
+
+        return rok;
+    }
+
+    public static IspitniRokResponse toIspitniRokResponse(IspitniRok rok) {
+        IspitniRokResponse response = new IspitniRokResponse();
+        response.setId(rok.getId());
+        response.setDatumPocetka(rok.getDatumPocetka());
+        response.setDatumZavrsetka(rok.getDatumZavrsetka());
+
+        if (rok.getSkolskaGodina() != null) {
+            response.setSkolskaGodinaId(rok.getSkolskaGodina().getId());
+            // response.setSkolskaGodinaNaziv(rok.getSkolskaGodina().getNaziv()); // opciono
+        }
+
+        return response;
+    }
+
+    public static List<IspitniRokResponse> toIspitniRokResponseList(Iterable<IspitniRok> rokovi) {
+        List<IspitniRokResponse> responses = new ArrayList<>();
+        rokovi.forEach(rok -> responses.add(toIspitniRokResponse(rok)));
         return responses;
     }
 }
