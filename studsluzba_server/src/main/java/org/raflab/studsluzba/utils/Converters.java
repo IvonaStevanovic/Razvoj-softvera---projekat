@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.*;
+import org.raflab.studsluzba.controllers.response.IspitResponse;
 import org.raflab.studsluzba.controllers.response.NastavnikResponse;
 import org.raflab.studsluzba.model.*;
 
@@ -85,5 +86,62 @@ public class Converters {
         studentIndeks.setAktivan(studentIndeksRequest.isAktivan());
         studentIndeks.setVaziOd(studentIndeksRequest.getVaziOd());
         return studentIndeks;
+    }
+
+    public static Ispit toIspit(IspitRequest request) {
+        Ispit ispit = new Ispit();
+        ispit.setDatumOdrzavanja(request.getDatumOdrzavanja());
+        ispit.setVremePocetka(request.getVremePocetka());
+        ispit.setZakljucen(request.isZakljucen());
+
+        if (request.getPredmetId() != null) {
+            Predmet predmet = new Predmet();
+            predmet.setId(request.getPredmetId());
+            ispit.setPredmet(predmet);
+        }
+
+        if (request.getNastavnikId() != null) {
+            Nastavnik nastavnik = new Nastavnik();
+            nastavnik.setId(request.getNastavnikId());
+            ispit.setNastavnik(nastavnik);
+        }
+
+        if (request.getIspitniRokId() != null) {
+            IspitniRok rok = new IspitniRok();
+            rok.setId(request.getIspitniRokId());
+            ispit.setIspitniRok(rok);
+        }
+        return ispit;
+    }
+
+    public static IspitResponse toIspitResponse(Ispit ispit) {
+        IspitResponse response = new IspitResponse();
+        response.setId(ispit.getId());
+        response.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+        response.setVremePocetka(ispit.getVremePocetka());
+        response.setZakljucen(ispit.isZakljucen());
+
+        if (ispit.getPredmet() != null) {
+            response.setPredmetId(ispit.getPredmet().getId());
+            response.setPredmetNaziv(ispit.getPredmet().getNaziv());
+        }
+
+        if (ispit.getNastavnik() != null) {
+            response.setNastavnikId(ispit.getNastavnik().getId());
+            response.setNastavnikImePrezime(
+                    ispit.getNastavnik().getIme() + " " + ispit.getNastavnik().getPrezime()
+            );
+        }
+
+        if (ispit.getIspitniRok() != null) {
+            response.setIspitniRokId(ispit.getIspitniRok().getId());
+        }
+        return response;
+    }
+
+    public static List<IspitResponse> toIspitResponseList(Iterable<Ispit> ispiti) {
+        List<IspitResponse> responses = new ArrayList<>();
+        ispiti.forEach(ispit -> responses.add(toIspitResponse(ispit)));
+        return responses;
     }
 }
