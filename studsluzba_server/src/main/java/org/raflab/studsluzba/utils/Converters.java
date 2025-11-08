@@ -311,4 +311,28 @@ public class Converters {
         }
         return responses;
     }
+
+    public static ObnovaGodineResponse toObnovaGodineResponse(ObnovaGodine obnova) {
+            ObnovaGodineResponse response = new ObnovaGodineResponse();
+            response.setId(obnova.getId());
+            response.setGodinaStudija(obnova.getGodinaStudija());
+            response.setDatum(obnova.getDatum());
+            response.setNapomena(obnova.getNapomena());
+            if (obnova.getStudentIndeks() != null) {
+                response.setStudentIndeksId(obnova.getStudentIndeks().getId());
+                response.setStudentImePrezime(
+                        obnova.getStudentIndeks().getStudent().getIme() + " " +
+                                obnova.getStudentIndeks().getStudent().getPrezime()
+                );
+            }
+            if (obnova.getPredmetiKojeUpisuje() != null) {
+                response.setPredmetiNazivi(
+                        obnova.getPredmetiKojeUpisuje()
+                                .stream()
+                                .map(p -> p.getNaziv())
+                                .collect(Collectors.toSet())
+                );
+            }
+            return response;
+        }
 }
