@@ -1,14 +1,13 @@
 package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.*;
-import org.raflab.studsluzba.controllers.response.IspitResponse;
-import org.raflab.studsluzba.controllers.response.IspitniRokResponse;
-import org.raflab.studsluzba.controllers.response.NastavnikResponse;
+import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Converters {
 
@@ -27,8 +26,7 @@ public class Converters {
         return nastavnik;
     }
 
-    public static NastavnikResponse toNastavnikResponse(Nastavnik nastavnik)
-    {
+    public static NastavnikResponse toNastavnikResponse(Nastavnik nastavnik) {
         NastavnikResponse response = new NastavnikResponse();
         response.setId(nastavnik.getId());
         response.setIme(nastavnik.getIme());
@@ -178,5 +176,118 @@ public class Converters {
         List<IspitniRokResponse> responses = new ArrayList<>();
         rokovi.forEach(rok -> responses.add(toIspitniRokResponse(rok)));
         return responses;
+    }
+
+    // Convert DrziPredmetRequest + entitet u DrziPredmet
+    public static DrziPredmet toDrziPredmet(DrziPredmetNewRequest request, Predmet predmet, Nastavnik nastavnik) {
+        DrziPredmet drziPredmet = new DrziPredmet();
+        drziPredmet.setPredmet(predmet);
+        drziPredmet.setNastavnik(nastavnik);
+        return drziPredmet;
+    }
+
+    public static DrziPredmetResponse toDrziPredmetResponse(DrziPredmet drziPredmet) {
+        DrziPredmetResponse response = new DrziPredmetResponse();
+        response.setId(drziPredmet.getId());
+        response.setPredmetId(drziPredmet.getPredmet().getId());
+        response.setPredmetNaziv(drziPredmet.getPredmet().getNaziv());
+        response.setNastavnikId(drziPredmet.getNastavnik().getId());
+        response.setNastavnikImePrezime(drziPredmet.getNastavnik().getIme() + " " + drziPredmet.getNastavnik().getPrezime());
+        return response;
+    }
+
+    public static List<DrziPredmetResponse> toDrziPredmetResponseList(List<DrziPredmet> drziPredmeti) {
+        return drziPredmeti.stream()
+                .map(Converters::toDrziPredmetResponse)
+                .collect(Collectors.toList());
+    }
+
+
+    public static Grupa toGrupa(GrupaRequest request, StudijskiProgram studijskiProgram, List<Predmet> predmeti) {
+        Grupa grupa = new Grupa();
+        grupa.setStudijskiProgram(studijskiProgram);
+        grupa.setPredmeti(predmeti);
+        return grupa;
+    }
+
+    public static GrupaResponse toGrupaResponse(Grupa grupa) {
+        GrupaResponse response = new GrupaResponse();
+        response.setId(grupa.getId());
+        response.setStudijskiProgramId(grupa.getStudijskiProgram().getId());
+        response.setStudijskiProgramNaziv(grupa.getStudijskiProgram().getNaziv());
+        response.setPredmetiNaziv(
+                grupa.getPredmeti().stream()
+                        .map(Predmet::getNaziv)
+                        .collect(Collectors.toList())
+        );
+        return response;
+    }
+
+    public static List<GrupaResponse> toGrupaResponseList(List<Grupa> grupe) {
+        return grupe.stream()
+                .map(Converters::toGrupaResponse)
+                .collect(Collectors.toList());
+    }
+
+    public static IzlazakNaIspit toIzlazakNaIspit(IzlazakNaIspitRequest request,
+                                                  StudentIndeks studentIndeks,
+                                                  Ispit ispit,
+                                                  SlusaPredmet slusaPredmet) {
+        IzlazakNaIspit izlazak = new IzlazakNaIspit();
+        izlazak.setStudentIndeks(studentIndeks);
+        izlazak.setIspit(ispit);
+        izlazak.setSlusaPredmet(slusaPredmet);
+        izlazak.setOstvarenoNaIspitu(request.getOstvarenoNaIspitu());
+        izlazak.setNapomena(request.getNapomena());
+        izlazak.setPonistio(request.isPonistio());
+        izlazak.setIzasao(request.isIzasao());
+        return izlazak;
+    }
+
+    public static IzlazakNaIspitResponse toIzlazakNaIspitResponse(IzlazakNaIspit izlazak) {
+        IzlazakNaIspitResponse response = new IzlazakNaIspitResponse();
+
+        response.setId(izlazak.getId());
+        response.setOstvarenoNaIspitu(izlazak.getOstvarenoNaIspitu());
+        response.setNapomena(izlazak.getNapomena());
+        response.setPonistio(izlazak.isPonistio());
+        response.setIzasao(izlazak.isIzasao());
+
+        // Student
+        if (izlazak.getStudentIndeks() != null) {
+            response.setStudentIndeksId(izlazak.getStudentIndeks().getId());
+
+            if (izlazak.getStudentIndeks().getStudent() != null) {
+                response.setStudentImePrezime(
+                        izlazak.getStudentIndeks().getStudent().getIme() + " " +
+                                izlazak.getStudentIndeks().getStudent().getPrezime()
+                );
+            } else {
+                response.setStudentImePrezime(null);
+            }
+        }
+
+        // Ispit
+        if (izlazak.getIspit() != null) {
+            response.setIspitId(izlazak.getIspit().getId());
+        }
+
+        // Predmet
+        if (izlazak.getSlusaPredmet() != null &&
+                izlazak.getSlusaPredmet().getDrziPredmet() != null &&
+                izlazak.getSlusaPredmet().getDrziPredmet().getPredmet() != null) {
+            response.setPredmetNaziv(
+                    izlazak.getSlusaPredmet().getDrziPredmet().getPredmet().getNaziv()
+            );
+        }
+
+        return response;
+    }
+
+    public static List<IzlazakNaIspitResponse> toIzlazakNaIspitResponseList(List<IzlazakNaIspit> list) {
+        return list.stream()
+                .map(Converters::toIzlazakNaIspitResponse)
+                .collect(Collectors.toList());
+
     }
 }
