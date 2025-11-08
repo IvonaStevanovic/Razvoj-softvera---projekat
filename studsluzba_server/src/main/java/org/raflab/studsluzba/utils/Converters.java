@@ -290,4 +290,25 @@ public class Converters {
                 .collect(Collectors.toList());
 
     }
+
+    public static NastavnikZvanjeResponse toNastavnikZvanjeResponse(NastavnikZvanje nz) {
+        NastavnikZvanjeResponse response = new NastavnikZvanjeResponse();
+        response.setId(nz.getId());
+        response.setDatumIzbora(nz.getDatumIzbora());
+        response.setNaucnaOblast(nz.getNaucnaOblast());
+        response.setUzaNaucnaOblast(nz.getUzaNaucnaOblast());
+        response.setZvanje(nz.getZvanje());
+        response.setAktivno(nz.isAktivno());
+        response.setNastavnikId(nz.getNastavnik().getId());
+        response.setNastavnikImePrezime(nz.getNastavnik().getIme() + " " + nz.getNastavnik().getPrezime());
+        return response;
+    }
+
+    public static List<NastavnikZvanjeResponse> toNastavnikZvanjeResponseList(List<NastavnikZvanje> list) {
+        List<NastavnikZvanjeResponse> responses = new ArrayList<>();
+        for (NastavnikZvanje nz : list) {
+            responses.add(toNastavnikZvanjeResponse(nz));
+        }
+        return responses;
+    }
 }
