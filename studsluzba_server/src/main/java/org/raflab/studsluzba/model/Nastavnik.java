@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.time.LocalDate;
 import java.util.Set;
