@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.utils;
 
+import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.model.dtos.StudentDTO;
@@ -248,4 +249,52 @@ public class EntityMappers {
         return response;
     }
 
+    public SlusaPredmet fromSlusaPredmetRequestToEntity(SlusaPredmetRequest request, StudentIndeks studentIndeks, DrziPredmet drziPredmet, SkolskaGodina skolskaGodina) {
+        SlusaPredmet sp = new SlusaPredmet();
+        sp.setStudentIndeks(studentIndeks);
+        sp.setDrziPredmet(drziPredmet);
+        sp.setSkolskaGodina(skolskaGodina);
+        return sp;
+    }
+
+    public SlusaPredmetResponse fromSlusaPredmetToResponse(SlusaPredmet sp) {
+        SlusaPredmetResponse response = new SlusaPredmetResponse();
+        response.setId(sp.getId());
+
+        if (sp.getStudentIndeks() != null) {
+            response.setStudentIndeksId(sp.getStudentIndeks().getId());
+            if (sp.getStudentIndeks().getStudent() != null) {
+                response.setStudentImePrezime(
+                        sp.getStudentIndeks().getStudent().getIme() + " " +
+                                sp.getStudentIndeks().getStudent().getPrezime()
+                );
+            }
+        }
+
+        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getPredmet() != null) {
+            response.setDrziPredmetId(sp.getDrziPredmet().getPredmet().getId());
+            response.setPredmetNaziv(sp.getDrziPredmet().getPredmet().getNaziv());
+        }
+
+        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getNastavnik() != null) {
+            response.setDrziPredmetId(sp.getDrziPredmet().getNastavnik().getId());
+            response.setNastavnikImePrezime(
+                    sp.getDrziPredmet().getNastavnik().getIme() + " " +
+                            sp.getDrziPredmet().getNastavnik().getPrezime()
+            );
+        }
+
+        if (sp.getSkolskaGodina() != null) {
+            response.setSkolskaGodinaId(sp.getSkolskaGodina().getId());
+            response.setSkolskaGodinaNaziv(sp.getSkolskaGodina().getNaziv());
+        }
+
+        return response;
+    }
+
+    public List<SlusaPredmetResponse> fromSlusaPredmetListToResponseList(List<SlusaPredmet> list) {
+        return list.stream()
+                .map(this::fromSlusaPredmetToResponse)
+                .collect(Collectors.toList());
+    }
 }

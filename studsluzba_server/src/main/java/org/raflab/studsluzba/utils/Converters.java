@@ -335,4 +335,152 @@ public class Converters {
             }
             return response;
         }
- }
+    public static SlusaPredmet toSlusaPredmet(SlusaPredmetRequest request,
+                                              StudentIndeks studentIndeks,
+                                              DrziPredmet drziPredmet,
+                                              SkolskaGodina skolskaGodina) {
+        SlusaPredmet sp = new SlusaPredmet();
+        sp.setStudentIndeks(studentIndeks);
+        sp.setDrziPredmet(drziPredmet);
+        sp.setSkolskaGodina(skolskaGodina);
+        return sp;
+    }
+
+    public static SlusaPredmetResponse toSlusaPredmetResponse(SlusaPredmet sp) {
+        SlusaPredmetResponse response = new SlusaPredmetResponse();
+        response.setId(sp.getId());
+        if (sp.getStudentIndeks() != null) {
+            response.setStudentIndeksId(sp.getStudentIndeks().getId());
+            response.setStudentImePrezime(sp.getStudentIndeks().getStudent().getIme() + " " +
+                    sp.getStudentIndeks().getStudent().getPrezime());
+        }
+        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getPredmet() != null) {
+            response.setDrziPredmetId(sp.getDrziPredmet().getPredmet().getId());
+            response.setPredmetNaziv(sp.getDrziPredmet().getPredmet().getNaziv());
+        }
+        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getNastavnik() != null) {
+            response.setDrziPredmetId(sp.getDrziPredmet().getNastavnik().getId());
+            response.setNastavnikImePrezime(sp.getDrziPredmet().getNastavnik().getIme() + " " +
+                    sp.getDrziPredmet().getNastavnik().getPrezime());
+        }
+        if (sp.getSkolskaGodina() != null) {
+            response.setSkolskaGodinaId(sp.getSkolskaGodina().getId());
+            response.setSkolskaGodinaNaziv(sp.getSkolskaGodina().getNaziv());
+        }
+        return response;
+    }
+
+    public static List<SlusaPredmetResponse> toSlusaPredmetResponseList(List<SlusaPredmet> list) {
+        return list.stream().map(Converters::toSlusaPredmetResponse).collect(Collectors.toList());
+    }
+
+    // u Converters.java dodati
+    public static SrednjaSkola toSrednjaSkola(SrednjaSkolaRequest request) {
+        SrednjaSkola skola = new SrednjaSkola();
+        skola.setNaziv(request.getNaziv());
+        skola.setMesto(request.getMesto());
+        skola.setVrsta(request.getVrsta());
+        return skola;
+    }
+
+    public static SrednjaSkolaResponse toSrednjaSkolaResponse(SrednjaSkola skola) {
+        SrednjaSkolaResponse response = new SrednjaSkolaResponse();
+        response.setId(skola.getId());
+        response.setNaziv(skola.getNaziv());
+        response.setMesto(skola.getMesto());
+        response.setVrsta(skola.getVrsta());
+        return response;
+    }
+    public static VisokoskolskaUstanova toVisokoskolskaUstanova(VisokoskolskaUstanovaRequest request) {
+        VisokoskolskaUstanova ustanova = new VisokoskolskaUstanova();
+        ustanova.setNaziv(request.getNaziv());
+        ustanova.setMesto(request.getMesto());
+        ustanova.setVrsta(request.getVrsta());
+        return ustanova;
+    }
+
+    public static VisokoskolskaUstanovaResponse toVisokoskolskaUstanovaResponse(VisokoskolskaUstanova ustanova) {
+        VisokoskolskaUstanovaResponse response = new VisokoskolskaUstanovaResponse();
+        response.setId(ustanova.getId());
+        response.setNaziv(ustanova.getNaziv());
+        response.setMesto(ustanova.getMesto());
+        response.setVrsta(ustanova.getVrsta());
+        return response;
+    }
+
+    public static List<VisokoskolskaUstanovaResponse> toVisokoskolskaUstanovaResponseList(List<VisokoskolskaUstanova> list) {
+        return list.stream().map(Converters::toVisokoskolskaUstanovaResponse).collect(Collectors.toList());
+    }
+
+    public static SkolskaGodina toSkolskaGodina(SkolskaGodinaRequest request) {
+        SkolskaGodina godina = new SkolskaGodina();
+        godina.setNaziv(request.getNaziv());
+        godina.setAktivna(request.isAktivna());
+        return godina;
+    }
+
+    public static SkolskaGodinaResponse toSkolskaGodinaResponse(SkolskaGodina godina) {
+        SkolskaGodinaResponse response = new SkolskaGodinaResponse();
+        response.setId(godina.getId());
+        response.setNaziv(godina.getNaziv());
+        response.setAktivna(godina.isAktivna());
+        return response;
+    }
+
+    public static List<SkolskaGodinaResponse> toSkolskaGodinaResponseList(List<SkolskaGodina> list) {
+        return list.stream().map(Converters::toSkolskaGodinaResponse).collect(Collectors.toList());
+    }
+
+    public static PredispitneObaveze toPredispitneObaveze(PredispitneObavezeRequest request) {
+        PredispitneObaveze obaveza = new PredispitneObaveze();
+        obaveza.setVrsta(request.getVrsta());
+        obaveza.setMaksPoeni(request.getMaksPoeni());
+
+        if (request.getDrziPredmetId() != null) {
+            DrziPredmet dp = new DrziPredmet();
+            dp.setId(request.getDrziPredmetId());
+            obaveza.setDrziPredmet(dp);
+        }
+
+        if (request.getSkolskaGodinaId() != null) {
+            SkolskaGodina godina = new SkolskaGodina();
+            godina.setId(request.getSkolskaGodinaId());
+            obaveza.setSkolskaGodina(godina);
+        }
+
+        return obaveza;
+    }
+
+    public static PredispitneObavezeResponse toPredispitneObavezeResponse(PredispitneObaveze obaveza) {
+        PredispitneObavezeResponse response = new PredispitneObavezeResponse();
+        response.setId(obaveza.getId());
+        response.setVrsta(obaveza.getVrsta());
+        response.setMaksPoeni(obaveza.getMaksPoeni());
+        if (obaveza.getDrziPredmet() != null) response.setDrziPredmetId(obaveza.getDrziPredmet().getId());
+        if (obaveza.getSkolskaGodina() != null) response.setSkolskaGodinaId(obaveza.getSkolskaGodina().getId());
+        return response;
+    }
+
+    public static List<PredispitneObavezeResponse> toPredispitneObavezeResponseList(List<PredispitneObaveze> list) {
+        return list.stream().map(Converters::toPredispitneObavezeResponse).collect(Collectors.toList());
+    }
+    public static VrstaStudija toVrstaStudija(VrstaStudijaRequest request) {
+        VrstaStudija vrsta = new VrstaStudija();
+        vrsta.setOznaka(request.getOznaka());
+        vrsta.setPunNaziv(request.getPunNaziv());
+        return vrsta;
+    }
+
+    public static VrstaStudijaResponse toVrstaStudijaResponse(VrstaStudija vrsta) {
+        VrstaStudijaResponse response = new VrstaStudijaResponse();
+        response.setId(vrsta.getId());
+        response.setOznaka(vrsta.getOznaka());
+        response.setPunNaziv(vrsta.getPunNaziv());
+        return response;
+    }
+
+    public static List<VrstaStudijaResponse> toVrstaStudijaResponseList(List<VrstaStudija> list) {
+        return list.stream().map(Converters::toVrstaStudijaResponse).collect(Collectors.toList());
+    }
+
+}
