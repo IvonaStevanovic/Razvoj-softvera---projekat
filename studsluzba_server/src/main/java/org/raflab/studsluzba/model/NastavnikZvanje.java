@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 
 import java.time.LocalDate;
 
@@ -24,5 +25,6 @@ public class NastavnikZvanje {
 	private boolean aktivno;
 
 	@ManyToOne
+    @JsonIgnore
 	private Nastavnik nastavnik;
 }

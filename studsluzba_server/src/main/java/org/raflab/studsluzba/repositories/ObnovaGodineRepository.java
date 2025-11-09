@@ -22,4 +22,6 @@ public interface ObnovaGodineRepository extends JpaRepository<ObnovaGodine, Long
     @Query("select o from ObnovaGodine o join o.predmetiKojeUpisuje p where p.id = :idPredmeta")
     List<ObnovaGodine> findByPredmet(Long idPredmeta);
 
+    @Query("select o from ObnovaGodine o left join fetch o.predmetiKojeUpisuje")
+    List<ObnovaGodine> findAllWithPredmeti();
 }
