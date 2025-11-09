@@ -482,5 +482,74 @@ public class Converters {
     public static List<VrstaStudijaResponse> toVrstaStudijaResponseList(List<VrstaStudija> list) {
         return list.stream().map(Converters::toVrstaStudijaResponse).collect(Collectors.toList());
     }
+    public static PrijavaIspita toPrijavaIspita(PrijavaIspitaRequest request, Ispit ispit, StudentIndeks studentIndeks) {
+        PrijavaIspita p = new PrijavaIspita();
+        p.setDatumPrijave(request.getDatumPrijave());
+        p.setIspit(ispit);
+        p.setStudentIndeks(studentIndeks);
+        return p;
+    }
+
+    public static PrijavaIspitaResponse toPrijavaIspitaResponse(PrijavaIspita p) {
+        PrijavaIspitaResponse response = new PrijavaIspitaResponse();
+        response.setId(p.getId());
+        response.setDatumPrijave(p.getDatumPrijave());
+        response.setIspitId(p.getIspit() != null ? p.getIspit().getId() : null);
+        response.setStudentIndeksId(p.getStudentIndeks() != null ? p.getStudentIndeks().getId() : null);
+        return response;
+    }
+
+    public static PredispitniPoeni toPredispitniPoeni(PredispitniPoeniRequest request,
+                                                      StudentIndeks student,
+                                                      PredispitneObaveze obaveza,
+                                                      SlusaPredmet slusaPredmet,
+                                                      SkolskaGodina skolskaGodina) {
+        PredispitniPoeni p = new PredispitniPoeni();
+        p.setPoeni(request.getPoeni());
+        p.setStudentIndeks(student);
+        p.setPredispitnaObaveza(obaveza);
+        p.setSlusaPredmet(slusaPredmet);
+        p.setSkolskaGodina(skolskaGodina);
+        return p;
+    }
+
+    public static PredispitniPoeniResponse toPredispitniPoeniResponse(PredispitniPoeni p) {
+        PredispitniPoeniResponse response = new PredispitniPoeniResponse();
+        response.setId(p.getId());
+        response.setPoeni(p.getPoeni());
+        response.setStudentIndeksId(p.getStudentIndeks() != null ? p.getStudentIndeks().getId() : null);
+        response.setPredispitnaObavezaId(p.getPredispitnaObaveza() != null ? p.getPredispitnaObaveza().getId() : null);
+        response.setSlusaPredmetId(p.getSlusaPredmet() != null ? p.getSlusaPredmet().getId() : null);
+        response.setSkolskaGodinaId(p.getSkolskaGodina() != null ? p.getSkolskaGodina().getId() : null);
+        return response;
+    }
+    public static UpisGodine toUpisGodine(UpisGodineRequest request,
+                                          StudentIndeks student,
+                                          Set<Predmet> prenetiPredmeti) {
+        UpisGodine upis = new UpisGodine();
+        upis.setGodinaStudija(request.getGodinaStudija());
+        upis.setDatum(request.getDatum());
+        upis.setNapomena(request.getNapomena());
+        upis.setStudentIndeks(student);
+        upis.setPrenetiPredmeti(prenetiPredmeti);
+        return upis;
+    }
+
+    public static UpisGodineResponse toUpisGodineResponse(UpisGodine upis) {
+        UpisGodineResponse response = new UpisGodineResponse();
+        response.setId(upis.getId());
+        response.setGodinaStudija(upis.getGodinaStudija());
+        response.setDatum(upis.getDatum());
+        response.setNapomena(upis.getNapomena());
+        response.setStudentIndeksId(upis.getStudentIndeks() != null ? upis.getStudentIndeks().getId() : null);
+        if (upis.getPrenetiPredmeti() != null) {
+            response.setPrenetiPredmetiNazivi(
+                    upis.getPrenetiPredmeti().stream()
+                            .map(Predmet::getNaziv)
+                            .collect(Collectors.toSet())
+            );
+        }
+        return response;
+    }
 
 }
