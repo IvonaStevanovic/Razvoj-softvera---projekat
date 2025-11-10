@@ -23,17 +23,26 @@ public class ObnovaGodineService {
     private final PredmetRepository predmetRepository;
 
     @Transactional
-    public ObnovaGodine save(ObnovaGodineRequest request){
-        ObnovaGodine obnova=new ObnovaGodine();
-        StudentIndeks indeks=studentIndeksRepository.findById(request.getStudentIndeksId())
-                .orElseThrow(()->new RuntimeException("StudentIndeks sa id: "+request.getStudentIndeksId()+" ne postoji"));
+    public ObnovaGodine save(ObnovaGodineRequest request) {
+        ObnovaGodine obnova = new ObnovaGodine();
+
+        // pronalazak indeksa studenta
+        StudentIndeks indeks = studentIndeksRepository.findById(request.getStudentIndeksId())
+                .orElseThrow(() -> new RuntimeException(
+                        "StudentIndeks sa id: " + request.getStudentIndeksId() + " ne postoji"
+                ));
         obnova.setStudentIndeks(indeks);
 
+        // pronalazak predmeta koje student upisuje
         Set<Predmet> predmeti = new HashSet<>();
-        if(request.getPredmetIds()!=null){
-            predmeti = new HashSet<>(predmetRepository.findByIdIn((List<Long>) request.getPredmetIds()));
+        if (request.getPredmetIds() != null && !request.getPredmetIds().isEmpty()) {
+            predmeti = new HashSet<>(predmetRepository.findByIdIn(
+                    new java.util.ArrayList<>(request.getPredmetIds())
+            ));
         }
         obnova.setPredmetiKojeUpisuje(predmeti);
+
+        // ostala polja
         obnova.setGodinaStudija(request.getGodinaStudija());
         obnova.setDatum(request.getDatum());
         obnova.setNapomena(request.getNapomena());
@@ -41,12 +50,16 @@ public class ObnovaGodineService {
         return repository.save(obnova);
     }
 
+
+    @Transactional
     public ObnovaGodine findById(Long id){
-        return repository.findById(id).orElseThrow(()->new RuntimeException("ObnovaGodine ne postoji: "+id));
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("ObnovaGodine ne postoji: "+id));
     }
 
-    public java.util.List<ObnovaGodine> findAll(){
-        return repository.findAll();
+    @Transactional
+    public List<ObnovaGodine> findAll(){
+        return repository.findAllWithPredmetiAndStudent();
     }
 
     public void delete(Long id){

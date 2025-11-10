@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.response.UpisGodineResponse;
 import org.raflab.studsluzba.model.UpisGodine;
+import org.raflab.studsluzba.repositories.UpisGodineRepository;
 import org.raflab.studsluzba.services.UpisGodineService;
 import org.raflab.studsluzba.utils.Converters;
+import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,11 +18,12 @@ import java.util.stream.Collectors;
 public class UpisGodineController {
 
     private final UpisGodineService service;
-
+    private final UpisGodineRepository upisGodineRepository;
     @GetMapping("/all")
     public List<UpisGodineResponse> getAll() {
-        return service.findAll().stream()
-                .map(Converters::toUpisGodineResponse)
+        return upisGodineRepository.findAllWithPrenetiPredmeti()
+                .stream()
+                .map(EntityMappers::toUpisGodineResponse)
                 .collect(Collectors.toList());
     }
 

@@ -16,28 +16,32 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/obnova-godine")
 @RequiredArgsConstructor
 public class ObnovaGodineController {
+
     private final ObnovaGodineService service;
 
     @PostMapping("/add")
     public ObnovaGodineResponse add(@RequestBody ObnovaGodineRequest request){
-        ObnovaGodine obnova=service.save(request);
+        ObnovaGodine obnova = service.save(request);
         return Converters.toObnovaGodineResponse(obnova);
     }
 
     @GetMapping("/all")
     public List<ObnovaGodineResponse> getAll(){
-        return service.findAll().stream().map(Converters::toObnovaGodineResponse).collect(Collectors.toList());
+        return service.findAll()
+                .stream()
+                .map(Converters::toObnovaGodineResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/id/{id}")
     public ObnovaGodineResponse getById(@PathVariable Long id){
-        ObnovaGodine obnova=service.findById(id);
+        ObnovaGodine obnova = service.findById(id);
         return Converters.toObnovaGodineResponse(obnova);
     }
 
     @DeleteMapping("/delete/{id}")
     public String delete(@PathVariable Long id){
         service.delete(id);
-        return "Obrisana obnova godine sa ID" + id;
+        return "Obrisana obnova godine sa ID " + id;
     }
 }

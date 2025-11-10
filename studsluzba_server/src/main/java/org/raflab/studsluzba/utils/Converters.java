@@ -5,52 +5,78 @@ import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Converters {
 
-    public static Nastavnik toNastavnik(NastavnikRequest nastavnikRequest) {
+    public static Nastavnik toNastavnik(NastavnikRequest request) {
+        if (request == null) return null;
+
         Nastavnik nastavnik = new Nastavnik();
-        nastavnik.setIme(nastavnikRequest.getIme());
-        nastavnik.setPrezime(nastavnikRequest.getPrezime());
-        nastavnik.setSrednjeIme(nastavnikRequest.getSrednjeIme());
-        nastavnik.setEmail(nastavnikRequest.getEmail());
-        nastavnik.setBrojTelefona(nastavnikRequest.getBrojTelefona());
-        nastavnik.setAdresa(nastavnikRequest.getAdresa());
-        nastavnik.setZvanja(nastavnikRequest.getZvanja());
-        nastavnik.setDatumRodjenja(nastavnikRequest.getDatumRodjenja());
-        nastavnik.setPol(nastavnikRequest.getPol());
-        nastavnik.setJmbg(nastavnikRequest.getJmbg());
+        nastavnik.setIme(request.getIme());
+        nastavnik.setPrezime(request.getPrezime());
+        nastavnik.setSrednjeIme(request.getSrednjeIme());
+        nastavnik.setEmail(request.getEmail());
+        nastavnik.setBrojTelefona(request.getBrojTelefona());
+        nastavnik.setAdresa(request.getAdresa());
+        nastavnik.setDatumRodjenja(request.getDatumRodjenja());
+        nastavnik.setPol(request.getPol());
+        nastavnik.setJmbg(request.getJmbg());
+
+        if (request.getZvanja() != null) {
+            Set<NastavnikZvanje> zvanja = request.getZvanja().stream()
+                    .map(z -> {
+                        NastavnikZvanje nz = new NastavnikZvanje();
+                        nz.setZvanje(z);           // samo naziv zvanja
+                        nz.setNastavnik(nastavnik); // poveži sa nastavnikom
+                        return nz;
+                    })
+                    .collect(Collectors.toSet());
+            nastavnik.setZvanja(zvanja);
+        }
+
         return nastavnik;
     }
 
     public static NastavnikResponse toNastavnikResponse(Nastavnik nastavnik) {
-        NastavnikResponse response = new NastavnikResponse();
-        response.setId(nastavnik.getId());
-        response.setIme(nastavnik.getIme());
-        response.setPrezime(nastavnik.getPrezime());
-        response.setSrednjeIme(nastavnik.getSrednjeIme());
-        response.setEmail(nastavnik.getEmail());
-        response.setBrojTelefona(nastavnik.getBrojTelefona());
-        response.setAdresa(nastavnik.getAdresa());
-        response.setZvanja(nastavnik.getZvanja());
+        if (nastavnik == null) return null;
 
-        response.setDatumRodjenja(nastavnik.getDatumRodjenja());
-        response.setPol(nastavnik.getPol());
-        response.setJmbg(nastavnik.getJmbg());
-        return response;
+        NastavnikResponse resp = new NastavnikResponse();
+        resp.setId(nastavnik.getId());
+        resp.setIme(nastavnik.getIme());
+        resp.setPrezime(nastavnik.getPrezime());
+        resp.setSrednjeIme(nastavnik.getSrednjeIme());
+        resp.setEmail(nastavnik.getEmail());
+        resp.setBrojTelefona(nastavnik.getBrojTelefona());
+        resp.setAdresa(nastavnik.getAdresa());
+        resp.setDatumRodjenja(nastavnik.getDatumRodjenja());
+        resp.setPol(nastavnik.getPol());
+        resp.setJmbg(nastavnik.getJmbg());
+
+        if (nastavnik.getZvanja() != null) {
+            Set<String> zvanja = nastavnik.getZvanja().stream()
+                    .map(NastavnikZvanje::getZvanje)
+                    .collect(Collectors.toSet());
+            resp.setZvanja(zvanja);
+        } else {
+            resp.setZvanja(Set.of());
+        }
+
+        return resp;
     }
 
-    public static List<NastavnikResponse> toNastavnikResponseList(Iterable<Nastavnik> nastavnikIterable) {
-        List<NastavnikResponse> nastavnikResponses = new ArrayList<>();
-
-        nastavnikIterable.forEach((nastavnik) -> {
-            nastavnikResponses.add(toNastavnikResponse(nastavnik));
-        });
-        return nastavnikResponses;
+    public static List<NastavnikResponse> toNastavnikResponseList(Iterable<Nastavnik> nastavnici) {
+        List<NastavnikResponse> responses = new ArrayList<>();
+        if (nastavnici != null) {
+            nastavnici.forEach(n -> responses.add(toNastavnikResponse(n)));
+        }
+        return responses;
     }
+
+
 
     public static StudentPodaci toStudentPodaci(StudentPodaciRequest request) {
         StudentPodaci studentPodaci = new StudentPodaci();
@@ -77,15 +103,46 @@ public class Converters {
         return studentPodaci;
     }
 
-    public static StudentIndeks toStudentIndeks(StudentIndeksRequest studentIndeksRequest) {
-        StudentIndeks studentIndeks = new StudentIndeks();
-        studentIndeks.setGodina(studentIndeksRequest.getGodina());
-        studentIndeks.setStudProgramOznaka(studentIndeksRequest.getStudProgramOznaka());
-        studentIndeks.setNacinFinansiranja(studentIndeksRequest.getNacinFinansiranja());
-        studentIndeks.setAktivan(studentIndeksRequest.isAktivan());
-        studentIndeks.setVaziOd(studentIndeksRequest.getVaziOd());
-        return studentIndeks;
+    public static StudentIndeks toStudentIndeks(StudentIndeksRequest request) {
+        if (request == null) return null;
+
+        StudentIndeks si = new StudentIndeks();
+        si.setGodina(request.getGodina());
+        si.setStudProgramOznaka(request.getStudProgramOznaka());
+        si.setNacinFinansiranja(request.getNacinFinansiranja());
+        si.setAktivan(request.isAktivan());
+        si.setVaziOd(request.getVaziOd());
+
+        return si;
     }
+
+    public static StudentIndeksResponse toStudentIndeksResponse(StudentIndeks si) {
+        if (si == null) return null;
+
+        StudentIndeksResponse resp = new StudentIndeksResponse();
+        resp.setId(si.getId());
+        resp.setBroj(si.getBroj());  // ovo je polje u klasi
+        resp.setGodina(si.getGodina());
+        resp.setStudProgramOznaka(si.getStudProgramOznaka());
+        resp.setNacinFinansiranja(si.getNacinFinansiranja());
+        resp.setAktivan(si.isAktivan());
+        resp.setVaziOd(si.getVaziOd());
+        resp.setOstvarenoEspb(si.getOstvarenoEspb());
+
+        // inicijalizacija lazy kolekcije StudentPodaci.indeksi
+        if (si.getStudent() != null) {
+            si.getStudent().getIndeksi().size();  // Hibernate lazy load
+            resp.setStudent(si.getStudent());
+        }
+
+        if (si.getStudijskiProgram() != null) {
+            resp.setStudijskiProgram(si.getStudijskiProgram());
+        }
+
+        return resp;
+    }
+
+
 
     public static Ispit toIspit(IspitRequest request) {
         Ispit ispit = new Ispit();
@@ -312,29 +369,31 @@ public class Converters {
         return responses;
     }
 
-    public static ObnovaGodineResponse toObnovaGodineResponse(ObnovaGodine obnova) {
-            ObnovaGodineResponse response = new ObnovaGodineResponse();
-            response.setId(obnova.getId());
-            response.setGodinaStudija(obnova.getGodinaStudija());
-            response.setDatum(obnova.getDatum());
-            response.setNapomena(obnova.getNapomena());
-            if (obnova.getStudentIndeks() != null) {
-                response.setStudentIndeksId(obnova.getStudentIndeks().getId());
-                response.setStudentImePrezime(
-                        obnova.getStudentIndeks().getStudent().getIme() + " " +
-                                obnova.getStudentIndeks().getStudent().getPrezime()
-                );
-            }
-            if (obnova.getPredmetiKojeUpisuje() != null) {
-                response.setPredmetiNazivi(
-                        obnova.getPredmetiKojeUpisuje()
-                                .stream()
-                                .map(p -> p.getNaziv())
-                                .collect(Collectors.toSet())
-                );
-            }
-            return response;
+    public static ObnovaGodineResponse toObnovaGodineResponse(ObnovaGodine obnova){
+        ObnovaGodineResponse response = new ObnovaGodineResponse();
+        response.setId(obnova.getId());
+        response.setGodinaStudija(obnova.getGodinaStudija());
+        response.setDatum(obnova.getDatum());
+        response.setNapomena(obnova.getNapomena());
+
+        if(obnova.getStudentIndeks() != null && obnova.getStudentIndeks().getStudent() != null){
+            response.setStudentIndeksId(obnova.getStudentIndeks().getId());
+            response.setStudentImePrezime(
+                    obnova.getStudentIndeks().getStudent().getIme() + " " +
+                            obnova.getStudentIndeks().getStudent().getPrezime()
+            );
         }
+
+        if(obnova.getPredmetiKojeUpisuje() != null){
+            Set<String> nazivi = obnova.getPredmetiKojeUpisuje()
+                    .stream()
+                    .map(p -> p.getNaziv())
+                    .collect(Collectors.toSet());
+            response.setPredmetiNazivi(nazivi);
+        }
+
+        return response;
+    }
     public static SlusaPredmet toSlusaPredmet(SlusaPredmetRequest request,
                                               StudentIndeks studentIndeks,
                                               DrziPredmet drziPredmet,
@@ -347,27 +406,37 @@ public class Converters {
     }
 
     public static SlusaPredmetResponse toSlusaPredmetResponse(SlusaPredmet sp) {
-        SlusaPredmetResponse response = new SlusaPredmetResponse();
-        response.setId(sp.getId());
+        SlusaPredmetResponse resp = new SlusaPredmetResponse();
+        resp.setId(sp.getId());
+
+        // StudentIndeks
         if (sp.getStudentIndeks() != null) {
-            response.setStudentIndeksId(sp.getStudentIndeks().getId());
-            response.setStudentImePrezime(sp.getStudentIndeks().getStudent().getIme() + " " +
-                    sp.getStudentIndeks().getStudent().getPrezime());
+            resp.setStudentIndeksId(sp.getStudentIndeks().getId());
+
+            if (sp.getStudentIndeks().getStudent() != null) {
+                // NIKAKO NE uključuj indeksi
+                resp.setStudentImePrezime(sp.getStudentIndeks().getStudent().getIme() + " " +
+                        sp.getStudentIndeks().getStudent().getPrezime());
+            }
         }
-        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getPredmet() != null) {
-            response.setDrziPredmetId(sp.getDrziPredmet().getPredmet().getId());
-            response.setPredmetNaziv(sp.getDrziPredmet().getPredmet().getNaziv());
+
+        // DrziPredmet
+        if (sp.getDrziPredmet() != null) {
+            resp.setDrziPredmetId(sp.getDrziPredmet().getId());
+            if (sp.getDrziPredmet().getPredmet() != null) {
+                resp.setPredmetNaziv(sp.getDrziPredmet().getPredmet().getNaziv());
+            }
+            if (sp.getDrziPredmet().getNastavnik() != null) {
+                resp.setNastavnikImePrezime(sp.getDrziPredmet().getNastavnik().getIme() + " " +
+                        sp.getDrziPredmet().getNastavnik().getPrezime());
+            }
+            if (sp.getDrziPredmet().getSkolskaGodina() != null) {
+                resp.setSkolskaGodinaId(sp.getDrziPredmet().getSkolskaGodina().getId());
+                resp.setSkolskaGodinaNaziv(sp.getDrziPredmet().getSkolskaGodina().getNaziv());
+            }
         }
-        if (sp.getDrziPredmet() != null && sp.getDrziPredmet().getNastavnik() != null) {
-            response.setDrziPredmetId(sp.getDrziPredmet().getNastavnik().getId());
-            response.setNastavnikImePrezime(sp.getDrziPredmet().getNastavnik().getIme() + " " +
-                    sp.getDrziPredmet().getNastavnik().getPrezime());
-        }
-        if (sp.getSkolskaGodina() != null) {
-            response.setSkolskaGodinaId(sp.getSkolskaGodina().getId());
-            response.setSkolskaGodinaNaziv(sp.getSkolskaGodina().getNaziv());
-        }
-        return response;
+
+        return resp;
     }
 
     public static List<SlusaPredmetResponse> toSlusaPredmetResponseList(List<SlusaPredmet> list) {
@@ -524,31 +593,36 @@ public class Converters {
         return response;
     }
     public static UpisGodine toUpisGodine(UpisGodineRequest request,
-                                          StudentIndeks student,
-                                          Set<Predmet> prenetiPredmeti) {
-        UpisGodine upis = new UpisGodine();
-        upis.setGodinaStudija(request.getGodinaStudija());
-        upis.setDatum(request.getDatum());
-        upis.setNapomena(request.getNapomena());
-        upis.setStudentIndeks(student);
-        upis.setPrenetiPredmeti(prenetiPredmeti);
-        return upis;
-    }
+                                              StudentIndeks student,
+                                              Set<Predmet> prenetiPredmeti) {
+            UpisGodine upis = new UpisGodine();
+            upis.setGodinaStudija(request.getGodinaStudija());
+            upis.setDatum(request.getDatum());
+            upis.setNapomena(request.getNapomena());
+            upis.setStudentIndeks(student);
+            upis.setPrenetiPredmeti(prenetiPredmeti != null ? prenetiPredmeti : Set.of());
+            return upis;
+        }
 
-    public static UpisGodineResponse toUpisGodineResponse(UpisGodine upis) {
+        public static UpisGodineResponse toUpisGodineResponse(UpisGodine upis) {
         UpisGodineResponse response = new UpisGodineResponse();
         response.setId(upis.getId());
         response.setGodinaStudija(upis.getGodinaStudija());
         response.setDatum(upis.getDatum());
         response.setNapomena(upis.getNapomena());
         response.setStudentIndeksId(upis.getStudentIndeks() != null ? upis.getStudentIndeks().getId() : null);
+
         if (upis.getPrenetiPredmeti() != null) {
             response.setPrenetiPredmetiNazivi(
-                    upis.getPrenetiPredmeti().stream()
+                    upis.getPrenetiPredmeti()
+                            .stream()
                             .map(Predmet::getNaziv)
                             .collect(Collectors.toSet())
             );
+        } else {
+            response.setPrenetiPredmetiNazivi(Set.of());
         }
+
         return response;
     }
 

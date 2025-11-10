@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
+import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.model.dtos.StudentDTO;
@@ -36,9 +37,8 @@ public class EntityMappers {
 	}
 
     public StudentIndeksResponse fromStudentIndexToResponse(StudentIndeks si) {
-        if (si == null) {
-            return null;
-        }
+        if (si == null) return null;
+
         StudentIndeksResponse response = new StudentIndeksResponse();
         response.setId(si.getId());
         response.setBroj(si.getBroj());
@@ -48,10 +48,29 @@ public class EntityMappers {
         response.setAktivan(si.isAktivan());
         response.setVaziOd(si.getVaziOd());
         response.setOstvarenoEspb(si.getOstvarenoEspb());
-        response.setStudijskiProgram(si.getStudijskiProgram());
-        response.setStudent(si.getStudent());
+
+        // Lagani DTO za StudijskiProgram
+        if (si.getStudijskiProgram() != null) {
+            StudijskiProgram sp = new StudijskiProgram();
+            sp.setId(si.getStudijskiProgram().getId());
+            sp.setOznaka(si.getStudijskiProgram().getOznaka());
+            sp.setNaziv(si.getStudijskiProgram().getNaziv());
+            response.setStudijskiProgram(sp);
+        }
+
+        // Lagani DTO za StudentPodaci
+        if (si.getStudent() != null) {
+            StudentPodaci student = new StudentPodaci();
+            student.setId(si.getStudent().getId());
+            student.setIme(si.getStudent().getIme());
+            student.setPrezime(si.getStudent().getPrezime());
+            student.setEmailFakultet(si.getStudent().getEmailFakultet());
+            response.setStudent(student);
+        }
+
         return response;
     }
+
 
     public StudentPodaciResponse fromStudentPodaciToResponse(StudentPodaci sp) {
         if (sp == null) {
@@ -83,15 +102,39 @@ public class EntityMappers {
 
         return response;
     }
-    public NastavnikResponse fromNastavnikToResponse(Nastavnik entity) {
-        if (entity == null) return null;
+
+    public static NastavnikResponse toNastavnikResponse(Nastavnik nastavnik) {
+        if (nastavnik == null) return null;
+
         NastavnikResponse resp = new NastavnikResponse();
-        resp.setId(entity.getId());
-        resp.setIme(entity.getIme());
-        resp.setPrezime(entity.getPrezime());
-        resp.setEmail(entity.getEmail());
-        resp.setBrojTelefona(entity.getBrojTelefona());
+        resp.setId(nastavnik.getId());
+        resp.setIme(nastavnik.getIme());
+        resp.setPrezime(nastavnik.getPrezime());
+        resp.setSrednjeIme(nastavnik.getSrednjeIme());
+        resp.setEmail(nastavnik.getEmail());
+        resp.setBrojTelefona(nastavnik.getBrojTelefona());
+        resp.setAdresa(nastavnik.getAdresa());
+        resp.setDatumRodjenja(nastavnik.getDatumRodjenja());
+        resp.setPol(nastavnik.getPol());
+        resp.setJmbg(nastavnik.getJmbg());
+
+        if (nastavnik.getZvanja() != null) {
+            resp.setZvanja(
+                    nastavnik.getZvanja().stream()
+                            .map(NastavnikZvanje::getZvanje)
+                            .collect(Collectors.toSet())
+            );
+        }
+
         return resp;
+    }
+
+
+
+    public static List<NastavnikResponse> toNastavnikResponseList(Iterable<Nastavnik> nastavnici) {
+        return ((List<Nastavnik>) nastavnici).stream()
+                .map(EntityMappers::toNastavnikResponse)
+                .collect(Collectors.toList());
     }
 
     public IspitResponse fromIspitToResponse(Ispit entity) {
@@ -297,4 +340,44 @@ public class EntityMappers {
                 .map(this::fromSlusaPredmetToResponse)
                 .collect(Collectors.toList());
     }
+
+
+    public static UpisGodine toUpisGodine(UpisGodineRequest request,
+                                          StudentIndeks student,
+                                          Set<Predmet> prenetiPredmeti) {
+        UpisGodine upis = new UpisGodine();
+        upis.setGodinaStudija(request.getGodinaStudija());
+        upis.setDatum(request.getDatum());
+        upis.setNapomena(request.getNapomena());
+        upis.setStudentIndeks(student);
+        upis.setPrenetiPredmeti(prenetiPredmeti);
+        return upis;
+    }
+
+    public static UpisGodineResponse toUpisGodineResponse(UpisGodine upis) {
+        UpisGodineResponse response = new UpisGodineResponse();
+        response.setId(upis.getId());
+        response.setGodinaStudija(upis.getGodinaStudija());
+        response.setDatum(upis.getDatum());
+        response.setNapomena(upis.getNapomena());
+
+        if (upis.getStudentIndeks() != null) {
+            response.setStudentIndeksId(upis.getStudentIndeks().getId());
+        } else {
+            response.setStudentIndeksId(null);
+        }
+
+        if (upis.getPrenetiPredmeti() != null && !upis.getPrenetiPredmeti().isEmpty()) {
+            response.setPrenetiPredmetiNazivi(
+                    upis.getPrenetiPredmeti().stream()
+                            .map(Predmet::getNaziv)
+                            .collect(Collectors.toSet())
+            );
+        } else {
+            response.setPrenetiPredmetiNazivi(Set.of());
+        }
+
+        return response;
+    }
+
 }

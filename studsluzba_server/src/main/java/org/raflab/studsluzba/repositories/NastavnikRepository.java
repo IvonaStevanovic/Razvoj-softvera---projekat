@@ -1,21 +1,22 @@
 package org.raflab.studsluzba.repositories;
 
-import java.util.List;
-
 import org.raflab.studsluzba.model.Nastavnik;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface NastavnikRepository extends JpaRepository<Nastavnik, Long> {	//	nasljedjene implementacije poput findById i findByAll
-	
-	@Query("select sp from Nastavnik sp where "
-			+ "(:ime is null or lower(sp.ime) like :ime) and "
-			+ "(:prezime is null or lower(sp.prezime) like :prezime)")			
-	List<Nastavnik> findByImeAndPrezime(String ime, String prezime);
+import java.util.List;
 
-	List<Nastavnik> findByEmailIn(List<String> emails);
-	
+@Repository
+public interface NastavnikRepository extends JpaRepository<Nastavnik, Long> {
+
+    @Query("SELECT n FROM Nastavnik n LEFT JOIN FETCH n.zvanja")
+    List<Nastavnik> findAllWithZvanja();
+
+    @Query("SELECT sp FROM Nastavnik sp WHERE (:ime IS NULL OR LOWER(sp.ime) LIKE :ime) AND (:prezime IS NULL OR LOWER(sp.prezime) LIKE :prezime)")
+    List<Nastavnik> findByImeAndPrezime(String ime, String prezime);
+    List<Nastavnik> findByEmailIn(List<String> emails);
 }
+
+
 

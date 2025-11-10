@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -17,9 +18,11 @@ public class UpisGodine {
     private LocalDate datum;
     private String napomena;
     @ManyToOne
+    @JsonIgnore
     private StudentIndeks studentIndeks;
 
     @ManyToMany
+    @JsonIgnore
     @JoinTable(
             name = "upis_preneti_predmeti",
             joinColumns = @JoinColumn(name = "upis_godine_id"),

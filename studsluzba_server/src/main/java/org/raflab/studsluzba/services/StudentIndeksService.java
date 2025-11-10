@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.services;
 
+import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.raflab.studsluzba.repositories.StudentIndeksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,18 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@AllArgsConstructor
 public class StudentIndeksService {
-    
-    @Autowired
-    private StudentIndeksRepository studentIndeksRepository;
+
+    private final StudentIndeksRepository studentIndeksRepository;
+
+    @Transactional(readOnly = true)
+    public List<StudentIndeks> findAll() {
+        List<StudentIndeks> lista = studentIndeksRepository.findAll();
+        // inicijalizacija lazy polja
+        lista.forEach(si -> si.getStudent().getIndeksi().size());
+        return lista;
+    }
 
     @Transactional(readOnly = true)
     public int findBroj(int godina, String studProgramOznaka) {

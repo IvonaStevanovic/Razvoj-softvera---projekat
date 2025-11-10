@@ -3,8 +3,8 @@ package org.raflab.studsluzba.controllers;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
+import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.StudentIndeksRequest;
 import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.response.StudentIndeksResponse;
@@ -28,168 +28,155 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path="/api/student")
+@RequestMapping("/api/student")
+@AllArgsConstructor
 public class StudentController {
 
-	@Autowired
-	StudentPodaciRepository studentPodaciRepository;
-	
-	@Autowired
-	StudentIndeksRepository studentIndeksRepository;
-	
-	@Autowired
-	StudentProfileService studentProfileService;
+    private final StudentPodaciRepository studentPodaciRepository;
+    private final StudentIndeksRepository studentIndeksRepository;
+    private final StudentProfileService studentProfileService;
+    private final StudentIndeksService studentIndeksService;
+    private final StudijskiProgramRepository studijskiProgramRepository;
+    private final EntityMappers entityMappers;
 
-	@Autowired
-	StudentIndeksService studentIndeksService;
+    @PostMapping("/add")
+    public Long addNewStudentPodaci(@RequestBody StudentPodaciRequest studentPodaciRequest) {
+        StudentPodaci sp = studentPodaciRepository.save(Converters.toStudentPodaci(studentPodaciRequest));
+        return sp.getId();
+    }
 
-	@Autowired
-	StudijskiProgramRepository studijskiProgramRepository;
-
-    @Autowired
-    EntityMappers entityMappers;
-
-    @PostMapping(path="/add") 
-   	public Long addNewStudentPodaci(@RequestBody StudentPodaciRequest studentPodaci) {
-    	
-   	    StudentPodaci sp = studentPodaciRepository.save(Converters.toStudentPodaci(studentPodaci));
-   	    
-   	    return sp.getId();
- 	}
-
-
-	@GetMapping(path="/all")
-	public Iterable<StudentPodaciResponse> getAllStudentPodaci() {
-        return studentPodaciRepository.findAll().stream()
+    @GetMapping("/all")
+    public List<StudentPodaciResponse> getAllStudentPodaci() {
+        return studentPodaciRepository.findAll()
+                .stream()
                 .map(entityMappers::fromStudentPodaciToResponse)
                 .collect(Collectors.toList());
-	}
-
-	@GetMapping(path="/svi")
-	public Page<StudentPodaciResponse> getAllStudentPodaciPaginated(@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size) {
-		return studentPodaciRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()))
-                .map(entityMappers::fromStudentPodaciToResponse);
-	}
-
-	@GetMapping(path="/podaci/{id}")
-	public StudentPodaciResponse getStudentPodaci(@PathVariable Long id){
-		Optional<StudentPodaci> rez = studentPodaciRepository.findById(id);
-		if(rez.isEmpty()) return null;
-		return entityMappers.fromStudentPodaciToResponse(rez.get());
-	}
-    
-    @PostMapping(path="/saveindeks")
-   	public Long saveIndeks(@RequestBody StudentIndeksRequest request) {
-		StudentIndeks studentIndeks = Converters.toStudentIndeks(request);
-
-		int nextBroj = studentIndeksService.findBroj(request.getGodina(), request.getStudProgramOznaka());
-		studentIndeks.setBroj(nextBroj);
-
-		Optional<StudentPodaci> studentPodaci = studentPodaciRepository.findById(request.getStudentId());
-		if(studentPodaci.isEmpty()) return null;		//TODO - throw error if not exist
-		studentIndeks.setStudent(studentPodaci.get());
-
-		List<StudijskiProgram> studijskiProgrami = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka());
-		if (studijskiProgrami.isEmpty()) {
-            throw new RuntimeException("No StudijskiProgram found with oznaka: " + request.getStudProgramOznaka());
-		}
-		studentIndeks.setStudijskiProgram(studijskiProgrami.get(0));
-
-		try {
-			StudentIndeks savedStudentIndeks = studentIndeksRepository.save(studentIndeks);
-			return savedStudentIndeks.getId();
-		} catch (DataIntegrityViolationException e) {
-			// TODO
-			throw new RuntimeException("Duplicate entry for broj, godina, and studProgramOznaka", e);
-		} catch (Exception e) {
-			throw new RuntimeException("Error while saving the StudentIndeks.", e);
-		}
- 	}
-    
-    @GetMapping(path="/indeks/{id}")
-    public StudentIndeksResponse getStudentIndeks(@PathVariable Long id){
-    	Optional<StudentIndeks> rez = studentIndeksRepository.findById(id);
-    	if(rez.isEmpty()) return null;
-    	else {
-    		StudentIndeks retVal = rez.get();    		
-    		return entityMappers.fromStudentIndexToResponse(retVal);
-    	}
-    	    	
     }
-    
-    @GetMapping(path="/indeksi/{idStudentPodaci}")
-    public List<StudentIndeksResponse> getIndeksiForStudentPodaciId(@PathVariable Long idStudentPodaci){
+
+    @GetMapping("/svi")
+    public Page<StudentPodaciResponse> getAllStudentPodaciPaginated(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        return studentPodaciRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()))
+                .map(entityMappers::fromStudentPodaciToResponse);
+    }
+
+    @GetMapping("/podaci/{id}")
+    public StudentPodaciResponse getStudentPodaci(@PathVariable Long id) {
+        return studentPodaciRepository.findById(id)
+                .map(entityMappers::fromStudentPodaciToResponse)
+                .orElse(null);
+    }
+
+    @PostMapping("/saveindeks")
+    public Long saveIndeks(@RequestBody StudentIndeksRequest request) {
+
+        StudentIndeks studentIndeks = Converters.toStudentIndeks(request);
+
+        // postavljanje broja indeksa
+        int nextBroj = studentIndeksService.findBroj(request.getGodina(), request.getStudProgramOznaka());
+        studentIndeks.setBroj(nextBroj);
+
+        // postavljanje studenta
+        StudentPodaci studentPodaci = studentPodaciRepository.findById(request.getStudentId())
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        studentIndeks.setStudent(studentPodaci);
+
+        // postavljanje studijskog programa
+        StudijskiProgram studijskiProgram = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka())
+                .stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("Studijski program not found"));
+        studentIndeks.setStudijskiProgram(studijskiProgram);
+
+        try {
+            StudentIndeks saved = studentIndeksRepository.save(studentIndeks);
+            return saved.getId();
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Duplicate entry for broj, godina, studProgramOznaka", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while saving StudentIndeks", e);
+        }
+    }
+
+    @GetMapping("/indeks/{id}")
+    public StudentIndeksResponse getStudentIndeks(@PathVariable Long id) {
+        return studentIndeksRepository.findById(id)
+                .map(entityMappers::fromStudentIndexToResponse)
+                .orElse(null);
+    }
+
+    @GetMapping("/indeksi/{idStudentPodaci}")
+    public List<StudentIndeksResponse> getIndeksiForStudentPodaciId(@PathVariable Long idStudentPodaci) {
         return studentIndeksRepository.findStudentIndeksiForStudentPodaciId(idStudentPodaci)
                 .stream()
-                .map(entityMappers::fromStudentIndexToResponse) // map each entity to response
+                .map(entityMappers::fromStudentIndexToResponse)
                 .collect(Collectors.toList());
     }
-    
-    @GetMapping(path="/fastsearch")  // salje se string oblika rn1923 - smer godina broj
+
+    @GetMapping("/fastsearch")
     public StudentIndeksResponse fastSearch(@RequestParam String indeksShort) {
-      String[] parsedData = ParseUtils.parseIndeks(indeksShort);
-      if(parsedData!=null) {
-    	  StudentIndeks si = studentIndeksRepository.findStudentIndeks(parsedData[0], 2000+Integer.parseInt(parsedData[1]),Integer.parseInt(parsedData[2]));	
-    	  return entityMappers.fromStudentIndexToResponse(si);
-      }else return null;
+        String[] parsed = ParseUtils.parseIndeks(indeksShort);
+        if (parsed == null) return null;
+
+        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
+                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
+        return entityMappers.fromStudentIndexToResponse(si);
     }
-    
-    @GetMapping(path="/emailsearch")  // salje se email studenta
+
+    @GetMapping("/emailsearch")
     public StudentIndeksResponse emailSearch(@RequestParam String studEmail) {
-      String[] parsedData = ParseUtils.parseEmail(studEmail);
-      if(parsedData!=null) {
-    	  StudentIndeks si = studentIndeksRepository.findStudentIndeks(parsedData[0], 2000+Integer.parseInt(parsedData[1]),Integer.parseInt(parsedData[2]));	
-    	  return entityMappers.fromStudentIndexToResponse(si);
-      }else return null;
-    }
-    
-    @GetMapping(path="/search")  // pretraga po imenu, prezimenu i elementima indeksa
-    public Page<StudentDTO> search(@RequestParam (required = false) String ime,
-								   @RequestParam (required = false) String prezime,
-								   @RequestParam (required = false) String studProgram,
-								   @RequestParam (required = false) Integer godina,
-								   @RequestParam (required = false) Integer broj,
-								   @RequestParam(defaultValue = "0") Integer page,
-								   @RequestParam(defaultValue = "10") Integer size) {
+        String[] parsed = ParseUtils.parseEmail(studEmail);
+        if (parsed == null) return null;
 
-		if(studProgram==null && godina == null && broj==null) { // pretrazivanje studenata bez indeksa
-    		Page<StudentPodaci> spList = studentPodaciRepository.findStudent(ime, prezime, PageRequest.of(page, size, Sort.by("id").descending()));
-			return spList.map(EntityMappers::fromStudentPodaciToDTO);
-    	}
-    	Page<StudentIndeks> siList = studentIndeksRepository.findStudentIndeks(ime, prezime, studProgram, godina, broj, PageRequest.of(page, size, Sort.by("id").descending()));
-		return siList.map(EntityMappers::fromStudentIndeksToDTO);
+        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
+                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
+        return si != null ? entityMappers.fromStudentIndexToResponse(si) : null;
     }
-    
-    @GetMapping(path="/profile/{studentIndeksId}")  
-    public StudentProfileDTO getStudentProfile(@PathVariable  Long studentIndeksId) {
-    	return studentProfileService.getStudentProfile(studentIndeksId);   	
+
+    @GetMapping("/search")
+    public Page<StudentDTO> search(
+            @RequestParam(required = false) String ime,
+            @RequestParam(required = false) String prezime,
+            @RequestParam(required = false) String studProgram,
+            @RequestParam(required = false) Integer godina,
+            @RequestParam(required = false) Integer broj,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        if (studProgram == null && godina == null && broj == null) {
+            // pretraga samo po studentu bez indeksa
+            return studentPodaciRepository.findStudent(ime, prezime, PageRequest.of(page, size, Sort.by("id").descending()))
+                    .map(EntityMappers::fromStudentPodaciToDTO);
+        } else {
+            return studentIndeksRepository.findStudentIndeks(
+                            ime, prezime, studProgram, godina, broj, PageRequest.of(page, size, Sort.by("id").descending()))
+                    .map(EntityMappers::fromStudentIndeksToDTO);
+        }
     }
-    
-    @GetMapping(path="/webprofile/{studentIndeksId}")  
-    public StudentWebProfileDTO getStudentWebProfile(@PathVariable  Long studentIndeksId) {
-    	return studentProfileService.getStudentWebProfile(studentIndeksId);   	
+
+    @GetMapping("/profile/{studentIndeksId}")
+    public StudentProfileDTO getStudentProfile(@PathVariable Long studentIndeksId) {
+        return studentProfileService.getStudentProfile(studentIndeksId);
     }
-    
-    @GetMapping(path="/webprofile/email")  
+
+    @GetMapping("/webprofile/{studentIndeksId}")
+    public StudentWebProfileDTO getStudentWebProfile(@PathVariable Long studentIndeksId) {
+        return studentProfileService.getStudentWebProfile(studentIndeksId);
+    }
+
+    @GetMapping("/webprofile/email")
     public StudentWebProfileDTO getStudentWebProfileForEmail(@RequestParam String studEmail) {
-    	 String[] parsedData = ParseUtils.parseEmail(studEmail);
-         if(parsedData!=null) {
-       	  StudentIndeks si = studentIndeksRepository.findStudentIndeks(parsedData[0], 2000+Integer.parseInt(parsedData[1]),Integer.parseInt(parsedData[2]));
-       	  if(si!=null)
-       		  return studentProfileService.getStudentWebProfile(si.getId());   	
-         }
-         return null;
-    }
+        String[] parsed = ParseUtils.parseEmail(studEmail);
+        if (parsed == null) return null;
 
+        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
+                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
+        return si != null ? studentProfileService.getStudentWebProfile(si.getId()) : null;
+    }
 }
+

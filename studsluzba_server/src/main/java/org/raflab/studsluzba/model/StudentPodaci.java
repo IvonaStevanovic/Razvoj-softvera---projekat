@@ -14,6 +14,7 @@ public class StudentPodaci {
 	
 	 @Id
 	 @GeneratedValue(strategy=GenerationType.IDENTITY)
+
 	 private Long id;
 	 private String ime;
 	 private String prezime;
@@ -41,8 +42,9 @@ public class StudentPodaci {
     @ManyToOne
     private VisokoskolskaUstanova ustanovaPrelaska;
 
-    @JsonIgnore
+
     @OneToMany(mappedBy = "student")
+    @JsonIgnore
     private Set<StudentIndeks> indeksi;
 
 }

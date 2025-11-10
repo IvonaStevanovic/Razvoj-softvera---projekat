@@ -10,6 +10,8 @@ import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
 import org.raflab.studsluzba.utils.Converters;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -34,9 +36,13 @@ public class GrupaService {
         return grupaRepository.save(grupa);
     }
 
+    @Transactional(readOnly = true)
     public List<Grupa> findAll() {
-        return grupaRepository.findAll();
+        List<Grupa> grupe = grupaRepository.findAll();
+        grupe.forEach(g -> g.getPredmeti().size()); // inicijalizuje lazy kolekciju
+        return grupe;
     }
+
 
     public Optional<Grupa> findById(Long id) {
         return grupaRepository.findById(id);
