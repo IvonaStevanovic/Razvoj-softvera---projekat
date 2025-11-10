@@ -30,7 +30,18 @@ public class UpisGodineService {
     public UpisGodine findById(Long id) {
         return repository.findById(id).orElse(null);
     }
+    @Transactional(readOnly = true)
+    public List<UpisGodine> getAll() {
+        List<UpisGodine> upisi = repository.findAll();
 
+        // Ručno inicijalizuj prenete predmete (da ne ostanu lazy)
+        upisi.forEach(u -> {
+            if (u.getPrenetiPredmeti() != null)
+                u.getPrenetiPredmeti().size(); // forsira učitavanje
+        });
+
+        return upisi;
+    }
     @Transactional
     public UpisGodine save(UpisGodineRequest request) {
         StudentIndeks student = studentRepository.findById(request.getStudentIndeksId()).orElse(null);

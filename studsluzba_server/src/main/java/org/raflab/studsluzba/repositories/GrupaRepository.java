@@ -14,6 +14,10 @@ public interface GrupaRepository extends JpaRepository<Grupa, Long> {
     @Query("select g from Grupa g where g.studijskiProgram.id = :idPrograma")
     List<Grupa> findByStudijskiProgram(Long idPrograma);
 
+    @Query("select distinct g from Grupa g left join fetch g.predmeti")
+    List<Grupa> findAllWithPredmeti();
+
+
     /// sve grupe koje slusaju odredjeni predmet
     @Query("select g from Grupa g join g.predmeti p where p.id = :idPredmeta")
     List<Grupa> findByPredmet(Long idPredmeta);

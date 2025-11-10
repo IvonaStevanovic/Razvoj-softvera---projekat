@@ -7,8 +7,8 @@ import org.raflab.studsluzba.model.NastavnikZvanje;
 import org.raflab.studsluzba.repositories.NastavnikRepository;
 import org.raflab.studsluzba.repositories.NastavnikZvanjeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -33,10 +33,13 @@ public class NastavnikZvanjeService {
         return repository.save(nz);
     }
 
+    @Transactional(readOnly = true)
     public List<NastavnikZvanje> findAll() {
-        return repository.findAll();
+        List<NastavnikZvanje> lista = repository.findAll();
+        // inicijalizacija lazy-nastavnika
+        lista.forEach(nz -> nz.getNastavnik().getIme());
+        return lista;
     }
-
     public NastavnikZvanje findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("NastavnikZvanje sa ID " + id + " ne postoji"));

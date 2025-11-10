@@ -4,12 +4,7 @@ import lombok.Data;
 
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 @Data
@@ -22,7 +17,7 @@ public class Grupa {
 	@ManyToOne
 	private StudijskiProgram studijskiProgram;
 	
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.EAGER)
 	private List<Predmet> predmeti;
 
 }

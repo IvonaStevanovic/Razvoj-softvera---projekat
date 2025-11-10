@@ -16,12 +16,14 @@ public class NastavnikResponse {
     private Long id;
     @NonNull
     private String ime;
+
     private String prezime;
     private String srednjeIme;
     private String email;
     private String brojTelefona;
     private String adresa;
-    private Set<NastavnikZvanje> zvanja;
+
+    private Set<String> zvanja;
 
     private LocalDate datumRodjenja;
     private Character pol;

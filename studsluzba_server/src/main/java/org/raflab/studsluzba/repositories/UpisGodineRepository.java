@@ -24,4 +24,7 @@ public interface UpisGodineRepository extends JpaRepository<UpisGodine, Long> {
     /// Svi upisi koji sadrže prenešene predmete
     @Query("select distinct u from UpisGodine u join u.prenetiPredmeti p")
     List<UpisGodine> findWithPrenetiPredmeti();
+
+    @Query("SELECT u FROM UpisGodine u LEFT JOIN FETCH u.prenetiPredmeti")
+    List<UpisGodine> findAllWithPrenetiPredmeti();
 }

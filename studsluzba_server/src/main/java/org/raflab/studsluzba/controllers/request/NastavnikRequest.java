@@ -18,9 +18,10 @@ public class NastavnikRequest {
     private String srednjeIme;
     @NonNull
     private String email;
+
     private String brojTelefona;
     private String adresa;
-    private Set<NastavnikZvanje> zvanja;
+    private Set<String> zvanja;
 
     private LocalDate datumRodjenja;
     private Character pol;

@@ -17,14 +17,14 @@ public class ObnovaGodine {
     private String napomena;
 
 
-       @ManyToOne
-          private StudentIndeks studentIndeks;
-       @ManyToMany
+    @ManyToOne(fetch = FetchType.LAZY)
+    private StudentIndeks studentIndeks;
+    @ManyToMany(fetch = FetchType.LAZY)
           @JoinTable(
               name = "obnova_predmeti",
               joinColumns = @JoinColumn(name = "obnova_godine_id"),
               inverseJoinColumns = @JoinColumn(name = "predmet_id")
           )
-          private Set<Predmet> predmetiKojeUpisuje;
+    private Set<Predmet> predmetiKojeUpisuje;
 
 }
