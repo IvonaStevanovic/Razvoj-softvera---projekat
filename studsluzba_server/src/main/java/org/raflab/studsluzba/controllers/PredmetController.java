@@ -16,9 +16,20 @@ public class PredmetController {
 
     private final PredmetService predmetService;
 
+    @PostMapping("/add")
+    public ResponseEntity<PredmetResponse> addPredmet(@RequestBody PredmetRequest request) {
+        PredmetResponse response = predmetService.createPredmet(request);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/all")
     public List<PredmetResponse> getAll() {
         return predmetService.getAllPredmeti();
+    }
+
+    @GetMapping("/studijski-program/{id}")
+    public List<PredmetResponse> getPredmetiByStudijskiProgram(@PathVariable Long id) {
+        return predmetService.getPredmetiByStudijskiProgram(id);
     }
 
     @GetMapping("/{id}")
@@ -50,4 +61,12 @@ public class PredmetController {
         predmetService.deletePredmet(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{predmetId}/prosecna-ocena")
+    public Double getProsecnaOcena(@PathVariable Long predmetId,
+                                   @RequestParam int pocetna,
+                                   @RequestParam int krajnja) {
+        return predmetService.getProsecnaOcena(predmetId, pocetna, krajnja);
+    }
+
 }

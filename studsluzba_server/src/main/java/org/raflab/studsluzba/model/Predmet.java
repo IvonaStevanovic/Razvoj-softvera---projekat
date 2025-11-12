@@ -10,6 +10,7 @@ import java.util.Set;
 @Entity
 @Data
 @ToString(exclude = {"studProgram"})
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = "sifra"))
 public class Predmet {
 	
 	@Id

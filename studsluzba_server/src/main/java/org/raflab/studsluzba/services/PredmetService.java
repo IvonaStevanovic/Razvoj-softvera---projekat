@@ -4,6 +4,7 @@ import org.raflab.studsluzba.controllers.request.PredmetRequest;
 import org.raflab.studsluzba.controllers.response.PredmetResponse;
 import org.raflab.studsluzba.model.Predmet;
 import org.raflab.studsluzba.model.StudijskiProgram;
+import org.raflab.studsluzba.repositories.PolozeniPredmetiRepository;
 import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,21 @@ import java.util.stream.Collectors;
 public class PredmetService {
     private final PredmetRepository predmetRepository;
     private final StudijskiProgramRepository studProgramRepository;
+    private final PolozeniPredmetiRepository polozeniPredmetiRepository;
 
-    public PredmetService(PredmetRepository predmetRepository, StudijskiProgramRepository studProgramRepository) {
+    public PredmetService(PredmetRepository predmetRepository, StudijskiProgramRepository studProgramRepository, PolozeniPredmetiRepository polozeniPredmetiRepository) {
         this.predmetRepository = predmetRepository;
         this.studProgramRepository = studProgramRepository;
+        this.polozeniPredmetiRepository = polozeniPredmetiRepository;
     }
+
+    public List<PredmetResponse> getPredmetiByStudijskiProgram(Long studProgramId) {
+        return predmetRepository.findByStudProgram_Id(studProgramId)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 
     // Entity -> ResponseDTO
     private PredmetResponse toResponseDTO(Predmet predmet) {
@@ -72,12 +83,23 @@ public class PredmetService {
     }
 
     public PredmetResponse createPredmet(PredmetRequest dto) {
+        if (predmetRepository.existsBySifra(dto.getSifra())) {
+            throw new RuntimeException("Predmet sa šifrom " + dto.getSifra() + " već postoji");
+        }
+
         Predmet p = fromRequestDTO(dto);
         return toResponseDTO(predmetRepository.save(p));
     }
 
+
     public PredmetResponse updatePredmet(Long id, PredmetRequest dto) {
         Predmet p = predmetRepository.findById(id).orElseThrow(() -> new RuntimeException("Predmet ne postoji"));
+
+        // Provera jedinstvene šifre kod update-a
+        if (!p.getSifra().equals(dto.getSifra()) && predmetRepository.existsBySifra(dto.getSifra())) {
+            throw new RuntimeException("Predmet sa šifrom " + dto.getSifra() + " već postoji");
+        }
+
         p.setSifra(dto.getSifra());
         p.setNaziv(dto.getNaziv());
         p.setOpis(dto.getOpis());
@@ -96,4 +118,9 @@ public class PredmetService {
     public void deletePredmet(Long id) {
         predmetRepository.deleteById(id);
     }
+
+    public Double getProsecnaOcena(Long predmetId, int pocetnaGodina, int krajnjaGodina) {
+        return polozeniPredmetiRepository.findProsecnaOcenaZaPredmetURasponuGodina(predmetId, pocetnaGodina, krajnjaGodina);
+    }
+
 }
