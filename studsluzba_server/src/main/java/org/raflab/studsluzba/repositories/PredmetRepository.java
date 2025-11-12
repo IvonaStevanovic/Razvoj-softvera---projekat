@@ -15,7 +15,12 @@ public interface PredmetRepository extends CrudRepository<Predmet, Long> {
 	List<Predmet> getPredmetForGodinaAkreditacije(Integer godinaAkreditacije);
 
 	List<Predmet> getPredmetsByStudProgramAndObavezan(StudijskiProgram studProgram, boolean obavezan);
-
-	List<Predmet> findByIdIn(List<Long> ids);
+    boolean existsBySifra(String sifra);
+    List<Predmet> findByIdIn(List<Long> ids);
 	List<Predmet> findByNazivIn(List<String> nazivi);
+    List<Predmet> findByStudProgram_Id(Long studProgramId);
+
+
+
+
 }

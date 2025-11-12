@@ -24,4 +24,10 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
     /// Polozeni predmet po izlasku na ispit
     @Query("select p from PolozeniPredmeti p where p.izlazakNaIspit.id = :idIzlaska")
     PolozeniPredmeti findByIzlazakNaIspit(Long idIzlaska);
+
+    @Query("SELECT AVG(p.ocena) FROM PolozeniPredmeti p " +
+            "WHERE p.predmet.id = :predmetId " +
+            "AND p.studentIndeks.godina BETWEEN :pocetna AND :krajnja")
+    Double findProsecnaOcenaZaPredmetURasponuGodina(Long predmetId, int pocetna, int krajnja);
+
 }
