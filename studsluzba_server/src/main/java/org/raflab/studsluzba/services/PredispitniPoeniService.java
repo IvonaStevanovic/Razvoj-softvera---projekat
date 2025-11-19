@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -73,4 +74,18 @@ public class PredispitniPoeniService {
     public List<PredispitniPoeni> findBySkolskaGodina(Long godinaId) {
         return repository.findBySkolskaGodina(godinaId);
     }
+
+    public List<PredispitniPoeni> findByStudentPredmetGodina(Long studentId, Long slusaPredmetId, Long skolskaGodinaId) {
+        return repository.findByStudentAndSlusaPredmet(studentId, slusaPredmetId)
+                .stream()
+                .filter(p -> p.getSkolskaGodina().getId().equals(skolskaGodinaId))
+                .collect(Collectors.toList());
+    }
+    public int ukupnoPredispitniPoeni(Long studentId, Long slusaPredmetId, Long skolskaGodinaId) {
+        return findByStudentPredmetGodina(studentId, slusaPredmetId, skolskaGodinaId)
+                .stream()
+                .mapToInt(PredispitniPoeni::getPoeni)
+                .sum();
+    }
+
 }

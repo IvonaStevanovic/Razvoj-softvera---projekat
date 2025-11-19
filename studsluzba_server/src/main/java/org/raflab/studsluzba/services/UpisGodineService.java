@@ -2,15 +2,15 @@ package org.raflab.studsluzba.services;
 
 import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
-import org.raflab.studsluzba.model.Predmet;
-import org.raflab.studsluzba.model.StudentIndeks;
-import org.raflab.studsluzba.model.UpisGodine;
-import org.raflab.studsluzba.repositories.PredmetRepository;
-import org.raflab.studsluzba.repositories.StudentIndeksRepository;
-import org.raflab.studsluzba.repositories.UpisGodineRepository;
+import org.raflab.studsluzba.controllers.response.UpisGodineResponse;
+import org.raflab.studsluzba.model.*;
+import org.raflab.studsluzba.repositories.*;
 import org.raflab.studsluzba.utils.Converters;
+import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +22,8 @@ public class UpisGodineService {
     private final UpisGodineRepository repository;
     private final StudentIndeksRepository studentRepository;
     private final PredmetRepository predmetRepository;
+    private final SlusaPredmetRepository slusaPredmetRepository;
+    private final DrziPredmetRepository drziPredmetRepository;
 
     public List<UpisGodine> findAll() {
         return repository.findAll();
@@ -95,4 +97,40 @@ public class UpisGodineService {
     public List<UpisGodine> findWithPrenetiPredmeti() {
         return repository.findWithPrenetiPredmeti();
     }
+
+    @Transactional
+    public UpisGodineResponse upisiStudentaNaGodinu(Long studentIndeksId, int godinaStudija, Set<Long> predmetIds) {
+        StudentIndeks indeks = studentRepository.findById(studentIndeksId)
+                .orElseThrow(() -> new RuntimeException("StudentIndeks ne postoji"));
+
+        // Kreiraj novi upis
+        UpisGodine upis = new UpisGodine();
+        upis.setStudentIndeks(indeks);
+        upis.setGodinaStudija(godinaStudija);
+        upis.setDatum(LocalDate.now());
+        upis.setNapomena("Prvi upis za godinu");
+        upis.setPrenetiPredmeti(Set.of());
+
+        // Sačuvaj upis
+        UpisGodine savedUpis = repository.save(upis);
+
+        // Kreiranje SlusaPredmet za svaki predmet
+        for (Long predmetId : predmetIds) {
+            DrziPredmet drzi = drziPredmetRepository.findByPredmetId(predmetId)
+                    .stream()
+                    .filter(dp -> dp.getSkolskaGodina().isAktivna()) // ako postoji aktivna godina
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Predmet nije dostupan u aktuelnoj godini"));
+
+            SlusaPredmet sp = new SlusaPredmet();
+            sp.setStudentIndeks(indeks);
+            sp.setDrziPredmet(drzi);
+            sp.setSkolskaGodina(drzi.getSkolskaGodina());
+
+            slusaPredmetRepository.save(sp);
+        }
+
+        return EntityMappers.toUpisGodineResponse(savedUpis);
+    }
+
 }

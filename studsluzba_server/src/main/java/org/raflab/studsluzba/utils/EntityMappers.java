@@ -2,6 +2,7 @@ package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
+import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.model.dtos.StudentDTO;
@@ -378,6 +379,50 @@ public class EntityMappers {
         }
 
         return response;
+    }
+
+    public static Uplata fromUplataRequestToEntity(UplataRequest request, StudentIndeks studentIndeks, Double srednjiKurs) {
+        if (request == null || studentIndeks == null) return null;
+
+        Uplata u = new Uplata();
+        u.setStudentIndeks(studentIndeks);
+        u.setDatumUplate(request.getDatumUplate());
+        u.setIznos(request.getIznos());
+        u.setSrednjiKurs(srednjiKurs);
+        return u;
+    }
+
+    public static UplataResponse fromUplataToResponse(Uplata uplata) {
+        if (uplata == null) return null;
+
+        UplataResponse resp = new UplataResponse();
+        resp.setId(uplata.getId());
+        resp.setDatumUplate(uplata.getDatumUplate());
+        resp.setIznos(uplata.getIznos());
+        resp.setSrednjiKurs(uplata.getSrednjiKurs());
+        return resp;
+    }
+
+    public static List<UplataResponse> fromUplataListToResponseList(List<Uplata> list) {
+        if (list == null) return List.of();
+        return list.stream()
+                .map(EntityMappers::fromUplataToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public static PreostaliIznosResponse calculatePreostaliIznos(List<Uplata> uplate, double ukupnoDin, double kurs) {
+        double ukupnoUplacenoDin = uplate != null
+                ? uplate.stream().mapToDouble(u -> u.getIznos() * (u.getSrednjiKurs() != null ? u.getSrednjiKurs() : kurs)).sum()
+                : 0;
+
+        double ukupnoUplacenoEur = uplate != null
+                ? uplate.stream().mapToDouble(Uplata::getIznos).sum()
+                : 0;
+
+        PreostaliIznosResponse resp = new PreostaliIznosResponse();
+        resp.setPreostaloDin(Math.max(0, ukupnoDin - ukupnoUplacenoDin));
+        resp.setPreostaloEur(Math.max(0, ukupnoUplacenoEur - ukupnoDin / kurs)); // ili po potrebi
+        return resp;
     }
 
 }
