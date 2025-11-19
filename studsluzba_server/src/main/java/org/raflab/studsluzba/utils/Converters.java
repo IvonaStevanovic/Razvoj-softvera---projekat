@@ -626,4 +626,39 @@ public class Converters {
         return response;
     }
 
+    public static UplataResponse fromUplataToResponse(Uplata entity) {
+        if (entity == null) return null;
+
+        UplataResponse response = new UplataResponse();
+        response.setId(entity.getId());
+        response.setDatumUplate(entity.getDatumUplate());
+        response.setIznos(entity.getIznos());
+        response.setSrednjiKurs(entity.getSrednjiKurs());
+        return response;
+    }
+
+    public static Uplata fromUplataRequestToEntity(UplataRequest request, StudentIndeks studentIndeks) {
+        if (request == null || studentIndeks == null) return null;
+
+        Uplata uplata = new Uplata();
+        uplata.setDatumUplate(request.getDatumUplate());
+        uplata.setIznos(request.getIznos());
+        uplata.setStudentIndeks(studentIndeks);
+        return uplata;
+    }
+
+    public List<UplataResponse> fromUplataListToResponseList(List<Uplata> list) {
+        return list.stream()
+                .map(EntityMappers::fromUplataToResponse)
+                .collect(Collectors.toList());
+    }
+
+
+    public static PreostaliIznosResponse toPreostaliIznosResponse(double preostaloEur, double preostaloDin) {
+        PreostaliIznosResponse resp = new PreostaliIznosResponse();
+        resp.setPreostaloEur(preostaloEur);
+        resp.setPreostaloDin(preostaloDin);
+        return resp;
+    }
+
 }

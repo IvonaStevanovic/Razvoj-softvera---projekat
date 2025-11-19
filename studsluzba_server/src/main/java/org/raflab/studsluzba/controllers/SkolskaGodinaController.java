@@ -17,7 +17,7 @@ public class SkolskaGodinaController {
 
     private final SkolskaGodinaService service;
 
-    @PostMapping
+    @PostMapping("/add")
     public SkolskaGodinaResponse create(@RequestBody SkolskaGodinaRequest request) {
         SkolskaGodina godina = Converters.toSkolskaGodina(request);
         return Converters.toSkolskaGodinaResponse(service.create(godina));

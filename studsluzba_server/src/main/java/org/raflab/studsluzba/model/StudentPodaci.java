@@ -47,4 +47,8 @@ public class StudentPodaci {
     @JsonIgnore
     private Set<StudentIndeks> indeksi;
 
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Set<Uplata> uplate;
+
 }

@@ -30,6 +30,15 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
 	@Query("select si from StudentIndeks si where not exists "
 			+ "(select sp from SlusaPredmet sp where sp.studentIndeks=si and sp.drziPredmet.id = :idDrziPredmet) ")
 	List<StudentIndeks> getStudentiNeSlusajuDrziPredmet(Long idDrziPredmet);
-	
+
+    /// studenti koji ne slušaju predmet, filtrirano po studijskom programu i godini
+    @Query("select si from StudentIndeks si where si.studProgramOznaka = :studProgramOznaka and si.godina = :godina "
+            + "and not exists (select sp from SlusaPredmet sp where sp.studentIndeks=si and sp.drziPredmet.id = :idDrziPredmet)")
+    List<StudentIndeks> getStudentiNeSlusajuDrziPredmetFilter(String studProgramOznaka, Integer godina, Long idDrziPredmet);
+
+    /// studenti koji slušaju predmet, filtrirano po studijskom programu i godini
+    @Query("select sp.studentIndeks from SlusaPredmet sp where sp.drziPredmet.id = :idDrziPredmet "
+            + "and sp.studentIndeks.studProgramOznaka = :studProgramOznaka and sp.studentIndeks.godina = :godina")
+    List<StudentIndeks> getStudentiSlusajuDrziPredmetFilter(String studProgramOznaka, Integer godina, Long idDrziPredmet);
 
 }
