@@ -16,6 +16,7 @@ public interface NastavnikRepository extends JpaRepository<Nastavnik, Long> {
     @Query("SELECT sp FROM Nastavnik sp WHERE (:ime IS NULL OR LOWER(sp.ime) LIKE :ime) AND (:prezime IS NULL OR LOWER(sp.prezime) LIKE :prezime)")
     List<Nastavnik> findByImeAndPrezime(String ime, String prezime);
     List<Nastavnik> findByEmailIn(List<String> emails);
+    boolean existsByEmail(String email);
 }
 
 
