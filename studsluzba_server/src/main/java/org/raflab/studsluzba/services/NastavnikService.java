@@ -18,8 +18,11 @@ public class NastavnikService {
 
     private final NastavnikRepository nastavnikRepository;
 
-    public Nastavnik save(Nastavnik n) {
-        return nastavnikRepository.save(n);
+    public Optional<Nastavnik> save(Nastavnik n) {
+        if (nastavnikRepository.existsByEmail(n.getEmail())) {
+            return Optional.empty();
+        }
+        return Optional.of(nastavnikRepository.save(n));
     }
 
     public Optional<Nastavnik> findById(Long id) {

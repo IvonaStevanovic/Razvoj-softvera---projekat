@@ -6,9 +6,11 @@ import org.raflab.studsluzba.model.Nastavnik;
 import org.raflab.studsluzba.model.NastavnikZvanje;
 import org.raflab.studsluzba.services.NastavnikService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,7 +23,8 @@ public class NastavnikController {
     private NastavnikService nastavnikService;
 
     @PostMapping("/add")
-    public Long addNewNastavnik(@RequestBody @Valid NastavnikRequest request) {
+    public ResponseEntity<?> addNewNastavnik(@RequestBody @Valid NastavnikRequest request) {
+
         Nastavnik nastavnik = new Nastavnik();
         nastavnik.setIme(request.getIme());
         nastavnik.setPrezime(request.getPrezime());
@@ -45,8 +48,17 @@ public class NastavnikController {
             nastavnik.setZvanja(zvanja);
         }
 
-        return nastavnikService.save(nastavnik).getId();
+        Optional<Nastavnik> saved = nastavnikService.save(nastavnik);
+
+        if (saved.isEmpty()) {
+            return ResponseEntity
+                    .status(409)
+                    .body("Nastavnik sa email adresom '" + request.getEmail() + "' već postoji.");
+        }
+
+        return ResponseEntity.ok(saved.get().getId());
     }
+
 
     @GetMapping("/all")
     public java.util.List<NastavnikResponse> getAllNastavnik() {
