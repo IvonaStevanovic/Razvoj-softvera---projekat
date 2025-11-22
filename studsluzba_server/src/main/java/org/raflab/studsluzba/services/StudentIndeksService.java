@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.raflab.studsluzba.repositories.StudentIndeksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,25 @@ public class StudentIndeksService {
         // inicijalizacija lazy polja
         lista.forEach(si -> si.getStudent().getIndeksi().size());
         return lista;
+    }
+
+    @Transactional(readOnly = true)
+    public void validateNewIndex(Long studentId, String program, Integer godina) {
+
+        boolean exists = studentIndeksRepository
+                .findDuplicateIndex(studentId, program, godina)
+                .isPresent();
+
+        if (exists) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Student already has an index for this program and year."
+            );
+        }
+    }
+
+    public StudentIndeks findAktivanStudentIndeks(Long studentPodaciId, int godina, String studProgramOznaka) {
+        return studentIndeksRepository.findAktivanStudentIndeks(studentPodaciId, godina, studProgramOznaka);
     }
 
     @Transactional(readOnly = true)
