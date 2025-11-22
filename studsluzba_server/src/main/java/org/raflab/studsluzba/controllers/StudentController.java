@@ -47,10 +47,35 @@ public class StudentController {
     private final EntityMappers entityMappers;
 
     @PostMapping("/add")
-    public Long addNewStudentPodaci(@RequestBody StudentPodaciRequest studentPodaciRequest) {
+    public ResponseEntity<?> addNewStudentPodaci(@RequestBody StudentPodaciRequest studentPodaciRequest) {
+        // Provera da li student već postoji po email-u fakulteta ili JMBG-u
+        Optional<StudentPodaci> existing = studentPodaciRepository.findAll().stream()
+                .filter(sp -> sp.getEmailFakultet() != null && sp.getEmailFakultet().equalsIgnoreCase(studentPodaciRequest.getEmailFakultet()))
+                .findFirst();
+
+        if (existing.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Student sa ovim email-om fakulteta već postoji u bazi.");
+        }
+
+        if (studentPodaciRequest.getJmbg() != null && !studentPodaciRequest.getJmbg().isEmpty()) {
+            boolean jmbgExists = studentPodaciRepository.findAll().stream()
+                    .anyMatch(sp -> studentPodaciRequest.getJmbg().equals(sp.getJmbg()));
+            if (jmbgExists) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body("Student sa ovim JMBG-om već postoji u bazi.");
+            }
+        }
+
+        // Pretvaranje DTO u entity i čuvanje
         StudentPodaci sp = studentPodaciRepository.save(Converters.toStudentPodaci(studentPodaciRequest));
-        return sp.getId();
+
+        // Vraćamo ID novog studenta
+        return ResponseEntity.ok(sp.getId());
     }
+
 
     @GetMapping("/all")
     public List<StudentPodaciResponse> getAllStudentPodaci() {
@@ -140,26 +165,30 @@ public class StudentController {
         String[] parsed = ParseUtils.parseIndeks(indeksShort);
         if (parsed == null) return null;
 
-        try {
-            int godina = 2000 + Integer.parseInt(parsed[1]);
-            int broj = Integer.parseInt(parsed[2].replaceAll("[^0-9]", "")); // uklanja sve što nije cifra
-            StudentIndeks si = studentIndeksRepository.findStudentIndeks(parsed[0], godina, broj);
-            return entityMappers.fromStudentIndexToResponse(si);
-        } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indeks format nije validan", e);
-        }
+        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
+                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
+
+        if (si == null) return null;
+
+        return entityMappers.fromStudentIndexToResponse(si);
     }
 
 
     @GetMapping("/emailsearch")
-    public StudentIndeksResponse emailSearch(@RequestParam String studEmail) {
-        String[] parsed = ParseUtils.parseEmail(studEmail);
-        if (parsed == null) return null;
+    public StudentPodaciResponse emailSearch(@RequestParam String studEmail) {
 
-        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
-                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
-        return si != null ? entityMappers.fromStudentIndexToResponse(si) : null;
+        // Prvo pokušamo po fakultetskom email-u
+        Optional<StudentPodaci> studentOpt = studentPodaciRepository.findByEmailFakultetIgnoreCase(studEmail);
+
+        // Ako nije pronađen, probamo po privatnom email-u
+        if (studentOpt.isEmpty()) {
+            studentOpt = studentPodaciRepository.findByEmailPrivatniIgnoreCase(studEmail);
+        }
+
+        return studentOpt.map(entityMappers::fromStudentPodaciToResponse).orElse(null);
     }
+
+
 
     @GetMapping("/search")
     public Page<StudentDTO> search(
@@ -182,24 +211,5 @@ public class StudentController {
         }
     }
 
-    @GetMapping("/profile/{studentIndeksId}")
-    public StudentProfileDTO getStudentProfile(@PathVariable Long studentIndeksId) {
-        return studentProfileService.getStudentProfile(studentIndeksId);
-    }
-
-    @GetMapping("/webprofile/{studentIndeksId}")
-    public StudentWebProfileDTO getStudentWebProfile(@PathVariable Long studentIndeksId) {
-        return studentProfileService.getStudentWebProfile(studentIndeksId);
-    }
-
-    @GetMapping("/webprofile/email")
-    public StudentWebProfileDTO getStudentWebProfileForEmail(@RequestParam String studEmail) {
-        String[] parsed = ParseUtils.parseEmail(studEmail);
-        if (parsed == null) return null;
-
-        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
-                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
-        return si != null ? studentProfileService.getStudentWebProfile(si.getId()) : null;
-    }
 }
 

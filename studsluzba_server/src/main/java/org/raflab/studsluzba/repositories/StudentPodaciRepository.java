@@ -3,6 +3,7 @@ package org.raflab.studsluzba.repositories;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.raflab.studsluzba.model.StudentPodaci;
@@ -14,6 +15,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Long> {	//	nasljedjene implementacije poput findById i findByAll
+
+    Optional<StudentPodaci> findByEmailFakultetIgnoreCase(String emailFakultet);
+
+    Optional<StudentPodaci> findByEmailPrivatniIgnoreCase(String emailPrivatni);
 	
 	@Query("select sp from StudentPodaci sp where "
 			+ "(:ime is null or lower(sp.ime) like :ime) and "
