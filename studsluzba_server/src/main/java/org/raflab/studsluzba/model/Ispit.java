@@ -28,13 +28,14 @@ public class Ispit {
 
     private boolean zakljucen;
 
+    //JsonIgnore
     @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
     private Set<PrijavaIspita> prijave;
 
     @ManyToOne
     private IspitniRok ispitniRok;
 
-
+    //JsonIgnore
     @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
           private Set<IzlazakNaIspit> izlazci;
 

@@ -14,9 +14,11 @@ public class IzlazakNaIspit {
     private String napomena;
     private boolean ponistio;
     private boolean izasao;
+
+    //JsonIgnore
     @ManyToOne
     private StudentIndeks studentIndeks;
-
+    //JsonIgnore
     @ManyToOne
     private Ispit ispit;
 

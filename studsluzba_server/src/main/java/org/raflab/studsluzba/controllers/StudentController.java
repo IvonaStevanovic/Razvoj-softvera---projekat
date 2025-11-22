@@ -28,7 +28,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @CrossOrigin
 @RestController
@@ -70,32 +73,45 @@ public class StudentController {
     public StudentPodaciResponse getStudentPodaci(@PathVariable Long id) {
         return studentPodaciRepository.findById(id)
                 .map(entityMappers::fromStudentPodaciToResponse)
-                .orElse(null);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
+
     }
 
     @PostMapping("/saveindeks")
-    public Long saveIndeks(@RequestBody StudentIndeksRequest request) {
+    public ResponseEntity<Long> saveIndeks(@RequestBody StudentIndeksRequest request) {
 
+        // 1️⃣ Dohvati studenta
+        StudentPodaci studentPodaci = studentPodaciRepository.findById(request.getStudentId())
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // 2️⃣ Dohvati studijski program
+        StudijskiProgram studijskiProgram = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka())
+                .stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("Studijski program not found"));
+
+        // 3️⃣ Provera da li već postoji aktivan indeks za istog studenta, godinu i program
+        StudentIndeks existing = studentIndeksService.findAktivanStudentIndeks(
+                studentPodaci.getId(), request.getGodina(), request.getStudProgramOznaka());
+
+        if (existing != null) {
+            // Ako postoji, vraća 409 Conflict sa ID postojećeg indeksa
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(existing.getId());
+        }
+
+        // 4️⃣ Kreiranje novog indeksa
         StudentIndeks studentIndeks = Converters.toStudentIndeks(request);
 
         // postavljanje broja indeksa
         int nextBroj = studentIndeksService.findBroj(request.getGodina(), request.getStudProgramOznaka());
         studentIndeks.setBroj(nextBroj);
 
-        // postavljanje studenta
-        StudentPodaci studentPodaci = studentPodaciRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+        // postavljanje studenta i studijskog programa
         studentIndeks.setStudent(studentPodaci);
-
-        // postavljanje studijskog programa
-        StudijskiProgram studijskiProgram = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka())
-                .stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("Studijski program not found"));
         studentIndeks.setStudijskiProgram(studijskiProgram);
 
         try {
             StudentIndeks saved = studentIndeksRepository.save(studentIndeks);
-            return saved.getId();
+            return ResponseEntity.ok(saved.getId());
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Duplicate entry for broj, godina, studProgramOznaka", e);
         } catch (Exception e) {
@@ -103,11 +119,12 @@ public class StudentController {
         }
     }
 
+
     @GetMapping("/indeks/{id}")
     public StudentIndeksResponse getStudentIndeks(@PathVariable Long id) {
         return studentIndeksRepository.findById(id)
                 .map(entityMappers::fromStudentIndexToResponse)
-                .orElse(null);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
     }
 
     @GetMapping("/indeksi/{idStudentPodaci}")
@@ -123,10 +140,16 @@ public class StudentController {
         String[] parsed = ParseUtils.parseIndeks(indeksShort);
         if (parsed == null) return null;
 
-        StudentIndeks si = studentIndeksRepository.findStudentIndeks(
-                parsed[0], 2000 + Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]));
-        return entityMappers.fromStudentIndexToResponse(si);
+        try {
+            int godina = 2000 + Integer.parseInt(parsed[1]);
+            int broj = Integer.parseInt(parsed[2].replaceAll("[^0-9]", "")); // uklanja sve što nije cifra
+            StudentIndeks si = studentIndeksRepository.findStudentIndeks(parsed[0], godina, broj);
+            return entityMappers.fromStudentIndexToResponse(si);
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indeks format nije validan", e);
+        }
     }
+
 
     @GetMapping("/emailsearch")
     public StudentIndeksResponse emailSearch(@RequestParam String studEmail) {

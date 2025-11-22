@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.domain.Page;
@@ -17,9 +18,29 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
 	@Query("select indeks from StudentIndeks indeks where indeks.studProgramOznaka like ?1 and indeks.godina = ?2 "
 			+ "and indeks.broj = ?3 ")
     StudentIndeks findStudentIndeks(String studProgramOznaka, int godina, int broj);
-	
-	
-	//TODO dodati da se gledaju samo aktivni indeksi
+
+    //vraca najvise jedan aktivan indekspo studentu/godini/programu
+    @Query("select si from StudentIndeks si " +
+            "where si.student.id = :idStudentPodaci " +
+            "and si.aktivan = true " +
+            "and si.godina = :godina " +
+            "and lower(si.studijskiProgram.oznaka) = lower(:studProgramOznaka)")
+    StudentIndeks findAktivanStudentIndeks(@Param("idStudentPodaci") Long idStudentPodaci,
+                                           @Param("godina") int godina,
+                                           @Param("studProgramOznaka") String studProgramOznaka);
+
+    //dodato za proveru duplikata indeksa
+    @Query("SELECT si FROM StudentIndeks si "
+            + "WHERE si.student.id = :studentId "
+            + "AND si.studProgramOznaka = :program "
+            + "AND si.godina = :godina")
+    Optional<StudentIndeks> findDuplicateIndex(
+            @Param("studentId") Long studentId,
+            @Param("program") String program,
+            @Param("godina") Integer godina
+    );
+
+    //TODO dodati da se gledaju samo aktivni indeksi
 	@Query("select indeks from StudentIndeks indeks where "
 			+ "(:ime is null or lower(indeks.student.ime) like :ime) and "
 			+ "(:prezime is null or lower(indeks.student.prezime) like :prezime) and "
