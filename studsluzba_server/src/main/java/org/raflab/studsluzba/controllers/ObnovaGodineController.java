@@ -33,11 +33,6 @@ public class ObnovaGodineController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/id/{id}")
-    public ObnovaGodineResponse getById(@PathVariable Long id){
-        ObnovaGodine obnova = service.findById(id);
-        return Converters.toObnovaGodineResponse(obnova);
-    }
 
     @DeleteMapping("/delete/{id}")
     public String delete(@PathVariable Long id){

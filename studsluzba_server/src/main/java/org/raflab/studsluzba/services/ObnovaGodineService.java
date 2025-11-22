@@ -69,7 +69,7 @@ public class ObnovaGodineService {
         repository.deleteById(id);
     }
 
-    @Transactional
+   /* @Transactional
     public UpisGodineResponse obnoviGodinu(Long studentIndeksId, int trenutnaGodina, Set<Long> predmetIds) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new RuntimeException("StudentIndeks ne postoji"));
@@ -121,7 +121,7 @@ public class ObnovaGodineService {
         }
 
         return EntityMappers.toUpisGodineResponse(savedUpis);
-    }
+    }*/
 
 }
 
