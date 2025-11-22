@@ -1,11 +1,13 @@
 package org.raflab.studsluzba.repositories;
 
 import org.raflab.studsluzba.model.SkolskaGodina;
+import org.raflab.studsluzba.model.SrednjaSkola;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SkolskaGodinaRepository extends JpaRepository<SkolskaGodina, Long> {
@@ -16,5 +18,6 @@ public interface SkolskaGodinaRepository extends JpaRepository<SkolskaGodina, Lo
     /// Školska godina po nazivu
     @Query("select s from SkolskaGodina s where s.naziv = :naziv")
     SkolskaGodina findByNaziv(String naziv);
+
 }
 

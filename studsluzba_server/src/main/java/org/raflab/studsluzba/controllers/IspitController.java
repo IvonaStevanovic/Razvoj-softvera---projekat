@@ -3,57 +3,87 @@ package org.raflab.studsluzba.controllers;
 import org.raflab.studsluzba.controllers.request.IspitRequest;
 import org.raflab.studsluzba.controllers.response.IspitResponse;
 import org.raflab.studsluzba.model.Ispit;
+import org.raflab.studsluzba.repositories.IspitniRokRepository;
+import org.raflab.studsluzba.repositories.NastavnikRepository;
+import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.services.IspitService;
 import org.raflab.studsluzba.utils.Converters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @CrossOrigin
 @RestController
-@RequestMapping(path = "/api/ispit")
+@RequestMapping("/api/ispit")
 public class IspitController {
+
     @Autowired
     private IspitService ispitService;
 
-    /// Dodavanje novog ispita
-    @PostMapping(path = "/add")
-    public Long addNewIspit(@RequestBody @Valid IspitRequest ispitRequest) {
-        Ispit ispit = ispitService.save(Converters.toIspit(ispitRequest));
-        return ispit.getId();
+    @Autowired
+    private PredmetRepository predmetRepository;
+
+    @Autowired
+    private NastavnikRepository nastavnikRepository;
+
+    @Autowired
+    private IspitniRokRepository ispitniRokRepository;
+
+    @PostMapping("/add")
+    public ResponseEntity<?> add(@RequestBody @Valid IspitRequest request) {
+        try {
+            Ispit sacuvan = ispitService.save(
+                    Converters.toIspit(request, predmetRepository, nastavnikRepository, ispitniRokRepository)
+            );
+            return ResponseEntity.ok(Converters.toIspitResponse(sacuvan));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
-    /// Dohvatanje svih ispita
-    @GetMapping(path = "/all")
-    public List<IspitResponse> getAllIspiti() {
-        return Converters.toIspitResponseList(ispitService.findAll());
+    @GetMapping("/all")
+    public ResponseEntity<List<IspitResponse>> getAllIspiti() {
+        List<IspitResponse> lista = Converters.toIspitResponseList(ispitService.findAll());
+        return ResponseEntity.ok(lista);
     }
 
-    ///Dohvatanje ispita po ID
-    @GetMapping(path = "/{id}")
-    public IspitResponse getIspitById(@PathVariable Long id) {
-        Optional<Ispit> result = ispitService.findById(id);
-        return result.map(Converters::toIspitResponse).orElse(null);
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getIspitById(@PathVariable Long id) {
+        try {
+            Ispit ispit = ispitService.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Ispit sa id " + id + " ne postoji."));
+            return ResponseEntity.ok(Converters.toIspitResponse(ispit));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
-    ///Pretraga ispita po predmetu, nastavniku ili ispitnom roku
-    @GetMapping(path = "/search")
-    public List<IspitResponse> searchIspiti(
+    @GetMapping("/search")
+    public ResponseEntity<List<IspitResponse>> searchIspiti(
             @RequestParam(required = false) Long predmetId,
             @RequestParam(required = false) Long nastavnikId,
             @RequestParam(required = false) Long ispitniRokId
     ) {
-        return Converters.toIspitResponseList(
-                ispitService.findByPredmetNastavnikRok(predmetId, nastavnikId, ispitniRokId)
-        );
+        List<Ispit> ispiti = ispitService.findByPredmetNastavnikRok(predmetId, nastavnikId, ispitniRokId);
+        return ResponseEntity.ok(Converters.toIspitResponseList(ispiti));
+    }
+/*
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteIspit(@PathVariable Long id) {
+        try {
+            ispitService.deleteById(id);
+            return ResponseEntity.ok("Ispit uspešno obrisan.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
-    ///Brisanje ispita po ID
-    @DeleteMapping(path = "/{id}")
-    public void deleteIspit(@PathVariable Long id) {
-        ispitService.deleteById(id);
-    }
+ */
 }

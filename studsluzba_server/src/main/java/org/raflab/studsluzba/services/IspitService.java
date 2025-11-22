@@ -1,55 +1,89 @@
 package org.raflab.studsluzba.services;
 
 import org.raflab.studsluzba.model.Ispit;
+import org.raflab.studsluzba.model.IspitniRok;
+import org.raflab.studsluzba.model.Nastavnik;
+import org.raflab.studsluzba.model.Predmet;
 import org.raflab.studsluzba.repositories.IspitRepository;
+import org.raflab.studsluzba.repositories.IspitniRokRepository;
+import org.raflab.studsluzba.repositories.NastavnikRepository;
+import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class IspitService {
+
     @Autowired
     private IspitRepository ispitRepository;
 
-    // Kreiranje ili ažuriranje ispita
+    @Autowired
+    private PredmetRepository predmetRepository;
+
+    @Autowired
+    private NastavnikRepository nastavnikRepository;
+
+    @Autowired
+    private IspitniRokRepository ispitniRokRepository;
+
     public Ispit save(Ispit ispit) {
+        Predmet predmet = predmetRepository.findById(ispit.getPredmet().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Predmet ne postoji"));
+        Nastavnik nastavnik = nastavnikRepository.findById(ispit.getNastavnik().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Nastavnik ne postoji"));
+        IspitniRok rok = ispitniRokRepository.findById(ispit.getIspitniRok().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Ispitni rok ne postoji"));
+
+        ispit.setPredmet(predmet);
+        ispit.setNastavnik(nastavnik);
+        ispit.setIspitniRok(rok);
+
+        boolean exists = ispitRepository.existsByDatumOdrzavanjaAndPredmetIdAndNastavnikIdAndIspitniRokId(
+                ispit.getDatumOdrzavanja(),
+                predmet.getId(),
+                nastavnik.getId(),
+                rok.getId()
+        );
+
+        if (exists) {
+            throw new IllegalArgumentException("Ispit već postoji za zadati datum, predmet i nastavnika u ovom roku!");
+        }
+
         return ispitRepository.save(ispit);
     }
 
-    // Vraća sve ispita iz baze
     public List<Ispit> findAll() {
         return ispitRepository.findAll();
     }
 
-    // Pronalazi ispit po ID-u
     public Optional<Ispit> findById(Long id) {
         return ispitRepository.findById(id);
     }
-
-    // Briše ispit po ID-u
+/*
+    @Transactional
     public void deleteById(Long id) {
-        ispitRepository.deleteById(id);
+        Ispit ispit = ispitRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Ispit sa id " + id + " ne postoji."));
+        ispitRepository.delete(ispit);
     }
-
-    // Pronalazi sve ispita za određeni predmet
+*/
     public List<Ispit> findByPredmet(Long predmetId) {
         return ispitRepository.findByPredmet(predmetId);
     }
 
-    // Pronalazi sve ispita koje drži određeni nastavnik
     public List<Ispit> findByNastavnik(Long nastavnikId) {
         return ispitRepository.findByNastavnik(nastavnikId);
     }
 
-    // Pronalazi sve ispita za određeni ispitni rok
     public List<Ispit> findByIspitniRok(Long ispitniRokId) {
         return ispitRepository.findByIspitniRok(ispitniRokId);
     }
 
-    // Kombinovana pretraga po opcionalnim kriterijumima
     public List<Ispit> findByPredmetNastavnikRok(Long predmetId, Long nastavnikId, Long ispitniRokId) {
         if (predmetId != null)
             return findByPredmet(predmetId);
@@ -61,3 +95,4 @@ public class IspitService {
             return findAll();
     }
 }
+

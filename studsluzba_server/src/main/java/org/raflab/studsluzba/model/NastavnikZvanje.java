@@ -23,7 +23,7 @@ public class NastavnikZvanje {
     private String zvanje; // ovo ćemo mapirati u DTO kao String
     private boolean aktivno;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     private Nastavnik nastavnik;
 }

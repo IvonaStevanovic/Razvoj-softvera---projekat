@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,14 +27,26 @@ public class GrupaService {
     private final PredmetRepository predmetRepository;
 
     public Grupa save(GrupaRequest request) {
-        Optional<StudijskiProgram> studijskiProgram = studijskiProgramRepository.findById(request.getStudijskiProgramId());
-        List<Predmet> predmeti = predmetRepository.findByIdIn(request.getPredmetiId());
+        StudijskiProgram program = studijskiProgramRepository.findById(request.getStudijskiProgramId())
+                .orElseThrow(() -> new RuntimeException("Studijski program ne postoji"));
 
-        if (studijskiProgram.isEmpty() || predmeti.isEmpty()) {
-            throw new IllegalArgumentException("Nevalidni podaci: studijski program ili predmeti nisu pronađeni.");
+        List<Predmet> predmeti = (List<Predmet>) predmetRepository.findAllById(request.getPredmetiId());
+
+        // Provera da li grupa već postoji
+        List<Grupa> sveGrupe = grupaRepository.findByStudijskiProgram(request.getStudijskiProgramId());
+        for (Grupa g : sveGrupe) {
+            Set<Long> existingPredmetiIds = g.getPredmeti().stream().map(Predmet::getId).collect(Collectors.toSet());
+            Set<Long> newPredmetiIds = predmeti.stream().map(Predmet::getId).collect(Collectors.toSet());
+
+            if (existingPredmetiIds.equals(newPredmetiIds)) {
+                throw new RuntimeException("Grupa sa ovim predmetima već postoji u ovom studijskom programu");
+            }
         }
 
-        Grupa grupa = Converters.toGrupa(request, studijskiProgram.get(), predmeti);
+        Grupa grupa = new Grupa();
+        grupa.setStudijskiProgram(program);
+        grupa.setPredmeti(predmeti);
+
         return grupaRepository.save(grupa);
     }
 

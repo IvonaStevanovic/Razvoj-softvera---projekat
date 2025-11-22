@@ -31,5 +31,6 @@ public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Lo
 	
 	@Query("select si from StudentIndeks si where si.aktivan=false and si.student.id = :studPodaciId")
 	List<StudentIndeks> getNeaktivniIndeksi(Long studPodaciId);
+
 		
 }

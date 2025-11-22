@@ -1,11 +1,14 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.PredispitneObaveze;
 import org.raflab.studsluzba.model.PredispitniPoeni;
+import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PredispitniPoeniRepository extends JpaRepository<PredispitniPoeni, Long> {
@@ -24,4 +27,5 @@ public interface PredispitniPoeniRepository extends JpaRepository<PredispitniPoe
     /// Svi poeni u određenoj školskoj godini
     @Query("select p from PredispitniPoeni p where p.skolskaGodina.id = :idGodine")
     List<PredispitniPoeni> findBySkolskaGodina(Long idGodine);
+
 }

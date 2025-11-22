@@ -1,20 +1,34 @@
 package org.raflab.studsluzba.services;
 
+import org.raflab.studsluzba.model.Ispit;
 import org.raflab.studsluzba.model.IspitniRok;
 import org.raflab.studsluzba.repositories.IspitniRokRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class IspitniRokService {
+
     @Autowired
     private IspitniRokRepository repository;
 
+    // Dodavanje sa proverom duplikata
     public IspitniRok save(IspitniRok rok) {
+        Optional<IspitniRok> existing = repository.findByDatumPocetkaAndSkolskaGodinaId(
+                rok.getDatumPocetka(),
+                rok.getSkolskaGodina().getId()
+        );
+
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("Ispitni rok već postoji za datu školsku godinu!");
+        }
+
         return repository.save(rok);
     }
 
@@ -34,11 +48,17 @@ public class IspitniRokService {
         return repository.findAktivniRokovi(today);
     }
 
-    public IspitniRok findByDatumPocetka(LocalDate datum) {
-        return repository.findByDatumPocetka(datum);
-    }
-
+    @Transactional
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        IspitniRok rok = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Ispitni rok sa id " + id + " ne postoji."));
+
+        // Provera da li ima child entiteta
+        if (rok.getIspiti() != null && !rok.getIspiti().isEmpty()) {
+            throw new IllegalStateException("Ne može se obrisati ispitni rok koji ima ispita.");
+        }
+
+        repository.delete(rok);
     }
 }
+

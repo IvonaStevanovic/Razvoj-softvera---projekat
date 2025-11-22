@@ -1,11 +1,13 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.Nastavnik;
 import org.raflab.studsluzba.model.NastavnikZvanje;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NastavnikZvanjeRepository extends JpaRepository<NastavnikZvanje, Long> {
@@ -28,4 +30,6 @@ public interface NastavnikZvanjeRepository extends JpaRepository<NastavnikZvanje
     /// Sva zvanja određenog tipa zvanja
     @Query("select nz from NastavnikZvanje nz where nz.zvanje = :zvanje")
     List<NastavnikZvanje> findByZvanje(String zvanje);
+
+    boolean existsByNastavnikIdAndZvanjeAndAktivnoTrue(Long nastavnikId, String zvanje);
 }

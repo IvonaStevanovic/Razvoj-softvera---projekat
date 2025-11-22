@@ -24,7 +24,7 @@ public class NastavnikService {
         }
         return Optional.of(nastavnikRepository.save(n));
     }
-
+/// 1
     public Optional<Nastavnik> findById(Long id) {
         return nastavnikRepository.findById(id);
     }

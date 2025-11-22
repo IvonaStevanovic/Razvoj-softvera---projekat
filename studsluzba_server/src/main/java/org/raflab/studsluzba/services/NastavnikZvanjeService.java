@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +20,14 @@ public class NastavnikZvanjeService {
 
     @Transactional
     public NastavnikZvanje save(NastavnikZvanjeRequest request) {
-        Nastavnik nastavnik = nastavnikRepository.findById(request.getNastavnikId())
-                .orElseThrow(() -> new RuntimeException("Nastavnik sa ID " + request.getNastavnikId() + " ne postoji"));
+        Optional<Nastavnik> nastavnik = nastavnikRepository.findById(request.getNastavnikId());
+        if (nastavnik.isEmpty()) {
+            return null; // nastavnik ne postoji
+        }
+
+        if (repository.existsByNastavnikIdAndZvanjeAndAktivnoTrue(request.getNastavnikId(), request.getZvanje())) {
+            return null; // već postoji aktivno zvanje tog tipa
+        }
 
         NastavnikZvanje nz = new NastavnikZvanje();
         nz.setDatumIzbora(request.getDatumIzbora());
@@ -28,10 +35,11 @@ public class NastavnikZvanjeService {
         nz.setUzaNaucnaOblast(request.getUzaNaucnaOblast());
         nz.setZvanje(request.getZvanje());
         nz.setAktivno(request.isAktivno());
-        nz.setNastavnik(nastavnik);
+        nz.setNastavnik(nastavnik.get());
 
         return repository.save(nz);
     }
+
 
     @Transactional(readOnly = true)
     public List<NastavnikZvanje> findAll() {

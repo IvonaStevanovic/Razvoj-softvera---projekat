@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-
 @Component
 @Transactional
 public class Seeder implements CommandLineRunner {
