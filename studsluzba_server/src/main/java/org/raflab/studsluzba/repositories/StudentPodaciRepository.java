@@ -19,6 +19,7 @@ public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Lo
     Optional<StudentPodaci> findByEmailFakultetIgnoreCase(String emailFakultet);
 
     Optional<StudentPodaci> findByEmailPrivatniIgnoreCase(String emailPrivatni);
+    Optional<StudentPodaci> findById(Long id);
 	
 	@Query("select sp from StudentPodaci sp where "
 			+ "(:ime is null or lower(sp.ime) like :ime) and "
