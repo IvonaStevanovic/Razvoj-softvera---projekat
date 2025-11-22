@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VisokoskolskaUstanovaRepository extends JpaRepository<VisokoskolskaUstanova, Long> {
@@ -24,4 +25,6 @@ public interface VisokoskolskaUstanovaRepository extends JpaRepository<Visokosko
     /// Pronađi sve ustanove u određenom mestu i određene vrste
     @Query("select v from VisokoskolskaUstanova v where v.mesto = :mesto and v.vrsta = :vrsta")
     List<VisokoskolskaUstanova> findByMestoAndVrsta(String mesto, String vrsta);
+
+
 }

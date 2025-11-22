@@ -11,6 +11,8 @@ import org.raflab.studsluzba.repositories.DrziPredmetRepository;
 import org.raflab.studsluzba.repositories.NastavnikRepository;
 import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,62 +30,90 @@ public class DrziPredmetService {
     private final NastavnikRepository nastavnikRepository;
 
     @Transactional
-    public List<DrziPredmetResponse> saveDrziPredmet(DrziPredmetRequest request) {
+    public ResponseEntity<?> saveDrziPredmet(DrziPredmetRequest request) {
 
-        List<DrziPredmetNewRequest> drziPredmetList = Optional.ofNullable(request.getDrziPredmet()).orElse(Collections.emptyList());
-        List<DrziPredmetNewRequest> newDrziPredmetList = Optional.ofNullable(request.getNewDrziPredmet()).orElse(Collections.emptyList());
+        List<DrziPredmetNewRequest> drziPredmetList = Optional.ofNullable(request.getDrziPredmet())
+                .orElse(Collections.emptyList());
+        List<DrziPredmetNewRequest> newDrziPredmetList = Optional.ofNullable(request.getNewDrziPredmet())
+                .orElse(Collections.emptyList());
 
-        // izvuci sve predmete iz baze po predmetId
+        // Kombinujemo sve emailove nastavnika
+        List<String> allEmails = Stream.concat(
+                        drziPredmetList.stream().map(DrziPredmetNewRequest::getEmailNastavnik),
+                        newDrziPredmetList.stream().map(DrziPredmetNewRequest::getEmailNastavnik)
+                ).filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Kreiramo mape za postojeće i nove predmete
         Map<Long, Predmet> predmetMap = predmetRepository.findByIdIn(
-                drziPredmetList.stream().map(DrziPredmetNewRequest::getPredmetId).collect(Collectors.toList())
+                drziPredmetList.stream()
+                        .map(DrziPredmetNewRequest::getPredmetId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
         ).stream().collect(Collectors.toMap(Predmet::getId, Function.identity()));
 
-        // izvuci sve predmete iz baze po naziv za nove unose
         Map<String, Predmet> newPredmetMap = predmetRepository.findByNazivIn(
-                newDrziPredmetList.stream().map(DrziPredmetNewRequest::getPredmetNaziv).collect(Collectors.toList())
+                newDrziPredmetList.stream()
+                        .map(DrziPredmetNewRequest::getPredmetNaziv)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
         ).stream().collect(Collectors.toMap(Predmet::getNaziv, Function.identity()));
 
-        // izvuci sve nastavnike iz baze po email
-        List<String> allEmails = Stream.concat(
-                drziPredmetList.stream().map(DrziPredmetNewRequest::getEmailNastavnik),
-                newDrziPredmetList.stream().map(DrziPredmetNewRequest::getEmailNastavnik)
-        ).distinct().collect(Collectors.toList());
-
+        // Mapa nastavnika
         Map<String, Nastavnik> nastavnikMap = nastavnikRepository.findByEmailIn(allEmails)
                 .stream().collect(Collectors.toMap(Nastavnik::getEmail, Function.identity()));
 
-        // kreiranje liste DrziPredmet objekata za cuvanje
         List<DrziPredmet> drziPredmetEntities = new ArrayList<>();
 
-        for (DrziPredmetNewRequest drziPredmetRequest : drziPredmetList) {
-            Predmet predmet = predmetMap.get(drziPredmetRequest.getPredmetId());
-            Nastavnik nastavnik = nastavnikMap.get(drziPredmetRequest.getEmailNastavnik());
+        // Postojeći predmeti
+        for (DrziPredmetNewRequest dp : drziPredmetList) {
+            if (dp.getPredmetId() == null) continue;
+
+            Predmet predmet = predmetMap.get(dp.getPredmetId());
+            Nastavnik nastavnik = nastavnikMap.get(dp.getEmailNastavnik());
 
             if (predmet != null && nastavnik != null) {
-                DrziPredmet drziPredmet = new DrziPredmet();
-                drziPredmet.setPredmet(predmet);
-                drziPredmet.setNastavnik(nastavnik);
-                drziPredmetEntities.add(drziPredmet);
+                DrziPredmet postoji = drziPredmetRepository.getDrziPredmetNastavnikPredmet(
+                        predmet.getId(), nastavnik.getId()
+                );
+                if (postoji == null) {
+                    DrziPredmet newDp = new DrziPredmet();
+                    newDp.setPredmet(predmet);
+                    newDp.setNastavnik(nastavnik);
+                    drziPredmetEntities.add(newDp);
+                }
             }
         }
 
-        for (DrziPredmetNewRequest newDrziPredmetRequest : newDrziPredmetList) {
-            Predmet predmet = newPredmetMap.get(newDrziPredmetRequest.getPredmetNaziv());
-            Nastavnik nastavnik = nastavnikMap.get(newDrziPredmetRequest.getEmailNastavnik());
+        // Novi predmeti
+        for (DrziPredmetNewRequest dp : newDrziPredmetList) {
+            if (dp.getPredmetNaziv() == null) continue;
+
+            Predmet predmet = newPredmetMap.get(dp.getPredmetNaziv());
+            Nastavnik nastavnik = nastavnikMap.get(dp.getEmailNastavnik());
 
             if (predmet != null && nastavnik != null) {
-                DrziPredmet drziPredmet = new DrziPredmet();
-                drziPredmet.setPredmet(predmet);
-                drziPredmet.setNastavnik(nastavnik);
-                drziPredmetEntities.add(drziPredmet);
+                DrziPredmet postoji = drziPredmetRepository.getDrziPredmetNastavnikPredmet(
+                        predmet.getId(), nastavnik.getId()
+                );
+                if (postoji == null) {
+                    DrziPredmet newDp = new DrziPredmet();
+                    newDp.setPredmet(predmet);
+                    newDp.setNastavnik(nastavnik);
+                    drziPredmetEntities.add(newDp);
+                }
             }
         }
 
-        // sacuvaj sve u bazi
-        List<DrziPredmet> saved = (List<DrziPredmet>) drziPredmetRepository.saveAll(drziPredmetEntities);
+        if (drziPredmetEntities.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Nema novih veza za dodavanje. Sve postoji u bazi!");
+        }
 
-        // konvertuj u response listu
-        return saved.stream().map(Converters::toDrziPredmetResponse).collect(Collectors.toList());
+        drziPredmetRepository.saveAll(drziPredmetEntities);
+
+        return ResponseEntity.ok("Uspešno sačuvano " + drziPredmetEntities.size() + " novih veza DrziPredmet!");
     }
 
     @Transactional(readOnly = true)

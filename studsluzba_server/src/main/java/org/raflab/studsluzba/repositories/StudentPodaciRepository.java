@@ -3,6 +3,7 @@ package org.raflab.studsluzba.repositories;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.raflab.studsluzba.model.StudentPodaci;
@@ -26,5 +27,6 @@ public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Lo
 	
 	@Query("select si from StudentIndeks si where si.aktivan=false and si.student.id = :studPodaciId")
 	List<StudentIndeks> getNeaktivniIndeksi(Long studPodaciId);
+
 		
 }

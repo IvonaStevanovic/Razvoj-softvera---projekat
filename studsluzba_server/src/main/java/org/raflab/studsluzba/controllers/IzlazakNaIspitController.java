@@ -7,10 +7,12 @@ import org.raflab.studsluzba.model.IzlazakNaIspit;
 import org.raflab.studsluzba.repositories.IzlazakNaIspitRepository;
 import org.raflab.studsluzba.services.IzlazakNaIspitService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @CrossOrigin
@@ -23,9 +25,14 @@ public class IzlazakNaIspitController {
     private final IzlazakNaIspitRepository repository;
 
     @PostMapping("/add")
-    public IzlazakNaIspitResponse addNew(@RequestBody @Valid IzlazakNaIspitRequest request) {
-        IzlazakNaIspit izlazak = service.save(request);
-        return Converters.toIzlazakNaIspitResponse(izlazak);
+    public ResponseEntity<?> addNew(@RequestBody @Valid IzlazakNaIspitRequest request) {
+        try {
+            IzlazakNaIspit izlazak = service.save(request);
+            return ResponseEntity.ok(Converters.toIzlazakNaIspitResponse(izlazak));
+        } catch (IllegalArgumentException e) {
+            // vraća 400 Bad Request sa porukom
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/all")

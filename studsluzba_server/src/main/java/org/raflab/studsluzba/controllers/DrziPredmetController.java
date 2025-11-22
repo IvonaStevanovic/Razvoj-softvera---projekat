@@ -2,37 +2,38 @@ package org.raflab.studsluzba.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.raflab.studsluzba.controllers.request.DrziPredmetRequest;
-import org.raflab.studsluzba.controllers.response.DrziPredmetResponse;
 import org.raflab.studsluzba.services.DrziPredmetService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@CrossOrigin
 @RestController
 @RequestMapping("/api/drzi-predmet")
 @RequiredArgsConstructor
 public class DrziPredmetController {
+
     private final DrziPredmetService drziPredmetService;
 
     @PostMapping("/add")
-    public String addDrziPredmet(@RequestBody DrziPredmetRequest request) {
-        drziPredmetService.saveDrziPredmet(request);
-        return "Uspešno sačuvano DrziPredmet!";
+    public ResponseEntity<?> addDrziPredmet(@RequestBody DrziPredmetRequest request) {
+        return drziPredmetService.saveDrziPredmet(request);
     }
 
+
+    // Dohvatanje svih veza
     @GetMapping("/all")
-    public List<DrziPredmetResponse> getAllDrziPredmet() {
-        return drziPredmetService.getAll();
+    public ResponseEntity<?> getAll() {
+        return ResponseEntity.ok(drziPredmetService.getAll());
     }
 
+    // Dohvatanje veza po id nastavnika
     @GetMapping("/nastavnik/{nastavnikId}")
-    public List<DrziPredmetResponse> getByNastavnik(@PathVariable Long nastavnikId) {
-        return drziPredmetService.getByNastavnikId(nastavnikId);
+    public ResponseEntity<?> getByNastavnik(@PathVariable Long nastavnikId) {
+        return ResponseEntity.ok(drziPredmetService.getByNastavnikId(nastavnikId));
     }
 
+    // Dohvatanje veza po id predmeta
     @GetMapping("/predmet/{predmetId}")
-    public List<DrziPredmetResponse> getByPredmet(@PathVariable Long predmetId) {
-        return drziPredmetService.getByPredmetId(predmetId);
+    public ResponseEntity<?> getByPredmet(@PathVariable Long predmetId) {
+        return ResponseEntity.ok(drziPredmetService.getByPredmetId(predmetId));
     }
 }

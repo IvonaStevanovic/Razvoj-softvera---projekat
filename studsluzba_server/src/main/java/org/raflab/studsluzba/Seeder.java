@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
-
 @Component
 @Transactional
 public class Seeder implements CommandLineRunner {
@@ -62,6 +61,8 @@ public class Seeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
+        // ==================== Studijski Program ====================
         List<StudijskiProgram> spList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             StudijskiProgram sp = new StudijskiProgram();
@@ -71,11 +72,11 @@ public class Seeder implements CommandLineRunner {
             sp.setZvanje("Zvanje " + i);
             sp.setTrajanjeGodina(4);
             sp.setTrajanjeSemestara(8);
-           /// sp.setVrstaStudija("OAS");
             sp.setUkupnoEspb(240);
             spList.add(studijskiProgramRepository.save(sp));
         }
 
+        // ==================== Predmeti ====================
         List<Predmet> predmetList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             Predmet p = new Predmet();
@@ -88,6 +89,7 @@ public class Seeder implements CommandLineRunner {
             predmetList.add(predmetRepository.save(p));
         }
 
+        // ==================== Nastavnici ====================
         List<Nastavnik> nastavnikList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             Nastavnik n = new Nastavnik();
@@ -103,7 +105,7 @@ public class Seeder implements CommandLineRunner {
             nastavnikList.add(nastavnikRepository.save(n));
         }
 
-        List<NastavnikZvanje> zvanjeList = new ArrayList<>();
+        // ==================== Nastavnik Zvanje ====================
         for (int i = 1; i <= 5; i++) {
             NastavnikZvanje nz = new NastavnikZvanje();
             nz.setDatumIzbora(LocalDate.of(2020 + i, i, i));
@@ -112,9 +114,10 @@ public class Seeder implements CommandLineRunner {
             nz.setZvanje("Zvanje " + i);
             nz.setAktivno(i % 2 == 0);
             nz.setNastavnik(nastavnikList.get(i - 1));
-            zvanjeList.add(nastavnikZvanjeRepository.save(nz));
+            nastavnikZvanjeRepository.save(nz);
         }
 
+        // ==================== Student Podaci ====================
         List<StudentPodaci> studentPodaciList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             StudentPodaci s = new StudentPodaci();
@@ -136,6 +139,7 @@ public class Seeder implements CommandLineRunner {
             studentPodaciList.add(studentPodaciRepository.save(s));
         }
 
+        // ==================== Student Indeks ====================
         List<StudentIndeks> indeksList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             StudentIndeks si = new StudentIndeks();
@@ -151,6 +155,7 @@ public class Seeder implements CommandLineRunner {
             indeksList.add(studentIndeksRepository.save(si));
         }
 
+        // ==================== DrziPredmet ====================
         List<DrziPredmet> drziPredmetList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             DrziPredmet dp = new DrziPredmet();
@@ -159,6 +164,7 @@ public class Seeder implements CommandLineRunner {
             drziPredmetList.add(drziPredmetRepository.save(dp));
         }
 
+        // ==================== SlusaPredmet ====================
         List<SlusaPredmet> slusaPredmetList = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             SlusaPredmet sl = new SlusaPredmet();
@@ -167,6 +173,7 @@ public class Seeder implements CommandLineRunner {
             slusaPredmetList.add(slusaPredmetRepository.save(sl));
         }
 
+        // ==================== Grupa ====================
         for (int i = 1; i <= 5; i++) {
             Grupa g = new Grupa();
             g.setStudijskiProgram(spList.get(i - 1));
@@ -174,23 +181,24 @@ public class Seeder implements CommandLineRunner {
             grupaRepository.save(g);
         }
 
-        List<SrednjaSkola> srednjaSkolaList = new ArrayList<>();
+        // ==================== Srednja Skola ====================
         for (int i = 1; i <= 5; i++) {
             SrednjaSkola ss = new SrednjaSkola();
             ss.setNaziv("Srednja Skola " + i);
             ss.setMesto("Mesto " + i);
             ss.setVrsta("Gimnazija");
-            srednjaSkolaList.add(srednjaSkolaRepository.save(ss));
+            srednjaSkolaRepository.save(ss);
         }
 
-        List<VisokoskolskaUstanova> ustanovaList = new ArrayList<>();
+        // ==================== Visokoskolska Ustanova ====================
         for (int i = 1; i <= 5; i++) {
             VisokoskolskaUstanova vu = new VisokoskolskaUstanova();
             vu.setNaziv("Ustanova " + i);
             vu.setMesto("Grad " + i);
-            ustanovaList.add(visokoskolskaUstanovaRepository.save(vu));
+            visokoskolskaUstanovaRepository.save(vu);
         }
 
+        // ==================== Skolska Godina ====================
         List<SkolskaGodina> skolskaGodinaList = new ArrayList<>();
         for (int i = 2022; i <= 2026; i++) {
             SkolskaGodina sg = new SkolskaGodina();
@@ -199,23 +207,17 @@ public class Seeder implements CommandLineRunner {
             skolskaGodinaList.add(skolskaGodinaRepository.save(sg));
         }
 
+        // ==================== Ispitni Rok ====================
         List<IspitniRok> ispitniRokList = new ArrayList<>();
         for (SkolskaGodina sg : skolskaGodinaList) {
             IspitniRok ir = new IspitniRok();
             ir.setDatumPocetka(LocalDate.of(2025, 6, 1));
             ir.setDatumZavrsetka(LocalDate.of(2025, 6, 15));
             ir.setSkolskaGodina(sg);
-
-            if (sg.getIspitniRokovi() == null) {
-                sg.setIspitniRokovi(new HashSet<>());
-            }
-            sg.getIspitniRokovi().add(ir);
-
             ispitniRokList.add(ispitniRokRepository.save(ir));
         }
 
-
-
+        // ==================== Ispit ====================
         List<Ispit> ispitList = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Ispit ispit = new Ispit();
@@ -224,31 +226,29 @@ public class Seeder implements CommandLineRunner {
             ispit.setPredmet(predmetList.get(i));
             ispit.setNastavnik(nastavnikList.get(i));
             ispit.setZakljucen(i % 2 == 0);
-
             ispit.setIspitniRok(ispitniRokList.get(i % ispitniRokList.size()));
-
             ispitList.add(ispitRepository.save(ispit));
         }
 
-        List<PredispitneObaveze> obavezeList = new ArrayList<>();
+        // ==================== Predispitne Obaveze ====================
         for (int i = 1; i <= 5; i++) {
             PredispitneObaveze po = new PredispitneObaveze();
             po.setVrsta(i % 2 == 0 ? "Test" : "Kolokvijum");
             po.setMaksPoeni(10 + i * 5);
             po.setDrziPredmet(drziPredmetList.get(i - 1));
             po.setSkolskaGodina(skolskaGodinaList.get(i % skolskaGodinaList.size()));
-            obavezeList.add(predispitneObavezeRepository.save(po));
+            predispitneObavezeRepository.save(po);
         }
 
-        List<VrstaStudija> vrstaStudijaList = new ArrayList<>();
+        // ==================== Vrsta Studija ====================
         for (int i = 1; i <= 3; i++) {
             VrstaStudija vs = new VrstaStudija();
             vs.setOznaka("OAS" + i);
             vs.setPunNaziv("Osnovne akademske studije " + i);
-            vrstaStudijaList.add(vrstaStudijaRepository.save(vs));
+            vrstaStudijaRepository.save(vs);
         }
 
-        List<IzlazakNaIspit> izlazakList = new ArrayList<>();
+        // ==================== IzlazakNaIspit ====================
         for (int i = 0; i < 5; i++) {
             IzlazakNaIspit izlazak = new IzlazakNaIspit();
             izlazak.setOstvarenoNaIspitu(50 + i * 10);
@@ -258,74 +258,66 @@ public class Seeder implements CommandLineRunner {
             izlazak.setStudentIndeks(indeksList.get(i));
             izlazak.setIspit(ispitList.get(i));
             izlazak.setSlusaPredmet(slusaPredmetList.get(i));
-            izlazakList.add(izlazakNaIspitRepository.save(izlazak));
+            izlazakNaIspitRepository.save(izlazak);
         }
 
-        List<PrijavaIspita> prijavaList = new ArrayList<>();
+        // ==================== Prijava Ispita ====================
         for (int i = 0; i < indeksList.size(); i++) {
             PrijavaIspita pi = new PrijavaIspita();
             pi.setStudentIndeks(indeksList.get(i));
             pi.setIspit(ispitList.get(i % ispitList.size()));
             pi.setDatumPrijave(LocalDate.now());
-            prijavaList.add(prijavaIspitaRepository.save(pi));
+            prijavaIspitaRepository.save(pi);
         }
 
-        List<PredispitniPoeni> poeniList = new ArrayList<>();
+        // ==================== Predispitni Poeni ====================
         for (int i = 0; i < 5; i++) {
             PredispitniPoeni poeni = new PredispitniPoeni();
             poeni.setPoeni(5 + i * 2);
             poeni.setStudentIndeks(indeksList.get(i));
-            poeni.setPredispitnaObaveza(obavezeList.get(i));
+            poeni.setPredispitnaObaveza(predispitneObavezeRepository.findAll().get(i));
             poeni.setSlusaPredmet(slusaPredmetList.get(i));
             poeni.setSkolskaGodina(skolskaGodinaList.get(i));
-            poeniList.add(predispitniPoeniRepository.save(poeni));
+            predispitniPoeniRepository.save(poeni);
         }
 
-        List<UpisGodine> upisGodineList = new ArrayList<>();
+        // ==================== Upis Godine ====================
         for (int i = 0; i < 5; i++) {
             UpisGodine upis = new UpisGodine();
             upis.setGodinaStudija(i + 1);
             upis.setDatum(LocalDate.of(2023, 10, i + 1));
             upis.setNapomena("Napomena " + (i + 1));
             upis.setStudentIndeks(indeksList.get(i));
-
             Set<Predmet> preneti = new HashSet<>();
             preneti.add(predmetList.get(0));
             preneti.add(predmetList.get(1));
             upis.setPrenetiPredmeti(preneti);
-
-            upisGodineList.add(upisGodineRepository.save(upis));
+            upisGodineRepository.save(upis);
         }
 
-        List<ObnovaGodine> obnovaGodineList = new ArrayList<>();
+        // ==================== Obnova Godine ====================
         for (int i = 0; i < 5; i++) {
             ObnovaGodine obnova = new ObnovaGodine();
             obnova.setGodinaStudija(i + 1);
             obnova.setDatum(LocalDate.of(2023, 10, i + 1));
             obnova.setNapomena("Napomena obnove " + (i + 1));
             obnova.setStudentIndeks(indeksList.get(i));
-
             Set<Predmet> predmeti = new HashSet<>();
             predmeti.add(predmetList.get(0));
             predmeti.add(predmetList.get(1));
             obnova.setPredmetiKojeUpisuje(predmeti);
-
-            obnovaGodineList.add(obnovaGodineRepository.save(obnova));
+            obnovaGodineRepository.save(obnova);
         }
 
-        List<PolozeniPredmeti> polozeniPredmetiList = new ArrayList<>();
+        // ==================== Polozeni Predmeti ====================
         for (int i = 0; i < 5; i++) {
             PolozeniPredmeti pp = new PolozeniPredmeti();
             pp.setStudentIndeks(indeksList.get(i));
             pp.setPredmet(predmetList.get(i));
             pp.setOcena(6 + i % 5);
             pp.setPriznat(i % 2 == 0);
-            pp.setIzlazakNaIspit(izlazakList.get(i));
-
-            polozeniPredmetiList.add(polozeniPredmetiRepository.save(pp));
+            pp.setIzlazakNaIspit(izlazakNaIspitRepository.findAll().get(i));
+            polozeniPredmetiRepository.save(pp);
         }
-
-
-        }
-
+    }
 }

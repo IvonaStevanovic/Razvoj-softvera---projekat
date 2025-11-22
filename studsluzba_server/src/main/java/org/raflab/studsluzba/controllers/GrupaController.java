@@ -6,6 +6,8 @@ import org.raflab.studsluzba.controllers.response.GrupaResponse;
 import org.raflab.studsluzba.model.Grupa;
 import org.raflab.studsluzba.services.GrupaService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,10 +21,15 @@ public class GrupaController {
     private final GrupaService grupaService;
 
     @PostMapping("/add")
-    public Long addGrupa(@RequestBody GrupaRequest request) {
-        Grupa grupa = grupaService.save(request);
-        return grupa.getId();
+    public ResponseEntity<?> addGrupa(@RequestBody GrupaRequest request) {
+        try {
+            Grupa grupa = grupaService.save(request);
+            return ResponseEntity.ok(grupa.getId());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
+
 
     @GetMapping("/all")
     public List<GrupaResponse> getAllGrupe() {

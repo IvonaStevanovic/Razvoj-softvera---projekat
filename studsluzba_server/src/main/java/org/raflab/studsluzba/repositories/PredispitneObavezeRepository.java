@@ -1,11 +1,14 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.DrziPredmet;
 import org.raflab.studsluzba.model.PredispitneObaveze;
+import org.raflab.studsluzba.model.SkolskaGodina;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PredispitneObavezeRepository extends JpaRepository<PredispitneObaveze, Long> {
@@ -20,4 +23,5 @@ public interface PredispitneObavezeRepository extends JpaRepository<PredispitneO
     /// Sve predispitne obaveze određene vrste (test, kolokvijum, zadatak...)
     @Query("select p from PredispitneObaveze p where p.vrsta = :vrsta")
     List<PredispitneObaveze> findByVrsta(String vrsta);
+
 }

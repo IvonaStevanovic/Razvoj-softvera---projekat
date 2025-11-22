@@ -138,31 +138,6 @@ public class EntityMappers {
                 .collect(Collectors.toList());
     }
 
-    public IspitResponse fromIspitToResponse(Ispit entity) {
-        if (entity == null) return null;
-
-        IspitResponse resp = new IspitResponse();
-        resp.setId(entity.getId());
-        resp.setDatumOdrzavanja(entity.getDatumOdrzavanja());
-        resp.setVremePocetka(entity.getVremePocetka());
-        resp.setZakljucen(entity.isZakljucen());
-
-        resp.setPredmetId(entity.getPredmet() != null ? entity.getPredmet().getId() : null);
-        resp.setPredmetNaziv(entity.getPredmet() != null ? entity.getPredmet().getNaziv() : null);
-        resp.setNastavnikId(entity.getNastavnik() != null ? entity.getNastavnik().getId() : null);
-        resp.setIspitniRokId(entity.getIspitniRok() != null ? entity.getIspitniRok().getId() : null);
-
-        return resp;
-    }
-
-    public IspitniRokResponse fromIspitniRokToResponse(IspitniRok entity) {
-        if (entity == null) return null;
-        IspitniRokResponse resp = new IspitniRokResponse();
-        resp.setId(entity.getId());
-        resp.setDatumPocetka(entity.getDatumPocetka());
-        resp.setDatumZavrsetka(entity.getDatumZavrsetka());
-        return resp;
-    }
 
     public PredmetResponse fromPredmetToResponse(Predmet entity) {
         if (entity == null) return null;

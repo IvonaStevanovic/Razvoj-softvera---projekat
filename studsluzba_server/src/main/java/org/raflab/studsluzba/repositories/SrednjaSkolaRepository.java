@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SrednjaSkolaRepository extends JpaRepository<SrednjaSkola, Long> {
@@ -20,4 +21,5 @@ public interface SrednjaSkolaRepository extends JpaRepository<SrednjaSkola, Long
     /// Pretraga po delu naziva (case-insensitive)
     @Query("select s from SrednjaSkola s where lower(s.naziv) like lower(concat('%', :naziv, '%'))")
     List<SrednjaSkola> findByNazivContaining(String naziv);
+
 }

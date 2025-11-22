@@ -3,7 +3,11 @@ package org.raflab.studsluzba.utils;
 import org.raflab.studsluzba.controllers.request.*;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
+import org.raflab.studsluzba.repositories.IspitniRokRepository;
+import org.raflab.studsluzba.repositories.NastavnikRepository;
+import org.raflab.studsluzba.repositories.PredmetRepository;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -144,31 +148,31 @@ public class Converters {
 
 
 
-    public static Ispit toIspit(IspitRequest request) {
+    public static Ispit toIspit(IspitRequest request,
+                                PredmetRepository predmetRepo,
+                                NastavnikRepository nastavnikRepo,
+                                IspitniRokRepository rokRepo) {
         Ispit ispit = new Ispit();
         ispit.setDatumOdrzavanja(request.getDatumOdrzavanja());
         ispit.setVremePocetka(request.getVremePocetka());
         ispit.setZakljucen(request.isZakljucen());
 
-        if (request.getPredmetId() != null) {
-            Predmet predmet = new Predmet();
-            predmet.setId(request.getPredmetId());
-            ispit.setPredmet(predmet);
-        }
+        // svi entiteti se učitavaju iz baze
+        Predmet predmet = predmetRepo.findById(request.getPredmetId())
+                .orElseThrow(() -> new EntityNotFoundException("Predmet ne postoji"));
+        ispit.setPredmet(predmet);
 
-        if (request.getNastavnikId() != null) {
-            Nastavnik nastavnik = new Nastavnik();
-            nastavnik.setId(request.getNastavnikId());
-            ispit.setNastavnik(nastavnik);
-        }
+        Nastavnik nastavnik = nastavnikRepo.findById(request.getNastavnikId())
+                .orElseThrow(() -> new EntityNotFoundException("Nastavnik ne postoji"));
+        ispit.setNastavnik(nastavnik);
 
-        if (request.getIspitniRokId() != null) {
-            IspitniRok rok = new IspitniRok();
-            rok.setId(request.getIspitniRokId());
-            ispit.setIspitniRok(rok);
-        }
+        IspitniRok rok = rokRepo.findById(request.getIspitniRokId())
+                .orElseThrow(() -> new EntityNotFoundException("Ispitni rok ne postoji"));
+        ispit.setIspitniRok(rok);
+
         return ispit;
     }
+
 
     public static IspitResponse toIspitResponse(Ispit ispit) {
         IspitResponse response = new IspitResponse();

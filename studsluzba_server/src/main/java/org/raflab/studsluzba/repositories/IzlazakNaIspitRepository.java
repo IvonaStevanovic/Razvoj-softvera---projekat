@@ -1,11 +1,15 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.Ispit;
 import org.raflab.studsluzba.model.IzlazakNaIspit;
+import org.raflab.studsluzba.model.SlusaPredmet;
+import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IzlazakNaIspitRepository extends JpaRepository<IzlazakNaIspit, Long> {
@@ -29,4 +33,8 @@ public interface IzlazakNaIspitRepository extends JpaRepository<IzlazakNaIspit, 
     /// Svi izlazi na ispit gde student nije izašao
     @Query("select z from IzlazakNaIspit z where z.izasao = false")
     List<IzlazakNaIspit> findNotYetAppeared();
+
+    /// Provera da li već postoji izlazak na ispit za istog studenta, isti ispit i isti predmet
+    boolean existsByStudentIndeksAndIspitAndSlusaPredmet(StudentIndeks studentIndeks, Ispit ispit, SlusaPredmet slusaPredmet);
+
 }

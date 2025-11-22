@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.raflab.studsluzba.model.SlusaPredmet;
 import org.raflab.studsluzba.model.StudentIndeks;
@@ -40,5 +41,7 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
     @Query("select sp.studentIndeks from SlusaPredmet sp where sp.drziPredmet.id = :idDrziPredmet "
             + "and sp.studentIndeks.studProgramOznaka = :studProgramOznaka and sp.studentIndeks.godina = :godina")
     List<StudentIndeks> getStudentiSlusajuDrziPredmetFilter(String studProgramOznaka, Integer godina, Long idDrziPredmet);
+
+
 
 }

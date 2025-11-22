@@ -3,10 +3,10 @@ package org.raflab.studsluzba.repositories;
 import java.util.List;
 
 
-import org.raflab.studsluzba.model.DrziPredmet;
-import org.raflab.studsluzba.model.Predmet;
+import org.raflab.studsluzba.model.*;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
@@ -17,6 +17,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DrziPredmetRepository extends CrudRepository<DrziPredmet, Long> {
@@ -27,7 +28,11 @@ public interface DrziPredmetRepository extends CrudRepository<DrziPredmet, Long>
 
     @Query("select dp from DrziPredmet dp where dp.nastavnik.id = :idNastavnik "
             + "and dp.predmet.id = :idPredmet")
-    DrziPredmet getDrziPredmetNastavnikPredmet(Long idPredmet, Long idNastavnik);
+    DrziPredmet getDrziPredmetNastavnikPredmet(
+            @Param("idPredmet") Long idPredmet,
+            @Param("idNastavnik") Long idNastavnik
+    );
+
 
     // Nove metode koje servis koristi
     List<DrziPredmet> findAll(); // za getAll

@@ -44,6 +44,12 @@ public class IzlazakNaIspitService {
         SlusaPredmet slusaPredmet = slusaPredmetRepository.findById(request.getSlusaPredmet())
                 .orElseThrow(() -> new RuntimeException("SlusaPredmet sa ID " + request.getSlusaPredmet() + " ne postoji"));
 
+        // Provera da li već postoji isti izlazak
+        boolean exists = repository.existsByStudentIndeksAndIspitAndSlusaPredmet(student, ispit, slusaPredmet);
+        if (exists) {
+            throw new IllegalArgumentException("Izlazak na ispit za ovog studenta, ispit i predmet već postoji!");
+        }
+
         IzlazakNaIspit izlazak = new IzlazakNaIspit();
         izlazak.setStudentIndeks(student);
         izlazak.setIspit(ispit);
@@ -57,6 +63,8 @@ public class IzlazakNaIspitService {
         processIzlazakNaIspit(saved.getId());
         return saved;
     }
+
+
 
     @Transactional
     public PolozeniPredmeti processIzlazakNaIspit(Long izlazakId) {

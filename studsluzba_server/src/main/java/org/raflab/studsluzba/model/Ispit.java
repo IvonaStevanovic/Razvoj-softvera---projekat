@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -28,15 +29,16 @@ public class Ispit {
 
     private boolean zakljucen;
 
-    //JsonIgnore
-    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PrijavaIspita> prijave;
 
     @ManyToOne
     private IspitniRok ispitniRok;
 
-    //JsonIgnore
-    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY
+    )
           private Set<IzlazakNaIspit> izlazci;
 
 }

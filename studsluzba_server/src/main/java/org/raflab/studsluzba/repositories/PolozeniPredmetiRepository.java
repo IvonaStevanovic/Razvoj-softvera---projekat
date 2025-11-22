@@ -1,11 +1,14 @@
 package org.raflab.studsluzba.repositories;
 
 import org.raflab.studsluzba.model.PolozeniPredmeti;
+import org.raflab.studsluzba.model.Predmet;
+import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredmeti, Long> {
@@ -29,5 +32,4 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
             "WHERE p.predmet.id = :predmetId " +
             "AND p.studentIndeks.godina BETWEEN :pocetna AND :krajnja")
     Double findProsecnaOcenaZaPredmetURasponuGodina(Long predmetId, int pocetna, int krajnja);
-
 }

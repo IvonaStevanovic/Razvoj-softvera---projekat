@@ -1,12 +1,14 @@
 package org.raflab.studsluzba.repositories;
 
 import org.raflab.studsluzba.model.IspitniRok;
+import org.raflab.studsluzba.model.SkolskaGodina;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IspitniRokRepository extends CrudRepository<IspitniRok, Long> {
@@ -27,5 +29,8 @@ public interface IspitniRokRepository extends CrudRepository<IspitniRok, Long> {
             "(:pocetak between ir.datumPocetka and ir.datumZavrsetka or :zavrsetak between ir.datumPocetka and ir.datumZavrsetka)")
     List<IspitniRok> findRokoviKojiSePreklapaju(Long idSkolskeGodine, LocalDate pocetak, LocalDate zavrsetak);
 */
+@Query("select ir from IspitniRok ir where ir.datumPocetka = :datumPocetka and ir.skolskaGodina.id = :godinaId")
+Optional<IspitniRok> findByDatumPocetkaAndSkolskaGodinaId(LocalDate datumPocetka, Long godinaId);
+
 }
 
