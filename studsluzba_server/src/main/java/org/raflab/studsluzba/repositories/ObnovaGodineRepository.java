@@ -12,7 +12,10 @@ import java.util.Optional;
 @Repository
 public interface ObnovaGodineRepository extends JpaRepository<ObnovaGodine, Long> {
 
-    @Query("select o from ObnovaGodine o left join fetch o.predmetiKojeUpisuje left join fetch o.studentIndeks si left join fetch si.student")
+
+    Optional<ObnovaGodine> findByStudentIndeksIdAndGodinaStudija(Long studentIndeksId, int godinaStudija);
+
+    @Query("SELECT o FROM ObnovaGodine o JOIN FETCH o.predmetiKojeUpisuje JOIN FETCH o.studentIndeks")
     List<ObnovaGodine> findAllWithPredmetiAndStudent();
 
     @Query("select o from ObnovaGodine o where o.studentIndeks.id = :idStudenta")
