@@ -6,9 +6,11 @@ import org.raflab.studsluzba.controllers.response.VisokoskolskaUstanovaResponse;
 import org.raflab.studsluzba.model.VisokoskolskaUstanova;
 import org.raflab.studsluzba.services.VisokoskolskaUstanovaService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/visokoskolska-ustanova")
@@ -17,17 +19,39 @@ public class VisokoskolskaUstanovaController {
 
     private final VisokoskolskaUstanovaService service;
 
-    @PostMapping
-    public VisokoskolskaUstanovaResponse create(@RequestBody VisokoskolskaUstanovaRequest request) {
-        VisokoskolskaUstanova ustanova = Converters.toVisokoskolskaUstanova(request);
-        return Converters.toVisokoskolskaUstanovaResponse(service.create(ustanova));
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@RequestBody VisokoskolskaUstanovaRequest request) {
+        try {
+            VisokoskolskaUstanova ustanova = Converters.toVisokoskolskaUstanova(request);
+            VisokoskolskaUstanova saved = service.create(ustanova);
+            return ResponseEntity.ok(Converters.toVisokoskolskaUstanovaResponse(saved));
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "error", "Ustanova već postoji",
+                            "message", e.getMessage()
+                    ));
+        }
     }
 
+
     @PutMapping("/{id}")
-    public VisokoskolskaUstanovaResponse update(@PathVariable Long id, @RequestBody VisokoskolskaUstanovaRequest request) {
-        VisokoskolskaUstanova ustanovaDetails = Converters.toVisokoskolskaUstanova(request);
-        return Converters.toVisokoskolskaUstanovaResponse(service.update(id, ustanovaDetails));
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody VisokoskolskaUstanovaRequest request) {
+        try {
+            VisokoskolskaUstanova ustanovaDetails = Converters.toVisokoskolskaUstanova(request);
+            VisokoskolskaUstanova updated = service.update(id, ustanovaDetails);
+            return ResponseEntity.ok(Converters.toVisokoskolskaUstanovaResponse(updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "error", "Greška pri update-u",
+                            "message", e.getMessage()
+                    ));
+        }
     }
+
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
