@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
 @Service
 @AllArgsConstructor
 public class VrstaStudijaService {
@@ -15,6 +14,18 @@ public class VrstaStudijaService {
     private final VrstaStudijaRepository repository;
 
     public VrstaStudija create(VrstaStudija vrsta) {
+        // Provera duplikata po oznaci
+        VrstaStudija byOznaka = repository.findByOznaka(vrsta.getOznaka());
+        if (byOznaka != null) {
+            throw new RuntimeException("Vrsta studija sa ovom oznakom već postoji");
+        }
+
+        // Provera duplikata po punom nazivu
+        VrstaStudija byPunNaziv = repository.findByPunNaziv(vrsta.getPunNaziv());
+        if (byPunNaziv != null) {
+            throw new RuntimeException("Vrsta studija sa ovim punim nazivom već postoji");
+        }
+
         return repository.save(vrsta);
     }
 
