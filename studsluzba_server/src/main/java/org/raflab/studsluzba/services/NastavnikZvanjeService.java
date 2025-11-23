@@ -53,7 +53,4 @@ public class NastavnikZvanjeService {
                 .orElseThrow(() -> new RuntimeException("NastavnikZvanje sa ID " + id + " ne postoji"));
     }
 
-    public void deleteById(Long id) {
-        repository.deleteById(id);
-    }
 }
