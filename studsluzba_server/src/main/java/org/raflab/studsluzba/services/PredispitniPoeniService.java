@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,10 +32,25 @@ public class PredispitniPoeniService {
 
     @Transactional
     public PredispitniPoeni save(PredispitniPoeniRequest request) {
-        StudentIndeks student = studentRepository.findById(request.getStudentIndeksId()).orElse(null);
-        PredispitneObaveze obaveza = obavezeRepository.findById(request.getPredispitnaObavezaId()).orElse(null);
-        SlusaPredmet slusa = slusaPredmetRepository.findById(request.getSlusaPredmetId()).orElse(null);
-        SkolskaGodina godina = skolskaGodinaRepository.findById(request.getSkolskaGodinaId()).orElse(null);
+        StudentIndeks student = studentRepository.findById(request.getStudentIndeksId())
+                .orElseThrow(() -> new RuntimeException("Student ne postoji"));
+        PredispitneObaveze obaveza = obavezeRepository.findById(request.getPredispitnaObavezaId())
+                .orElseThrow(() -> new RuntimeException("Predispitna obaveza ne postoji"));
+        SlusaPredmet slusa = slusaPredmetRepository.findById(request.getSlusaPredmetId())
+                .orElseThrow(() -> new RuntimeException("SlusaPredmet ne postoji"));
+        SkolskaGodina godina = skolskaGodinaRepository.findById(request.getSkolskaGodinaId())
+                .orElseThrow(() -> new RuntimeException("Skolska godina ne postoji"));
+
+        // 🔹 Provera duplikata
+        Optional<PredispitniPoeni> existing = repository.findDuplicate(
+                student.getId(),
+                obaveza.getId(),
+                slusa.getId(),
+                godina.getId()
+        );
+        if (existing.isPresent()) {
+            throw new RuntimeException("Predispitni poeni za ovog studenta, predispitnu obavezu, predmet i školsku godinu već postoje");
+        }
 
         PredispitniPoeni p = Converters.toPredispitniPoeni(request, student, obaveza, slusa, godina);
         return repository.save(p);
@@ -74,18 +90,4 @@ public class PredispitniPoeniService {
     public List<PredispitniPoeni> findBySkolskaGodina(Long godinaId) {
         return repository.findBySkolskaGodina(godinaId);
     }
-
-    public List<PredispitniPoeni> findByStudentPredmetGodina(Long studentId, Long slusaPredmetId, Long skolskaGodinaId) {
-        return repository.findByStudentAndSlusaPredmet(studentId, slusaPredmetId)
-                .stream()
-                .filter(p -> p.getSkolskaGodina().getId().equals(skolskaGodinaId))
-                .collect(Collectors.toList());
-    }
-    public int ukupnoPredispitniPoeni(Long studentId, Long slusaPredmetId, Long skolskaGodinaId) {
-        return findByStudentPredmetGodina(studentId, slusaPredmetId, skolskaGodinaId)
-                .stream()
-                .mapToInt(PredispitniPoeni::getPoeni)
-                .sum();
-    }
-
 }

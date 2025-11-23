@@ -5,6 +5,7 @@ import org.raflab.studsluzba.model.PredispitneObaveze;
 import org.raflab.studsluzba.repositories.PredispitneObavezeRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +15,18 @@ public class PredispitneObavezeService {
 
     private final PredispitneObavezeRepository repository;
 
+    @Transactional
     public PredispitneObaveze create(PredispitneObaveze obaveza) {
+        // 🔹 Provera duplikata
+        Optional<PredispitneObaveze> existing = repository.findDuplicate(
+                obaveza.getDrziPredmet().getId(),
+                obaveza.getSkolskaGodina().getId(),
+                obaveza.getVrsta()
+        );
+        if (existing.isPresent()) {
+            throw new RuntimeException("Predispitna obaveza već postoji za dati predmet, školsku godinu i vrstu");
+        }
+
         return repository.save(obaveza);
     }
 

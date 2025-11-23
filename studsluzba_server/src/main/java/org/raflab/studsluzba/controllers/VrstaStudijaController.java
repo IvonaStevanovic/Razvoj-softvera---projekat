@@ -6,6 +6,8 @@ import org.raflab.studsluzba.controllers.response.VrstaStudijaResponse;
 import org.raflab.studsluzba.model.VrstaStudija;
 import org.raflab.studsluzba.services.VrstaStudijaService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,12 +19,16 @@ public class VrstaStudijaController {
 
     private final VrstaStudijaService service;
 
-    @PostMapping
-    public VrstaStudijaResponse create(@RequestBody VrstaStudijaRequest request) {
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@RequestBody VrstaStudijaRequest request) {
         VrstaStudija vrsta = Converters.toVrstaStudija(request);
-        return Converters.toVrstaStudijaResponse(service.create(vrsta));
+        try {
+            VrstaStudija saved = service.create(vrsta);
+            return ResponseEntity.ok(Converters.toVrstaStudijaResponse(saved));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
-
     @PutMapping("/{id}")
     public VrstaStudijaResponse update(@PathVariable Long id, @RequestBody VrstaStudijaRequest request) {
         VrstaStudija vrstaDetails = Converters.toVrstaStudija(request);

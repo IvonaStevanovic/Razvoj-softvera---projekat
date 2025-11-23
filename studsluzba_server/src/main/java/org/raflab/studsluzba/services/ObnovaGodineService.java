@@ -10,14 +10,12 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class ObnovaGodineService {
+
     private final ObnovaGodineRepository repository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final PredmetRepository predmetRepository;
@@ -27,32 +25,40 @@ public class ObnovaGodineService {
 
     @Transactional
     public ObnovaGodine save(ObnovaGodineRequest request) {
-        ObnovaGodine obnova = new ObnovaGodine();
 
         // pronalazak indeksa studenta
         StudentIndeks indeks = studentIndeksRepository.findById(request.getStudentIndeksId())
                 .orElseThrow(() -> new RuntimeException(
                         "StudentIndeks sa id: " + request.getStudentIndeksId() + " ne postoji"
                 ));
+
+        // Provera da li postoji obnova za istog studenta i istu godinu studija
+        Optional<ObnovaGodine> existing = repository.findByStudentIndeksIdAndGodinaStudija(
+                indeks.getId(), request.getGodinaStudija()
+        );
+
+        if (existing.isPresent()) {
+            throw new RuntimeException("Obnova godine već postoji za ovog studenta i godinu studija");
+        }
+
+        ObnovaGodine obnova = new ObnovaGodine();
         obnova.setStudentIndeks(indeks);
 
         // pronalazak predmeta koje student upisuje
         Set<Predmet> predmeti = new HashSet<>();
         if (request.getPredmetIds() != null && !request.getPredmetIds().isEmpty()) {
             predmeti = new HashSet<>(predmetRepository.findByIdIn(
-                    new java.util.ArrayList<>(request.getPredmetIds())
+                    new ArrayList<>(request.getPredmetIds())
             ));
         }
         obnova.setPredmetiKojeUpisuje(predmeti);
 
-        // ostala polja
         obnova.setGodinaStudija(request.getGodinaStudija());
         obnova.setDatum(request.getDatum());
         obnova.setNapomena(request.getNapomena());
 
         return repository.save(obnova);
     }
-
 
     @Transactional
     public ObnovaGodine findById(Long id){
@@ -65,6 +71,7 @@ public class ObnovaGodineService {
         return repository.findAllWithPredmetiAndStudent();
     }
 
+    @Transactional
     public void delete(Long id){
         repository.deleteById(id);
     }

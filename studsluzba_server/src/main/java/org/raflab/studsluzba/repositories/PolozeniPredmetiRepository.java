@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredmeti, Long> {
+
     /// Svi položeni predmeti za određenog studenta
     @Query("select p from PolozeniPredmeti p where p.studentIndeks.id = :idStudenta")
     List<PolozeniPredmeti> findByStudent(Long idStudenta);
@@ -32,4 +32,12 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
             "WHERE p.predmet.id = :predmetId " +
             "AND p.studentIndeks.godina BETWEEN :pocetna AND :krajnja")
     Double findProsecnaOcenaZaPredmetURasponuGodina(Long predmetId, int pocetna, int krajnja);
+
+    /// 🔹 Provera da li već postoji zapis (student, predmet, izlazak)
+    @Query("SELECT p FROM PolozeniPredmeti p " +
+            "WHERE p.studentIndeks.id = :studentId " +
+            "AND p.predmet.id = :predmetId " +
+            "AND ((:izlazakId IS NOT NULL AND p.izlazakNaIspit.id = :izlazakId) " +
+            "OR (:izlazakId IS NULL AND p.izlazakNaIspit IS NULL))")
+    Optional<PolozeniPredmeti> findExisting(Long studentId, Long predmetId, Long izlazakId);
 }

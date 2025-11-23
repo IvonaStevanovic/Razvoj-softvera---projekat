@@ -7,6 +7,8 @@ import org.raflab.studsluzba.model.ObnovaGodine;
 import org.raflab.studsluzba.repositories.ObnovaGodineRepository;
 import org.raflab.studsluzba.services.ObnovaGodineService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +22,18 @@ public class ObnovaGodineController {
     private final ObnovaGodineService service;
 
     @PostMapping("/add")
-    public ObnovaGodineResponse add(@RequestBody ObnovaGodineRequest request){
-        ObnovaGodine obnova = service.save(request);
-        return Converters.toObnovaGodineResponse(obnova);
+    public ResponseEntity<?> add(@RequestBody ObnovaGodineRequest request){
+        try {
+            ObnovaGodine obnova = service.save(request);
+            return ResponseEntity.ok(Converters.toObnovaGodineResponse(obnova));
+        } catch (RuntimeException e) {
+            if(e.getMessage().contains("već postoji")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
+
 
     @GetMapping("/all")
     public List<ObnovaGodineResponse> getAll(){

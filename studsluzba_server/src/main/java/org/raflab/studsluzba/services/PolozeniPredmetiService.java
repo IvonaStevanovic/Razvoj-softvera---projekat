@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -31,12 +33,24 @@ public class PolozeniPredmetiService {
         Predmet predmet = predmetRepository.findById(request.getPredmetId())
                 .orElseThrow(() -> new RuntimeException("Predmet sa ID " + request.getPredmetId() + " ne postoji"));
 
-        IzlazakNaIspit izlazak = null;
-        if(request.getIzlazakNaIspitId() != null) {
-            izlazak = izlazakNaIspitRepository.findById(request.getIzlazakNaIspitId())
-                    .orElseThrow(() -> new RuntimeException("IzlazakNaIspit sa ID " + request.getIzlazakNaIspitId() + " ne postoji"));
+        final IzlazakNaIspit izlazak = request.getIzlazakNaIspitId() != null
+                ? izlazakNaIspitRepository.findById(request.getIzlazakNaIspitId())
+                .orElseThrow(() -> new RuntimeException("IzlazakNaIspit sa ID " + request.getIzlazakNaIspitId() + " ne postoji"))
+                : null;
+
+        // 🔹 Provera duplikata
+        Optional<PolozeniPredmeti> existing = repository.findExisting(
+                student.getId(),
+                predmet.getId(),
+                izlazak != null ? izlazak.getId() : null
+        );
+
+        if (existing.isPresent()) {
+            throw new RuntimeException("Položeni predmet za ovog studenta i predmet već postoji" +
+                    (izlazak != null ? " za dati izlazak na ispit" : ""));
         }
 
+        // Kreiranje novog unosa
         PolozeniPredmeti polozeni = new PolozeniPredmeti();
         polozeni.setStudentIndeks(student);
         polozeni.setPredmet(predmet);

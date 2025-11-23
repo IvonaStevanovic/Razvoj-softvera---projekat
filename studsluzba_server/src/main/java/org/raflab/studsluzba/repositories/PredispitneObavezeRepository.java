@@ -9,19 +9,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public interface PredispitneObavezeRepository extends JpaRepository<PredispitneObaveze, Long> {
-    /// Sve predispitne obaveze za određeni predmet (DrziPredmet)
+
     @Query("select p from PredispitneObaveze p where p.drziPredmet.id = :idDrziPredmeta")
     List<PredispitneObaveze> findByDrziPredmet(Long idDrziPredmeta);
 
-    /// Sve predispitne obaveze u određenoj školskoj godini
     @Query("select p from PredispitneObaveze p where p.skolskaGodina.id = :idGodine")
     List<PredispitneObaveze> findBySkolskaGodina(Long idGodine);
 
-    /// Sve predispitne obaveze određene vrste (test, kolokvijum, zadatak...)
     @Query("select p from PredispitneObaveze p where p.vrsta = :vrsta")
     List<PredispitneObaveze> findByVrsta(String vrsta);
 
+    /// Za proveru duplikata: isti predmet, ista školska godina i ista vrsta
+    @Query("select p from PredispitneObaveze p where p.drziPredmet.id = :idDrziPredmeta " +
+            "and p.skolskaGodina.id = :idGodine and lower(p.vrsta) = lower(:vrsta)")
+    Optional<PredispitneObaveze> findDuplicate(Long idDrziPredmeta, Long idGodine, String vrsta);
 }
