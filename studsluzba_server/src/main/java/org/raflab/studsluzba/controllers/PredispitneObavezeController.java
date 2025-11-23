@@ -6,6 +6,8 @@ import org.raflab.studsluzba.controllers.response.PredispitneObavezeResponse;
 import org.raflab.studsluzba.model.PredispitneObaveze;
 import org.raflab.studsluzba.services.PredispitneObavezeService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,16 +19,15 @@ public class PredispitneObavezeController {
 
     private final PredispitneObavezeService service;
 
-    @PostMapping
-    public PredispitneObavezeResponse create(@RequestBody PredispitneObavezeRequest request) {
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@RequestBody PredispitneObavezeRequest request) {
         PredispitneObaveze obaveza = Converters.toPredispitneObaveze(request);
-        return Converters.toPredispitneObavezeResponse(service.create(obaveza));
-    }
-
-    @PutMapping("/{id}")
-    public PredispitneObavezeResponse update(@PathVariable Long id, @RequestBody PredispitneObavezeRequest request) {
-        PredispitneObaveze obavezaDetails = Converters.toPredispitneObaveze(request);
-        return Converters.toPredispitneObavezeResponse(service.update(id, obavezaDetails));
+        try {
+            PredispitneObaveze saved = service.create(obaveza);
+            return ResponseEntity.ok(Converters.toPredispitneObavezeResponse(saved));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
