@@ -9,23 +9,25 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 public interface PredispitniPoeniRepository extends JpaRepository<PredispitniPoeni, Long> {
-    /// Svi poeni određenog studenta
+
     @Query("select p from PredispitniPoeni p where p.studentIndeks.id = :idStudenta")
     List<PredispitniPoeni> findByStudent(Long idStudenta);
 
-    /// Svi poeni za određenu predispitnu obavezu
     @Query("select p from PredispitniPoeni p where p.predispitnaObaveza.id = :idObaveze")
     List<PredispitniPoeni> findByPredispitnaObaveza(Long idObaveze);
 
-    /// Svi poeni određenog studenta za određeni predmet u školskoj godini
     @Query("select p from PredispitniPoeni p where p.studentIndeks.id = :idStudenta and p.slusaPredmet.id = :idSlusaPredmet")
     List<PredispitniPoeni> findByStudentAndSlusaPredmet(Long idStudenta, Long idSlusaPredmet);
 
-    /// Svi poeni u određenoj školskoj godini
     @Query("select p from PredispitniPoeni p where p.skolskaGodina.id = :idGodine")
     List<PredispitniPoeni> findBySkolskaGodina(Long idGodine);
 
+    /// Provera duplikata: isti student, ista predispitna obaveza, isti SlusaPredmet i ista školska godina
+    @Query("select p from PredispitniPoeni p where p.studentIndeks.id = :studentId " +
+            "and p.predispitnaObaveza.id = :obavezaId " +
+            "and p.slusaPredmet.id = :slusaId " +
+            "and p.skolskaGodina.id = :godinaId")
+    Optional<PredispitniPoeni> findDuplicate(Long studentId, Long obavezaId, Long slusaId, Long godinaId);
 }

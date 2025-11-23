@@ -6,6 +6,8 @@ import org.raflab.studsluzba.controllers.response.PredispitniPoeniResponse;
 import org.raflab.studsluzba.model.PredispitniPoeni;
 import org.raflab.studsluzba.services.PredispitniPoeniService;
 import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,10 +33,14 @@ public class PredispitniPoeniController {
         return p != null ? Converters.toPredispitniPoeniResponse(p) : null;
     }
 
-    @PostMapping
-    public PredispitniPoeniResponse create(@RequestBody PredispitniPoeniRequest request) {
-        PredispitniPoeni p = service.save(request);
-        return Converters.toPredispitniPoeniResponse(p);
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@RequestBody PredispitniPoeniRequest request) {
+        try {
+            PredispitniPoeni p = service.save(request);
+            return ResponseEntity.ok(Converters.toPredispitniPoeniResponse(p));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
