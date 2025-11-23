@@ -1,11 +1,18 @@
 package org.raflab.studsluzba.controllers;
 
 import lombok.AllArgsConstructor;
+import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
 import org.raflab.studsluzba.controllers.response.SlusaPredmetResponse;
 import org.raflab.studsluzba.model.SlusaPredmet;
+import org.raflab.studsluzba.model.StudentIndeks;
+import org.raflab.studsluzba.repositories.DrziPredmetRepository;
+import org.raflab.studsluzba.repositories.SkolskaGodinaRepository;
+import org.raflab.studsluzba.repositories.SlusaPredmetRepository;
+import org.raflab.studsluzba.repositories.StudentIndeksRepository;
 import org.raflab.studsluzba.services.SlusaPredmetService;
 import org.raflab.studsluzba.utils.Converters;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +24,10 @@ import java.util.stream.Collectors;
 public class SlusaPredmetController {
 
     private final SlusaPredmetService slusaPredmetService;
+    private final SlusaPredmetRepository slusaPredmetRepository;
+    private final StudentIndeksRepository studentIndeksRepository;
+    private final DrziPredmetRepository drziPredmetRepository;
+    private final SkolskaGodinaRepository skolskaGodinaRepository;
 
     @GetMapping("/all")
     public List<SlusaPredmetResponse> getAll() {
@@ -26,29 +37,29 @@ public class SlusaPredmetController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping
-    public ResponseEntity<SlusaPredmet> create(@RequestBody SlusaPredmet slusaPredmet) {
-        return ResponseEntity.ok(slusaPredmetService.create(slusaPredmet));
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@RequestBody SlusaPredmetRequest request) {
+        try {
+            SlusaPredmetResponse spResponse = slusaPredmetService.create(request);
+            return ResponseEntity.ok(spResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<SlusaPredmet> update(@PathVariable Long id, @RequestBody SlusaPredmet slusaPredmet) {
-        SlusaPredmet updated = slusaPredmetService.update(id, slusaPredmet);
-        if (updated != null) return ResponseEntity.ok(updated);
-        return ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        slusaPredmetService.delete(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody SlusaPredmetRequest request) {
+        try {
+            SlusaPredmetResponse spResponse = slusaPredmetService.update(id, request);
+            return ResponseEntity.ok(spResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SlusaPredmet> getById(@PathVariable Long id) {
-        SlusaPredmet sp = slusaPredmetService.findById(id);
-        if (sp != null) return ResponseEntity.ok(sp);
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<SlusaPredmetResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(slusaPredmetService.getById(id));
     }
 
     @GetMapping("/student/{indeksId}")
@@ -56,13 +67,5 @@ public class SlusaPredmetController {
         return ResponseEntity.ok(slusaPredmetService.findByStudentIndeks(indeksId));
     }
 
-    @GetMapping("/predmet/{predmetId}/nastavnik/{nastavnikId}")
-    public ResponseEntity<List<?>> getStudentiPoPredmetu(@PathVariable Long predmetId, @PathVariable Long nastavnikId) {
-        return ResponseEntity.ok(slusaPredmetService.findStudentiPoPredmetu(predmetId, nastavnikId));
-    }
 
-    @GetMapping("/ne-slusaju/{drziPredmetId}")
-    public ResponseEntity<List<?>> getStudentiNeSlusajuPredmet(@PathVariable Long drziPredmetId) {
-        return ResponseEntity.ok(slusaPredmetService.findStudentiNeSlusajuPredmet(drziPredmetId));
-    }
 }

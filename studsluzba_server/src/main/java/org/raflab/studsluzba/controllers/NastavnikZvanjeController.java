@@ -20,6 +20,7 @@ import java.util.Optional;
 public class NastavnikZvanjeController {
     private final NastavnikZvanjeService service;
     private final NastavnikZvanjeRepository repository;
+
     @PostMapping("/add")
     public ResponseEntity<?> add(@RequestBody @Valid NastavnikZvanjeRequest request) {
         NastavnikZvanje nz = service.save(request);

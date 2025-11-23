@@ -1,11 +1,22 @@
 package org.raflab.studsluzba.services;
 
 import lombok.AllArgsConstructor;
-import org.raflab.studsluzba.model.*;
-import org.raflab.studsluzba.repositories.*;
+import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
+import org.raflab.studsluzba.controllers.response.SlusaPredmetResponse;
+import org.raflab.studsluzba.model.DrziPredmet;
+import org.raflab.studsluzba.model.SkolskaGodina;
+import org.raflab.studsluzba.model.SlusaPredmet;
+import org.raflab.studsluzba.model.StudentIndeks;
+import org.raflab.studsluzba.repositories.DrziPredmetRepository;
+import org.raflab.studsluzba.repositories.SlusaPredmetRepository;
+import org.raflab.studsluzba.repositories.SkolskaGodinaRepository;
+import org.raflab.studsluzba.repositories.StudentIndeksRepository;
+import org.raflab.studsluzba.utils.Converters;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,44 +30,60 @@ public class SlusaPredmetService {
     private final SkolskaGodinaRepository skolskaGodinaRepository;
 
     @Transactional
-    public SlusaPredmet create(SlusaPredmet request) {
-        return slusaPredmetRepository.save(request);
+    public SlusaPredmetResponse create(SlusaPredmetRequest request) {
+        boolean exists = slusaPredmetRepository.existsByStudentDrziPredmetGodina(
+                request.getStudentIndeksId(),
+                request.getDrziPredmetId(),
+                request.getSkolskaGodinaId()
+        );
+        if (exists) throw new RuntimeException("Student već sluša ovaj predmet u toj školskoj godini");
+
+        SlusaPredmet sp = new SlusaPredmet();
+        sp.setStudentIndeks(studentIndeksRepository.findById(request.getStudentIndeksId()).orElseThrow());
+        sp.setDrziPredmet(drziPredmetRepository.findById(request.getDrziPredmetId()).orElseThrow());
+        sp.setSkolskaGodina(skolskaGodinaRepository.findById(request.getSkolskaGodinaId()).orElseThrow());
+
+        SlusaPredmet saved = slusaPredmetRepository.save(sp);
+        return Converters.toSlusaPredmetResponse(saved);
     }
+
 
     @Transactional
-    public SlusaPredmet update(Long id, SlusaPredmet updated) {
-        Optional<SlusaPredmet> opt = slusaPredmetRepository.findById(id);
-        if (opt.isPresent()) {
-            SlusaPredmet sp = opt.get();
-            sp.setStudentIndeks(updated.getStudentIndeks());
-            sp.setDrziPredmet(updated.getDrziPredmet());
-            sp.setSkolskaGodina(updated.getSkolskaGodina());
-            return slusaPredmetRepository.save(sp);
+    public SlusaPredmetResponse update(Long id, SlusaPredmetRequest request) {
+        // 1. Učitaj postojeći entitet
+        SlusaPredmet existing = slusaPredmetRepository.findById(id).orElseThrow(() -> new RuntimeException("SlusaPredmet not found"));
+        // 2. Proveri da li student već sluša isti predmet u istoj godini (duplikat)
+        boolean exists = slusaPredmetRepository.existsByStudentDrziPredmetGodina(request.getStudentIndeksId(), request.getDrziPredmetId(), request.getSkolskaGodinaId());
+        if (exists && !(existing.getStudentIndeks().getId().equals(request.getStudentIndeksId()) && existing.getDrziPredmet().getId().equals(request.getDrziPredmetId()) && existing.getSkolskaGodina().getId().equals(request.getSkolskaGodinaId()))) {
+            throw new RuntimeException("Student već sluša ovaj predmet u toj školskoj godini");
         }
-        return null; // ili baci exception
+        // 3. Ažuriraj polja
+        existing.setStudentIndeks(studentIndeksRepository.findById(request.getStudentIndeksId()).orElse(null));
+        existing.setDrziPredmet(drziPredmetRepository.findById(request.getDrziPredmetId()).orElse(null));
+        existing.setSkolskaGodina(skolskaGodinaRepository.findById(request.getSkolskaGodinaId()).orElse(null));
+        // 4. Sačuvaj entitet
+        SlusaPredmet updated = slusaPredmetRepository.save(existing);
+        // 5. Vrati DTO
+
+        return Converters.toSlusaPredmetResponse(updated);
     }
 
-    public void delete(Long id) {
-        slusaPredmetRepository.deleteById(id);
+
+    public SlusaPredmetResponse getById(Long id) {
+        SlusaPredmet sp = slusaPredmetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("SlusaPredmet not found"));
+        return Converters.toSlusaPredmetResponse(sp);
     }
 
-    public SlusaPredmet findById(Long id) {
-        return slusaPredmetRepository.findById(id).orElse(null);
-    }
 
+    @Transactional(readOnly = true)
     public List<SlusaPredmet> findAll() {
         return (List<SlusaPredmet>) slusaPredmetRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<SlusaPredmet> findByStudentIndeks(Long indeksId) {
         return slusaPredmetRepository.getSlusaPredmetForIndeksAktivnaGodina(indeksId);
     }
 
-    public List<StudentIndeks> findStudentiPoPredmetu(Long predmetId, Long nastavnikId) {
-        return slusaPredmetRepository.getStudentiSlusaPredmetAktivnaGodina(predmetId, nastavnikId);
-    }
-
-    public List<StudentIndeks> findStudentiNeSlusajuPredmet(Long drziPredmetId) {
-        return slusaPredmetRepository.getStudentiNeSlusajuDrziPredmet(drziPredmetId);
-    }
 }

@@ -10,6 +10,7 @@ import org.raflab.studsluzba.repositories.VrstaStudijaRepository;
 import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +56,17 @@ public class StudijskiProgramService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void delete(Long id) {
-        studProgramRepo.deleteById(id);
+        StudijskiProgram sp = studProgramRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Studijski program ne postoji: " + id));
+
+        if ((sp.getPredmeti() != null && !sp.getPredmeti().isEmpty())
+                || (sp.getStudenti() != null && !sp.getStudenti().isEmpty())) {
+            throw new RuntimeException("Ne možete obrisati program jer postoje povezani predmeti ili studenti.");
+        }
+
+        studProgramRepo.delete(sp);
     }
+
 }

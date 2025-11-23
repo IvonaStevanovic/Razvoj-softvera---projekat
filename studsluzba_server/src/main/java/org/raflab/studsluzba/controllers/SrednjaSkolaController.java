@@ -34,7 +34,7 @@ public class SrednjaSkolaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public SrednjaSkolaResponse create(@RequestBody SrednjaSkolaRequest request) {
         SrednjaSkola entity = Converters.toSrednjaSkola(request);
         return Converters.toSrednjaSkolaResponse(service.create(entity));
