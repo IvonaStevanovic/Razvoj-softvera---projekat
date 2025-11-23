@@ -31,7 +31,7 @@ public class PrijavaIspitaController {
         return p != null ? Converters.toPrijavaIspitaResponse(p) : null;
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public PrijavaIspitaResponse create(@RequestBody PrijavaIspitaRequest request) {
         PrijavaIspita p = service.save(request);
         return Converters.toPrijavaIspitaResponse(p);

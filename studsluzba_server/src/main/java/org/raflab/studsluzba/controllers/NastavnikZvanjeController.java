@@ -51,13 +51,4 @@ public class NastavnikZvanjeController {
         return ResponseEntity.ok(Converters.toNastavnikZvanjeResponse(nz.get()));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.badRequest().body("Ne postoji zvanje sa ID " + id);
-        }
-        service.deleteById(id);
-        return ResponseEntity.ok("Obrisano zvanje sa ID " + id);
-    }
-
 }
