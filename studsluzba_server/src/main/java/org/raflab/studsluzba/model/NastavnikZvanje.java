@@ -6,6 +6,7 @@ import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Data
@@ -26,4 +27,17 @@ public class NastavnikZvanje {
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     private Nastavnik nastavnik;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NastavnikZvanje that = (NastavnikZvanje) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

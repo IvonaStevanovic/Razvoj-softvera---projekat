@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface NastavnikRepository extends JpaRepository<Nastavnik, Long> {
-
+/*
     @Query("SELECT n FROM Nastavnik n LEFT JOIN FETCH n.zvanja")
     List<Nastavnik> findAllWithZvanja();
 
@@ -18,6 +18,8 @@ public interface NastavnikRepository extends JpaRepository<Nastavnik, Long> {
     List<Nastavnik> findByImeAndPrezime(String ime, String prezime);
     List<Nastavnik> findByEmailIn(List<String> emails);
     boolean existsByEmail(String email);
+
+ */
 }
 
 

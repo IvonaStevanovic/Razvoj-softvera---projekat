@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Long> {
-
+/*
     @Query("SELECT sp FROM SlusaPredmet sp WHERE sp.studentIndeks.id = :indeksId AND sp.skolskaGodina.aktivna = true")
     List<SlusaPredmet> getSlusaPredmetForIndeksAktivnaGodina(@Param("indeksId") Long indeksId);
 
@@ -25,9 +25,9 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
 	List<StudentIndeks> getStudentiSlusaPredmetZaDrziPredmet(Long idDrziPredmet);
 	
 	
-	/*
-	 * TODO dodati slicne operacije koja vracaju sve studente za stud program/ godinu studija koje ne slusaju predmet
-	 */
+
+	 ///TODO dodati slicne operacije koja vracaju sve studente za stud program/ godinu studija koje ne slusaju predmet
+
 	@Query("select si from StudentIndeks si where not exists "
 			+ "(select sp from SlusaPredmet sp where sp.studentIndeks=si and sp.drziPredmet.id = :idDrziPredmet) ")
 	List<StudentIndeks> getStudentiNeSlusajuDrziPredmet(Long idDrziPredmet);
@@ -69,5 +69,5 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
                                              @Param("drziPredmetId") Long drziPredmetId,
                                              @Param("godinaId") Long godinaId);
 
-
+*/
 }

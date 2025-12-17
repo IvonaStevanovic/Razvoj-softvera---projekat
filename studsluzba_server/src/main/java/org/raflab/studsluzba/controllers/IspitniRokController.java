@@ -20,7 +20,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/ispitni-rok")
 public class IspitniRokController {
-
+/*
     @Autowired
     private IspitniRokService service;
 
@@ -76,5 +76,7 @@ public class IspitniRokController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Došlo je do greške prilikom brisanja roka.");
         }
     }
+
+ */
 }
 

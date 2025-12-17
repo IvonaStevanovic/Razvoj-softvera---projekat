@@ -1,37 +1,73 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
-import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Data
+@Table(name = "upis_godine")
 public class UpisGodine {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer godinaStudija;
-    /// SLUSA predmeti
-    private LocalDate datum;
-    private String napomena;
+
     @ManyToOne
-    @JsonIgnore
+    @JoinColumn(name = "student_indeks_id", nullable = false)
     private StudentIndeks studentIndeks;
 
+    @ManyToOne
+    @JoinColumn(name = "skolska_godina_id", nullable = false)
+    private SkolskaGodina skolskaGodina;
+
+    @Column(nullable = false)
+    private Integer godinaStudija;
+
+    @Column(nullable = false)
+    private LocalDate datumUpisa;
+
+    private String napomena;
+
     @ManyToMany
-    @JsonIgnore
     @JoinTable(
-            name = "upis_preneti_predmeti",
+            name = "upis_godine_predmet",
             joinColumns = @JoinColumn(name = "upis_godine_id"),
             inverseJoinColumns = @JoinColumn(name = "predmet_id")
     )
-    private Set<Predmet> prenetiPredmeti;
+    private List<Predmet> predmeti = new ArrayList<>();
 
-    /*
-       ako upisuje prvu godinu
-       private Double uspehSrednja;
-    private Double uspehPrijemni;*/
+    public void addPredmet(Predmet predmet) {
+        this.predmeti.add(predmet);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UpisGodine that = (UpisGodine) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    public void setDatum(LocalDate datum) {
+    }
+
+    public void setPrenetiPredmeti(Set<?> objects) {
+    }
+
+    public LocalDate getDatum() {
+        return LocalDate.now();
+    }
+
+
+    public double[] getPrenetiPredmeti() {
+        return null;
+    }
 }

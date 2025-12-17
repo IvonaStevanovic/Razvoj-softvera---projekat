@@ -22,8 +22,8 @@ public class DrziPredmet {
 
     @ManyToOne
     private SkolskaGodina skolskaGodina;
-
+/*
     @OneToMany(mappedBy = "drziPredmet", cascade = CascadeType.ALL)
     private Set<SlusaPredmet> studentiKojiSlusaju;
-
+*/
 }

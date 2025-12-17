@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface NastavnikZvanjeRepository extends JpaRepository<NastavnikZvanje, Long> {
+    /*
     /// Sva zvanja određenog nastavnika
     @Query("select nz from NastavnikZvanje nz where nz.nastavnik.id = :idNastavnika")
     List<NastavnikZvanje> findByNastavnik(Long idNastavnika);
@@ -32,4 +33,6 @@ public interface NastavnikZvanjeRepository extends JpaRepository<NastavnikZvanje
     List<NastavnikZvanje> findByZvanje(String zvanje);
 
     boolean existsByNastavnikIdAndZvanjeAndAktivnoTrue(Long nastavnikId, String zvanje);
+
+     */
 }

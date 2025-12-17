@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/nastavnik")
 public class NastavnikController {
-
+/*
     @Autowired
     private NastavnikService nastavnikService;
 
@@ -71,4 +71,6 @@ public class NastavnikController {
             @RequestParam(required = false) String prezime) {
         return nastavnikService.findByImeAndPrezime(ime, prezime);
     }
+
+ */
 }

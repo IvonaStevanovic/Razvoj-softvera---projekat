@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class StudentProfileService {
+    /*
 	@Autowired
 	StudentIndeksRepository studentIndeksRepo;
 	
@@ -40,5 +41,7 @@ public class StudentProfileService {
 		retVal.setSlusaPredmete(slusaPredmetRepo.getSlusaPredmetForIndeksAktivnaGodina(indeksId));
 		return retVal;
 	}
+
+     */
 
 }

@@ -38,7 +38,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/student")
 @AllArgsConstructor
 public class StudentController {
-
+/*
     private final StudentPodaciRepository studentPodaciRepository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final StudentProfileService studentProfileService;
@@ -210,6 +210,8 @@ public class StudentController {
                     .map(EntityMappers::fromStudentIndeksToDTO);
         }
     }
+
+ */
 
 }
 

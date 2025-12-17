@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/upis-godine")
 @AllArgsConstructor
 public class UpisGodineController {
-
+/*
     private final UpisGodineService service;
     private final UpisGodineRepository upisGodineRepository;
 
@@ -45,5 +45,5 @@ public class UpisGodineController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
-    }
+    }*/
 }

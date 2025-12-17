@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/studijski-program")
 @AllArgsConstructor
 public class StudijskiProgramController {
-
+/*
     private final StudijskiProgramService service;
 
     @PostMapping("/add")
@@ -48,5 +48,7 @@ public class StudijskiProgramController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+ */
 
 }

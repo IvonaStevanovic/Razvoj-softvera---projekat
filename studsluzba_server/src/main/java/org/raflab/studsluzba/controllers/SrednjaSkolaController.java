@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/srednja-skola")
 @AllArgsConstructor
 public class SrednjaSkolaController {
-
+/*
     private final SrednjaSkolaService service;
 
     @GetMapping("/all")
@@ -72,4 +72,6 @@ public class SrednjaSkolaController {
                 .map(Converters::toSrednjaSkolaResponse)
                 .collect(Collectors.toList());
     }
+
+ */
 }

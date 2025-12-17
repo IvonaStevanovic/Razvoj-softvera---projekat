@@ -16,7 +16,7 @@ import java.util.Map;
 @RequestMapping("/api/visokoskolska-ustanova")
 @AllArgsConstructor
 public class VisokoskolskaUstanovaController {
-
+/*
     private final VisokoskolskaUstanovaService service;
 
     @PostMapping("/add")
@@ -79,4 +79,6 @@ public class VisokoskolskaUstanovaController {
     public List<VisokoskolskaUstanovaResponse> findByVrsta(@PathVariable String vrsta) {
         return Converters.toVisokoskolskaUstanovaResponseList(service.findByVrsta(vrsta));
     }
+
+ */
 }

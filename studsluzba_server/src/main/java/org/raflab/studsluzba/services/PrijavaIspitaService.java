@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class PrijavaIspitaService {
-
+/*
     private final PrijavaIspitaRepository repository;
     private final IspitRepository ispitRepository;
     private final StudentIndeksRepository studentIndeksRepository;
@@ -66,4 +66,6 @@ public class PrijavaIspitaService {
     public PrijavaIspita findByStudentAndIspit(Long studentId, Long ispitId) {
         return repository.findByStudentAndIspit(studentId, ispitId);
     }
+
+ */
 }

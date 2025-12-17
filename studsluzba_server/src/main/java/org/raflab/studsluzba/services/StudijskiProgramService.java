@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class StudijskiProgramService {
-
+/*
     private final StudijskiProgramRepository studProgramRepo;
 
     private final VrstaStudijaRepository vrstaStudijaRepo;
@@ -68,5 +68,7 @@ public class StudijskiProgramService {
 
         studProgramRepo.delete(sp);
     }
+
+ */
 
 }

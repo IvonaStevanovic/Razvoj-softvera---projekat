@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface SrednjaSkolaRepository extends JpaRepository<SrednjaSkola, Long> {
+    /*
     /// Sve škole iz određenog mesta
     @Query("select s from SrednjaSkola s where lower(s.mesto) = lower(:mesto)")
     List<SrednjaSkola> findByMesto(String mesto);
@@ -28,6 +29,8 @@ public interface SrednjaSkolaRepository extends JpaRepository<SrednjaSkola, Long
 
     @Query("select s from SkolskaGodina s where s.aktivna = true")
     List<SkolskaGodina> findAktivne();
+
+     */
 
 
 }

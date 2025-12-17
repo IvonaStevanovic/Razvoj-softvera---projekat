@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class VisokoskolskaUstanovaService {
-
+/*
     private final VisokoskolskaUstanovaRepository repository;
 
     @Transactional
@@ -62,4 +62,6 @@ public class VisokoskolskaUstanovaService {
     public List<VisokoskolskaUstanova> findByVrsta(String vrsta) {
         return repository.findByVrsta(vrsta);
     }
+
+ */
 }

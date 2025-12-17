@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ObnovaGodineService {
-
+/*
     private final ObnovaGodineRepository repository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final PredmetRepository predmetRepository;

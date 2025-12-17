@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class PredmetService {
+    /*
     private final PredmetRepository predmetRepository;
     private final StudijskiProgramRepository studProgramRepository;
     private final PolozeniPredmetiRepository polozeniPredmetiRepository;
@@ -122,5 +123,7 @@ public class PredmetService {
     public Double getProsecnaOcena(Long predmetId, int pocetnaGodina, int krajnjaGodina) {
         return polozeniPredmetiRepository.findProsecnaOcenaZaPredmetURasponuGodina(predmetId, pocetnaGodina, krajnjaGodina);
     }
+
+     */
 
 }

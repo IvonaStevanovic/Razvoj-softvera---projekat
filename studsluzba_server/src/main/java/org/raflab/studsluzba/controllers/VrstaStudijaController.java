@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/vrsta-studija")
 @AllArgsConstructor
 public class VrstaStudijaController {
-
+/*
     private final VrstaStudijaService service;
 
     @PostMapping("/add")
@@ -66,4 +66,6 @@ public class VrstaStudijaController {
     public List<VrstaStudijaResponse> findByPunNazivContaining(@PathVariable String deoNaziva) {
         return Converters.toVrstaStudijaResponseList(service.findByPunNazivContaining(deoNaziva));
     }
+
+ */
 }

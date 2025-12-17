@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/drzi-predmet")
 @RequiredArgsConstructor
 public class DrziPredmetController {
-
+/*
     private final DrziPredmetService drziPredmetService;
 
     @PostMapping("/add")
@@ -36,4 +36,6 @@ public class DrziPredmetController {
     public ResponseEntity<?> getByPredmet(@PathVariable Long predmetId) {
         return ResponseEntity.ok(drziPredmetService.getByPredmetId(predmetId));
     }
+
+ */
 }

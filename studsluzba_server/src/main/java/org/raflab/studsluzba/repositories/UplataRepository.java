@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface UplataRepository extends CrudRepository<Uplata, Long> {
-
+/*
     List<Uplata> findAll();
     List<Uplata> findByStudentIndeksId(Long studentIndeksId);
 
@@ -20,4 +20,5 @@ public interface UplataRepository extends CrudRepository<Uplata, Long> {
 
     @Query("SELECT SUM(u.iznos * u.srednjiKurs) FROM Uplata u WHERE u.studentIndeks.id = :studentIndeksId")
     Double sumIznosDinByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);
+ */
 }

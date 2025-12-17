@@ -1,13 +1,8 @@
 package org.raflab.studsluzba.services;
 
-import org.raflab.studsluzba.model.Ispit;
-import org.raflab.studsluzba.model.IspitniRok;
-import org.raflab.studsluzba.model.Nastavnik;
-import org.raflab.studsluzba.model.Predmet;
-import org.raflab.studsluzba.repositories.IspitRepository;
-import org.raflab.studsluzba.repositories.IspitniRokRepository;
-import org.raflab.studsluzba.repositories.NastavnikRepository;
-import org.raflab.studsluzba.repositories.PredmetRepository;
+import org.raflab.studsluzba.controllers.response.PrijavaIspitaResponse;
+import org.raflab.studsluzba.model.*;
+import org.raflab.studsluzba.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,21 +10,25 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class IspitService {
-
+/*
     @Autowired
     private IspitRepository ispitRepository;
-
     @Autowired
     private PredmetRepository predmetRepository;
-
     @Autowired
     private NastavnikRepository nastavnikRepository;
-
     @Autowired
     private IspitniRokRepository ispitniRokRepository;
+    @Autowired
+    private PrijavaIspitaRepository prijavaIspitaRepository;
+    @Autowired
+    private IzlazakNaIspitRepository izlazakNaIspitRepository;
+    @Autowired
+    private StudentIndeksRepository studentIndeksRepository;
 
     public Ispit save(Ispit ispit) {
         Predmet predmet = predmetRepository.findById(ispit.getPredmet().getId())
@@ -56,7 +55,30 @@ public class IspitService {
 
         return ispitRepository.save(ispit);
     }
+    @Transactional(readOnly = true)
+    public List<PrijavaIspitaResponse> getPrijavljeniStudenti(Long ispitId) {
+        // Pronađi ispit po ID-ju
+        Ispit ispit = ispitRepository.findById(ispitId)
+                .orElseThrow(() -> new RuntimeException("Ispit ne postoji"));
 
+        // Pronađi sve prijave za taj ispit
+        List<PrijavaIspita> prijave = prijavaIspitaRepository.findByIspit(ispitId);
+
+        // Konvertuj svaku prijavu u response objekat
+        return prijave.stream()
+                .map(this::convertToPrijavaResponse)
+                .collect(Collectors.toList());
+
+    }
+
+    private PrijavaIspitaResponse convertToPrijavaResponse(PrijavaIspita p) {
+        PrijavaIspitaResponse response = new PrijavaIspitaResponse();
+        response.setId(p.getId());
+        response.setDatumPrijave(p.getDatumPrijave());
+        response.setIspitId(p.getIspit() != null ? p.getIspit().getId() : null);
+        response.setStudentIndeksId(p.getStudentIndeks() != null ? p.getStudentIndeks().getId() : null);
+        return response;
+    }
     public List<Ispit> findAll() {
         return ispitRepository.findAll();
     }
@@ -71,7 +93,7 @@ public class IspitService {
                 .orElseThrow(() -> new EntityNotFoundException("Ispit sa id " + id + " ne postoji."));
         ispitRepository.delete(ispit);
     }
-*/
+
     public List<Ispit> findByPredmet(Long predmetId) {
         return ispitRepository.findByPredmet(predmetId);
     }
@@ -94,5 +116,6 @@ public class IspitService {
         else
             return findAll();
     }
+    */
 }
 

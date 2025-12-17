@@ -13,6 +13,7 @@ import java.util.List;
 @RequestMapping("/api/uplate")
 @RequiredArgsConstructor
 public class UplataController {
+    /*
     private final UplataService uplataService;
 
     @PostMapping("/add")
@@ -36,4 +37,6 @@ public class UplataController {
         uplataService.delete(id);
         return "Uplata obrisana!";
     }
+
+     */
 }

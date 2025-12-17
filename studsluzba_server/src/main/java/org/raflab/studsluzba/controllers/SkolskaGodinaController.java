@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/api/skolska-godina")
 @AllArgsConstructor
 public class SkolskaGodinaController {
-
+/*
     private final SkolskaGodinaService service;
 
     @PostMapping("/add")
@@ -55,4 +55,6 @@ public class SkolskaGodinaController {
     public SkolskaGodinaResponse findByNaziv(@PathVariable String naziv) {
         return Converters.toSkolskaGodinaResponse(service.findByNaziv(naziv));
     }
+
+ */
 }

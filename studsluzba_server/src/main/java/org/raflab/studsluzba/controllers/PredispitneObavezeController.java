@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/predispitne-obaveze")
 @AllArgsConstructor
 public class PredispitneObavezeController {
-
+/*
     private final PredispitneObavezeService service;
 
     @PostMapping("/add")
@@ -61,4 +61,6 @@ public class PredispitneObavezeController {
     public List<PredispitneObavezeResponse> findByVrsta(@PathVariable String vrsta) {
         return Converters.toPredispitneObavezeResponseList(service.findByVrsta(vrsta));
     }
+
+ */
 }

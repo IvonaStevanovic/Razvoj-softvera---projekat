@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface IzlazakNaIspitRepository extends JpaRepository<IzlazakNaIspit, Long> {
+    /*
     /// Svi izlazi na ispit za određenog studenta
     @Query("select z from IzlazakNaIspit z where z.studentIndeks.id = :idStudenta")
     List<IzlazakNaIspit> findByStudent(Long idStudenta);
@@ -36,5 +37,5 @@ public interface IzlazakNaIspitRepository extends JpaRepository<IzlazakNaIspit, 
 
     /// Provera da li već postoji izlazak na ispit za istog studenta, isti ispit i isti predmet
     boolean existsByStudentIndeksAndIspitAndSlusaPredmet(StudentIndeks studentIndeks, Ispit ispit, SlusaPredmet slusaPredmet);
-
+*/
 }

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class StudentIndeksService {
-
+/*
     private final StudentIndeksRepository studentIndeksRepository;
     private final StudentPodaciRepository studentPodaciRepository;
     private final StudijskiProgramRepository studijskiProgramRepository;
@@ -143,4 +143,6 @@ public class StudentIndeksService {
     public Optional<StudentIndeks> findDuplicateIndex(Long studentId, String program, Integer godina) {
         return studentIndeksRepository.findDuplicateIndex(studentId, program, godina);
     }
+
+ */
 }

@@ -18,6 +18,7 @@ import java.util.Optional;
 @RequestMapping("/api/nastavnik-zvanje")
 @RequiredArgsConstructor
 public class NastavnikZvanjeController {
+    /*
     private final NastavnikZvanjeService service;
     private final NastavnikZvanjeRepository repository;
 
@@ -50,5 +51,7 @@ public class NastavnikZvanjeController {
 
         return ResponseEntity.ok(Converters.toNastavnikZvanjeResponse(nz.get()));
     }
+
+     */
 
 }

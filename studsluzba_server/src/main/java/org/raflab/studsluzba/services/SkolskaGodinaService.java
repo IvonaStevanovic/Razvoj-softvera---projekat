@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class SkolskaGodinaService {
-
+/*
     private final SkolskaGodinaRepository repository;
 
     @Transactional
@@ -66,4 +66,6 @@ public class SkolskaGodinaService {
     public SkolskaGodina findByNaziv(String naziv) {
         return repository.findByNaziv(naziv);
     }
+
+ */
 }

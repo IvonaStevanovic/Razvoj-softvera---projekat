@@ -13,7 +13,7 @@ import java.util.List;
 @RequestMapping("/api/predmet")
 @RequiredArgsConstructor
 public class PredmetController {
-
+/*
     private final PredmetService predmetService;
 
     @PostMapping("/add")
@@ -68,5 +68,7 @@ public class PredmetController {
                                    @RequestParam int krajnja) {
         return predmetService.getProsecnaOcena(predmetId, pocetna, krajnja);
     }
+
+ */
 
 }

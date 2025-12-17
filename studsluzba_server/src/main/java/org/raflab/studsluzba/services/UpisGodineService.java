@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class UpisGodineService {
-
+/*
     private final UpisGodineRepository repository;
     private final StudentIndeksRepository studentRepository;
     private final PredmetRepository predmetRepository;
@@ -109,4 +109,6 @@ public class UpisGodineService {
     public void delete(Long id) {
         repository.deleteById(id);
     }
+
+ */
 }
