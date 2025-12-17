@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ObnovaGodineRepository extends JpaRepository<ObnovaGodine, Long> {
 
-
+/*
     Optional<ObnovaGodine> findByStudentIndeksIdAndGodinaStudija(Long studentIndeksId, int godinaStudija);
 
     @Query("SELECT o FROM ObnovaGodine o JOIN FETCH o.predmetiKojeUpisuje JOIN FETCH o.studentIndeks")
@@ -26,4 +26,6 @@ public interface ObnovaGodineRepository extends JpaRepository<ObnovaGodine, Long
 
     @Query("select o from ObnovaGodine o join o.predmetiKojeUpisuje p where p.id = :idPredmeta")
     List<ObnovaGodine> findByPredmet(Long idPredmeta);
+
+ */
 }

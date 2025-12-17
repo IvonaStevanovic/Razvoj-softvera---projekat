@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/predispitni-poeni")
 @AllArgsConstructor
 public class PredispitniPoeniController {
-
+/*
     private final PredispitniPoeniService service;
 
     @GetMapping("/all")
@@ -53,4 +53,6 @@ public class PredispitniPoeniController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+
+ */
 }

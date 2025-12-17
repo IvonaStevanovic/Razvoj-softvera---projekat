@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface UpisGodineRepository extends JpaRepository<UpisGodine, Long> {
+    /*
     /// Svi upisi za određenog studenta
     @Query("select u from UpisGodine u where u.studentIndeks.id = :studentId")
     List<UpisGodine> findByStudentId(Long studentId);
@@ -30,4 +31,6 @@ public interface UpisGodineRepository extends JpaRepository<UpisGodine, Long> {
     @Query("SELECT u FROM UpisGodine u LEFT JOIN FETCH u.prenetiPredmeti")
     List<UpisGodine> findAllWithPrenetiPredmeti();
     Optional<UpisGodine> findByStudentIndeksAndGodinaStudija(StudentIndeks si, int godinaStudija);
+
+     */
 }

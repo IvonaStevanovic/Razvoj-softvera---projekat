@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class NastavnikService {
-
+/*
     private final NastavnikRepository nastavnikRepository;
 
     public Optional<Nastavnik> save(Nastavnik n) {
@@ -44,4 +44,6 @@ public class NastavnikService {
                 .map(EntityMappers::toNastavnikResponse)
                 .collect(Collectors.toList());
     }
+
+ */
 }

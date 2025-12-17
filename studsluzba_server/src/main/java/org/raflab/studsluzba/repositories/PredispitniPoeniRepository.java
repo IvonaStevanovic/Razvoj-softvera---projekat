@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 @Repository
 public interface PredispitniPoeniRepository extends JpaRepository<PredispitniPoeni, Long> {
-
+/*
     @Query("select p from PredispitniPoeni p where p.studentIndeks.id = :idStudenta")
     List<PredispitniPoeni> findByStudent(Long idStudenta);
 
@@ -30,4 +30,6 @@ public interface PredispitniPoeniRepository extends JpaRepository<PredispitniPoe
             "and p.slusaPredmet.id = :slusaId " +
             "and p.skolskaGodina.id = :godinaId")
     Optional<PredispitniPoeni> findDuplicate(Long studentId, Long obavezaId, Long slusaId, Long godinaId);
+
+ */
 }

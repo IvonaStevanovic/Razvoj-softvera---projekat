@@ -14,4 +14,7 @@ public class PredmetRequest {
     private Integer fondPredavanja;
     private boolean obavezan;
 
+    public boolean getObavezan() {
+        return true;
+    }
 }

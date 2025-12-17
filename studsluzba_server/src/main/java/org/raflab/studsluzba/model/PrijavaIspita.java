@@ -17,4 +17,6 @@ public class PrijavaIspita {
     private Ispit ispit;
     @ManyToOne
     private StudentIndeks studentIndeks;
+    @Column(name = "izasao", nullable = false)
+    private Boolean izasao = false;
 }

@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface GrupaRepository extends JpaRepository<Grupa, Long> {
+    /*
     /// sve grupe na odredjenom stud. programu
     @Query("select g from Grupa g where g.studijskiProgram.id = :idPrograma")
     List<Grupa> findByStudijskiProgram(Long idPrograma);
@@ -30,5 +31,7 @@ public interface GrupaRepository extends JpaRepository<Grupa, Long> {
 
     @Query("select g from Grupa g where g.studijskiProgram.id = :studijskiProgramId and g.predmeti = :predmeti")
     Optional<Grupa> findByStudijskiProgramAndPredmeti(Long studijskiProgramId, List<Predmet> predmeti);
+
+     */
 
 }

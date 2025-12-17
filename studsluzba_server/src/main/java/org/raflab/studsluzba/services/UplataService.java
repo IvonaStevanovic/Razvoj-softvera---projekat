@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class UplataService {
+    /*
     private final UplataRepository uplataRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     private final SlusaPredmetRepository slusaPredmetRepository;
@@ -154,5 +155,5 @@ public class UplataService {
         return new PageImpl<>(nepolozeni, pageable, nepolozeni.size());
     }
 
-
+*/
 }

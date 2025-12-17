@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface SkolskaGodinaRepository extends JpaRepository<SkolskaGodina, Long> {
+    /*
     /// Sve aktivne školske godine
     @Query("select s from SkolskaGodina s where s.aktivna = true")
     List<SkolskaGodina> findAktivne();
@@ -18,6 +19,8 @@ public interface SkolskaGodinaRepository extends JpaRepository<SkolskaGodina, Lo
     /// Školska godina po nazivu
     @Query("select s from SkolskaGodina s where s.naziv = :naziv")
     SkolskaGodina findByNaziv(String naziv);
+
+     */
 
 }
 

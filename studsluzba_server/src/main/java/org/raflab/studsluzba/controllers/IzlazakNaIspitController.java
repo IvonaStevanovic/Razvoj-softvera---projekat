@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/izlazak-na-ispit")
 @RequiredArgsConstructor
-public class IzlazakNaIspitController {
+public class IzlazakNaIspitController {/*
 
     private final IzlazakNaIspitService service;
     private final IzlazakNaIspitRepository repository;
@@ -81,5 +81,5 @@ public class IzlazakNaIspitController {
         return izlazi.stream()
                 .map(Converters::toIzlazakNaIspitResponse)
                 .collect(Collectors.toList());
-    }
+    }*/
 }

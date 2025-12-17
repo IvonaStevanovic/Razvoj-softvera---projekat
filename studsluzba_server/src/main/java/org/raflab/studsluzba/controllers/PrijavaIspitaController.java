@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/prijava-ispita")
 @AllArgsConstructor
 public class PrijavaIspitaController {
-
+/*
     private final PrijavaIspitaService service;
 
     @GetMapping("/all")
@@ -47,4 +47,6 @@ public class PrijavaIspitaController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+
+ */
 }

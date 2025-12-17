@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Service
 public class IspitniRokService {
-
+/*
     @Autowired
     private IspitniRokRepository repository;
 
@@ -60,5 +60,7 @@ public class IspitniRokService {
 
         repository.delete(rok);
     }
+
+ */
 }
 

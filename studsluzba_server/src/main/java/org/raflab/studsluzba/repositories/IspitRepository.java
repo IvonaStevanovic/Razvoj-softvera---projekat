@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface IspitRepository extends JpaRepository<Ispit, Long> {
-
+/*
     @Query("select i from Ispit i where i.ispitniRok.id = :idRoka")
     List<Ispit> findByIspitniRok(Long idRoka);
 
@@ -29,7 +29,7 @@ public interface IspitRepository extends JpaRepository<Ispit, Long> {
             "and i.nastavnik.id = :nastavnikId and i.ispitniRok.id = :rokId")
     boolean existsByDatumOdrzavanjaAndPredmetIdAndNastavnikIdAndIspitniRokId(
             LocalDate datum, Long predmetId, Long nastavnikId, Long rokId
-    );
+    );*/
 }
 
 

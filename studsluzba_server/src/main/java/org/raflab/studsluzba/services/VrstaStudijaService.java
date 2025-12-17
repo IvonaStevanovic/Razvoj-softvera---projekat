@@ -10,7 +10,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class VrstaStudijaService {
-
+/*
     private final VrstaStudijaRepository repository;
 
     public VrstaStudija create(VrstaStudija vrsta) {
@@ -60,4 +60,6 @@ public class VrstaStudijaService {
     public List<VrstaStudija> findByPunNazivContaining(String deoNaziva) {
         return repository.findByPunNazivContaining(deoNaziva);
     }
+
+ */
 }

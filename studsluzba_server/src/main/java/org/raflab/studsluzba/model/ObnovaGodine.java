@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,15 +17,83 @@ public class ObnovaGodine {
     private LocalDate datum;
     private String napomena;
 
+    @ManyToOne
+    @JoinColumn(name = "skolska_godina_id", nullable = false)
+    private SkolskaGodina skolskaGodina;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private StudentIndeks studentIndeks;
+
     @ManyToMany(fetch = FetchType.LAZY)
           @JoinTable(
               name = "obnova_predmeti",
               joinColumns = @JoinColumn(name = "obnova_godine_id"),
               inverseJoinColumns = @JoinColumn(name = "predmet_id")
           )
-    private Set<Predmet> predmetiKojeUpisuje;
+    private List<Predmet> predmetiKojeUpisuje;
+    public void addPredmet(Predmet predmet) {
+        this.predmetiKojeUpisuje.add(predmet);
+    }
+    public ObnovaGodine() {
+    }
 
+    public ObnovaGodine(StudentIndeks studentIndeks, SkolskaGodina skolskaGodina, Integer godinaStudija, LocalDate datumObnove) {
+        this.studentIndeks = studentIndeks;
+        this.skolskaGodina = skolskaGodina;
+        this.godinaStudija = godinaStudija;
+        this.datum = datumObnove;
+    }
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public StudentIndeks getStudentIndeks() {
+        return studentIndeks;
+    }
+
+    public void setStudentIndeks(StudentIndeks studentIndeks) {
+        this.studentIndeks = studentIndeks;
+    }
+
+    public SkolskaGodina getSkolskaGodina() {
+        return skolskaGodina;
+    }
+
+    public void setSkolskaGodina(SkolskaGodina skolskaGodina) {
+        this.skolskaGodina = skolskaGodina;
+    }
+
+    public Integer getGodinaStudija() {
+        return godinaStudija;
+    }
+
+    public void setGodinaStudija(Integer godinaStudija) {
+        this.godinaStudija = godinaStudija;
+    }
+
+    public String getNapomena() {
+        return napomena;
+    }
+
+    public void setNapomena(String napomena) {
+        this.napomena = napomena;
+    }
+
+    public List<Predmet> getPredmeti() {
+        return predmetiKojeUpisuje;
+    }
+
+    public void setPredmeti(List<Predmet> predmeti) {
+        this.predmetiKojeUpisuje = predmeti;
+    }
+
+    public void setDatumObnove(LocalDate of) {
+
+    }
 }

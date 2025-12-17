@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/student-indeks")
 @AllArgsConstructor
 public class StudentIndeksController {
-
+/*
     private final StudentIndeksService service;
     private final StudentIndeksRepository repository;
     private final EntityMappers entityMappers;
@@ -111,10 +111,12 @@ public class StudentIndeksController {
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             return null; // neće baciti 500, možeš i ovde vratiti DTO sa porukom
         }
-    } */
+    }
 
-   /* @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable Long id) {
         repository.deleteById(id);
-    }*/
+    }
+    */
+
 }

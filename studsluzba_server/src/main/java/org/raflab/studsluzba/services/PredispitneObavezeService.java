@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class PredispitneObavezeService {
-
+/*
     private final PredispitneObavezeRepository repository;
 
     @Transactional
@@ -63,4 +63,6 @@ public class PredispitneObavezeService {
     public List<PredispitneObaveze> findByVrsta(String vrsta) {
         return repository.findByVrsta(vrsta);
     }
+
+ */
 }

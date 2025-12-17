@@ -20,6 +20,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class PolozeniPredmetiService {
+    /*
     private final PolozeniPredmetiRepository repository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final PredmetRepository predmetRepository;
@@ -74,4 +75,6 @@ public class PolozeniPredmetiService {
     public void delete(Long id) {
         repository.deleteById(id);
     }
+
+     */
 }

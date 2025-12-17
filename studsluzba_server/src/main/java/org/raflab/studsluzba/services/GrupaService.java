@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class GrupaService {
-
+/*
     private final GrupaRepository grupaRepository;
     private final StudijskiProgramRepository studijskiProgramRepository;
     private final PredmetRepository predmetRepository;
@@ -73,4 +73,6 @@ public class GrupaService {
     public void delete(Long id) {
         grupaRepository.deleteById(id);
     }
+
+ */
 }

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 @Repository
 public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredmeti, Long> {
-
+/*
     /// Svi položeni predmeti za određenog studenta
     @Query("select p from PolozeniPredmeti p where p.studentIndeks.id = :idStudenta")
     List<PolozeniPredmeti> findByStudent(Long idStudenta);
@@ -40,4 +40,6 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
             "AND ((:izlazakId IS NOT NULL AND p.izlazakNaIspit.id = :izlazakId) " +
             "OR (:izlazakId IS NULL AND p.izlazakNaIspit IS NULL))")
     Optional<PolozeniPredmeti> findExisting(Long studentId, Long predmetId, Long izlazakId);
+
+ */
 }

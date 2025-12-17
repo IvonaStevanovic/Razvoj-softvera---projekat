@@ -7,6 +7,7 @@ import org.raflab.studsluzba.model.VisokoskolskaUstanova;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -40,4 +41,17 @@ public class Nastavnik {
             inverseJoinColumns = @JoinColumn(name = "ustanova_id")
     )
     private Set<VisokoskolskaUstanova> obrazovanja;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Nastavnik nastavnik = (Nastavnik) o;
+        return Objects.equals(id, nastavnik.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

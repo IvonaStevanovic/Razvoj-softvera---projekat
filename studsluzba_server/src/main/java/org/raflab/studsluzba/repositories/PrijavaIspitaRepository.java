@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface PrijavaIspitaRepository extends JpaRepository<PrijavaIspita, Long> {
+    /*
     /// Sve prijave određenog studenta
     @Query("select p from PrijavaIspita p where p.studentIndeks.id = :idStudenta")
     List<PrijavaIspita> findByStudent(Long idStudenta);
@@ -20,4 +21,6 @@ public interface PrijavaIspitaRepository extends JpaRepository<PrijavaIspita, Lo
     /// Prijava određenog studenta na određeni ispit (jedinstvena)
     @Query("select p from PrijavaIspita p where p.studentIndeks.id = :idStudenta and p.ispit.id = :idIspita")
     PrijavaIspita findByStudentAndIspit(Long idStudenta, Long idIspita);
+
+     */
 }

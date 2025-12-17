@@ -17,7 +17,7 @@ import java.util.stream.Collectors;@RestController
 @RequestMapping("/api/polozeni-predmeti")
 @AllArgsConstructor
 public class PolozeniPredmetiController {
-
+/*
     private final PolozeniPredmetiService service;
     private final EntityMappers mappers;
 
@@ -56,4 +56,6 @@ public class PolozeniPredmetiController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+
+ */
 }

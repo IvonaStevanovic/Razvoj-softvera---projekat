@@ -3,7 +3,7 @@ package org.raflab.studsluzba.model;
 import lombok.Data;
 
 import javax.persistence.*;
-
+import java.util.Objects;
 
 
 @Entity
@@ -28,4 +28,16 @@ public class PredispitniPoeni {
     @ManyToOne
     private SkolskaGodina skolskaGodina;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PredispitniPoeni that = (PredispitniPoeni) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

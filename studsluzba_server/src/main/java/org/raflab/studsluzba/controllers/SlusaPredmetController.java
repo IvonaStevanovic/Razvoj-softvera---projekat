@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/slusa-predmet")
 @AllArgsConstructor
 public class SlusaPredmetController {
-
+/*
     private final SlusaPredmetService slusaPredmetService;
     private final SlusaPredmetRepository slusaPredmetRepository;
     private final StudentIndeksRepository studentIndeksRepository;
@@ -66,6 +66,8 @@ public class SlusaPredmetController {
     public ResponseEntity<List<SlusaPredmet>> getByStudent(@PathVariable Long indeksId) {
         return ResponseEntity.ok(slusaPredmetService.findByStudentIndeks(indeksId));
     }
+
+ */
 
 
 }

@@ -28,14 +28,10 @@ public class Predmet {
     private Integer fondPredavanja;
 	private boolean obavezan;
 
-
-
     @OneToMany(mappedBy = "drziPredmet", cascade = CascadeType.ALL)
           private Set<SlusaPredmet> slusaPredmetSet;
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
           private Set<DrziPredmet> drziPredmetSet;
-   /* @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
-    private Set<PredispitniPoeni> predispitniPoeni; */
 
 	@Override
 	public int hashCode() {
@@ -60,5 +56,9 @@ public class Predmet {
 			return false;
 		return true;
 	}
+
+
+     /* @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private Set<PredispitniPoeni> predispitniPoeni; */
 
 }

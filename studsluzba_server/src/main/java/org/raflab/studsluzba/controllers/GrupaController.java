@@ -17,7 +17,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/grupa")
 @RequiredArgsConstructor
-public class GrupaController {
+public class GrupaController {/*
     private final GrupaService grupaService;
 
     @PostMapping("/add")
@@ -56,4 +56,5 @@ public class GrupaController {
     public void deleteGrupa(@PathVariable Long id) {
         grupaService.delete(id);
     }
+    */
 }

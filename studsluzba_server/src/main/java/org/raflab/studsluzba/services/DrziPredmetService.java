@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class DrziPredmetService {
-
+/*
     private final DrziPredmetRepository drziPredmetRepository;
     private final PredmetRepository predmetRepository;
     private final NastavnikRepository nastavnikRepository;
@@ -136,4 +136,6 @@ public class DrziPredmetService {
                 .map(Converters::toDrziPredmetResponse)
                 .collect(Collectors.toList());
     }
+
+ */
 }

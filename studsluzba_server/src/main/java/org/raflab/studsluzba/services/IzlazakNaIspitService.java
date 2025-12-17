@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class IzlazakNaIspitService {
+public class IzlazakNaIspitService {/*
     private final IzlazakNaIspitRepository repository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final IspitRepository ispitRepository;
@@ -185,7 +185,7 @@ public class IzlazakNaIspitService {
 
         return dtoLista;
     }
-
+*/
 
 
 }

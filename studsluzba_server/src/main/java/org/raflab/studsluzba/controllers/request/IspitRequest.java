@@ -4,23 +4,23 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 @Data
 public class IspitRequest {
-    @NotNull
+    @NotNull(message = "Predmet je obavezan")
+    private Long predmetId;
+
+    @NotNull(message = "Ispitni rok je obavezan")
+    private Long ispitniRokId;
+
+    @NotNull(message = "Nastavnik je obavezan")
+    private Long drziPredmetId;  // ID iz DrziPredmet tabele
+
+    @NotNull(message = "Datum održavanja je obavezan")
     private LocalDate datumOdrzavanja;
 
-    @NotNull
-    private Long predmetId; // referenca na Predmet
+    private LocalDateTime vremePocetka;
 
-    @NotNull
-    private Long nastavnikId; // referenca na Nastavnik
-
-    @NotNull
-    private LocalTime vremePocetka;
-
-    private boolean zakljucen;
-
-    @NotNull
-    private Long ispitniRokId; // referenca na IspitniRok
+    private String napomena;
 }

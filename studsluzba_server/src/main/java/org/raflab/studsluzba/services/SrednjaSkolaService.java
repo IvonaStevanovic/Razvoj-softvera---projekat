@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class SrednjaSkolaService {
-
+/*
     private final SrednjaSkolaRepository repository;
 
     @Transactional(readOnly = true)
@@ -59,5 +59,7 @@ public class SrednjaSkolaService {
     public List<SrednjaSkola> findByNazivContaining(String naziv) {
         return repository.findByNazivContaining(naziv);
     }
+
+ */
 }
 

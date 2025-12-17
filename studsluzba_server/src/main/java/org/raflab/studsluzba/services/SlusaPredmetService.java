@@ -23,7 +23,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class SlusaPredmetService {
-
+/*
     private final SlusaPredmetRepository slusaPredmetRepository;
     private final StudentIndeksRepository studentIndeksRepository;
     private final DrziPredmetRepository drziPredmetRepository;
@@ -85,5 +85,5 @@ public class SlusaPredmetService {
     public List<SlusaPredmet> findByStudentIndeks(Long indeksId) {
         return slusaPredmetRepository.getSlusaPredmetForIndeksAktivnaGodina(indeksId);
     }
-
+*/
 }

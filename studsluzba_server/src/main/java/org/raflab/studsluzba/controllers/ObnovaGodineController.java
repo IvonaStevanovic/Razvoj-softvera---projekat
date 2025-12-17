@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/obnova-godine")
 @RequiredArgsConstructor
 public class ObnovaGodineController {
-
+/*
     private final ObnovaGodineService service;
 
     @PostMapping("/add")
@@ -49,4 +49,6 @@ public class ObnovaGodineController {
         service.delete(id);
         return "Obrisana obnova godine sa ID " + id;
     }
+
+ */
 }

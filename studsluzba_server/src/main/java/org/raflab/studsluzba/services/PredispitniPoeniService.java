@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class PredispitniPoeniService {
-
+/*
     private final PredispitniPoeniRepository repository;
     private final StudentIndeksRepository studentRepository;
     private final PredispitneObavezeRepository obavezeRepository;
@@ -90,4 +90,6 @@ public class PredispitniPoeniService {
     public List<PredispitniPoeni> findBySkolskaGodina(Long godinaId) {
         return repository.findBySkolskaGodina(godinaId);
     }
+
+ */
 }

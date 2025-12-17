@@ -9,8 +9,9 @@ public class PredmetResponse {
     private String naziv;
     private String opis;
     private Integer espb;
-    private String studProgramNaziv;
-    private Integer fondVezbe;
-    private Integer fondPredavanja;
-    private boolean obavezan;
+    private Long studijskiProgramId;
+    private String studijskiProgramNaziv;
+    private Boolean obavezan;
+
+
 }

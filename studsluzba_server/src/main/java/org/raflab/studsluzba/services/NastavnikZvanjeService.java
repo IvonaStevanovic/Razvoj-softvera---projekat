@@ -15,6 +15,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class NastavnikZvanjeService {
+    /*
     private final NastavnikZvanjeRepository repository;
     private final NastavnikRepository nastavnikRepository;
 
@@ -52,5 +53,5 @@ public class NastavnikZvanjeService {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("NastavnikZvanje sa ID " + id + " ne postoji"));
     }
-
+*/
 }

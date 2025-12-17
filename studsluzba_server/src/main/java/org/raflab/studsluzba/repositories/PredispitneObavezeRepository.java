@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 @Repository
 public interface PredispitneObavezeRepository extends JpaRepository<PredispitneObaveze, Long> {
-
+/*
     @Query("select p from PredispitneObaveze p where p.drziPredmet.id = :idDrziPredmeta")
     List<PredispitneObaveze> findByDrziPredmet(Long idDrziPredmeta);
 
@@ -25,4 +25,6 @@ public interface PredispitneObavezeRepository extends JpaRepository<PredispitneO
     @Query("select p from PredispitneObaveze p where p.drziPredmet.id = :idDrziPredmeta " +
             "and p.skolskaGodina.id = :idGodine and lower(p.vrsta) = lower(:vrsta)")
     Optional<PredispitneObaveze> findDuplicate(Long idDrziPredmeta, Long idGodine, String vrsta);
+
+ */
 }
