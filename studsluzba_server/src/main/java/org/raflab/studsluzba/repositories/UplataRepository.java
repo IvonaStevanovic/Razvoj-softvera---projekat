@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.StudentPodaci;
 import org.raflab.studsluzba.model.Uplata;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -11,6 +12,7 @@ import java.util.List;
 @Repository
 public interface  UplataRepository extends CrudRepository<Uplata, Long> {
     List<Uplata> findByStudentPodaci_Id(Long studentId);
+    void deleteByStudentPodaci(StudentPodaci student);
 /*
     List<Uplata> findAll();
     List<Uplata> findByStudentIndeksId(Long studentIndeksId);

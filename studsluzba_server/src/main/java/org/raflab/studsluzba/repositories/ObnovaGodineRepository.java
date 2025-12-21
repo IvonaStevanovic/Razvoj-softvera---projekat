@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public interface ObnovaGodineRepository extends JpaRepository<ObnovaGodine, Long> {
     List<ObnovaGodine> findByStudentIndeks(StudentIndeks studentIndeks);
+    void deleteByStudentIndeks(StudentIndeks indeks);
 /*
     Optional<ObnovaGodine> findByStudentIndeksIdAndGodinaStudija(Long studentIndeksId, int godinaStudija);
 

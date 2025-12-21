@@ -2,6 +2,7 @@ package org.raflab.studsluzba.controllers;
 
 import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
+import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,21 @@ import java.util.Map;
 public class StudentController {
     private final StudentProfileService studentProfileService;
 
+    @PostMapping("/dodaj")
+    public ResponseEntity<StudentPodaciResponse> dodajStudenta(@RequestBody StudentPodaciRequest request) {
+        StudentPodaciResponse response = studentProfileService.dodajStudenta(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+/*
+    @DeleteMapping("/obrisi/{studentId}")
+    public ResponseEntity<Map<String, String>> obrisiStudenta(@PathVariable Long studentId) {
+        studentProfileService.obrisiStudenta(studentId);
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Student sa ID " + studentId + " je obrisan.");
+        return ResponseEntity.ok(response);
+    }
+*/
     @GetMapping("/indeks/{brojIndeksa}")
     public ResponseEntity<StudentPodaciResponse> getStudentByIndeks(@PathVariable Integer brojIndeksa) {
         return ResponseEntity.ok(studentProfileService.getStudentByBrojIndeksa(brojIndeksa));

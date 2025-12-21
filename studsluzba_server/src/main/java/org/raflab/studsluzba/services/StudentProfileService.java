@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.services;
 
 import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
+import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
@@ -40,9 +41,51 @@ public class StudentProfileService  {
     private SkolskaGodinaRepository skolskaGodinaRepository;
     @Autowired
     private PolozeniPredmetiRepository polozeniPredmetiRepository;
+    @Autowired
+    private StudentPodaciRepository studentRepository;
 
     private static final double SKOLARINA_EUR = 3000.0;
     private static final String KURS_API = "https://kurs.resenje.org/api/v1/currencies/eur/rates/today";
+    public StudentPodaciResponse dodajStudenta(StudentPodaciRequest request) {
+        // Provera duplikata po JMBG
+        if (studentRepository.existsByJmbg(request.getJmbg())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa datim JMBG već postoji");
+        }
+
+        // Provera duplikata po broju indeksa
+        if (studentIndeksRepository.existsByBroj(request.getBrojIndeksa())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa datim brojem indeksa već postoji");
+        }
+
+        // Kreiranje entiteta
+        StudentPodaci student = new StudentPodaci();
+        student.setIme(request.getIme());
+        student.setPrezime(request.getPrezime());
+        student.setSrednjeIme(request.getSrednjeIme());
+        student.setJmbg(request.getJmbg());
+        student.setDatumRodjenja(request.getDatumRodjenja());
+        student.setMestoRodjenja(request.getMestoRodjenja());
+        student.setMestoStanovanja(request.getMestoPrebivalista());
+        student.setDrzavaRodjenja(request.getDrzavaRodjenja());
+        student.setDrzavljanstvo(request.getDrzavljanstvo());
+        student.setPol(request.getPol());
+        student.setAdresa(request.getAdresa());
+        studentRepository.save(student);
+
+        // Kreiranje indeksa
+        StudentIndeks indeks = new StudentIndeks();
+        indeks.setBroj(request.getBrojIndeksa());
+        indeks.setStudent(student);
+        studentIndeksRepository.save(indeks);
+
+        // Mapiranje u response
+        StudentPodaciResponse response = new StudentPodaciResponse();
+        response.setId(student.getId());
+        response.setIme(student.getIme());
+        response.setPrezime(student.getPrezime());
+        response.setBrojIndeksa(indeks.getBroj());
+        return response;
+    }
 
     // ------------------ STUDENT ------------------
     public StudentPodaciResponse getStudentByBrojIndeksa(Integer brojIndeksa) {
@@ -375,7 +418,29 @@ public class StudentProfileService  {
             responses.add(r);
         }
         return responses;
+    }/*
+    @Transactional
+    public void obrisiStudenta(Long studentId) {
+        StudentPodaci student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student ne postoji"));
+
+        // 1. Obrisi sve uplate
+        uplataRepository.deleteByStudentPodaci(student);
+
+        // 2. Obrisi sve indekse i zavisne entitete
+        List<StudentIndeks> indeksi = studentIndeksRepository.findByStudent(student);
+        for (StudentIndeks indeks : indeksi) {
+            polozeniPredmetiRepository.deleteByStudentIndeks(indeks);
+            upisGodineRepository.deleteByStudentIndeks(indeks);
+            obnovaGodineRepository.deleteByStudentIndeks(indeks);
+            studentIndeksRepository.delete(indeks);
+        }
+
+        // 3. Na kraju obrisi studenta
+        studentRepository.delete(student);
+
     }
+*/
     /*
 	@Autowired
 	StudentIndeksRepository studentIndeksRepo;

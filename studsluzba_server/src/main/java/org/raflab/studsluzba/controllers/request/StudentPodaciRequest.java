@@ -37,4 +37,6 @@ public class StudentPodaciRequest {
     private String licnuKartuIzdao;
     private String mestoStanovanja;
     private String adresaStanovanja;   // u toku studija
+    @NotNull
+    private Integer brojIndeksa;
 }

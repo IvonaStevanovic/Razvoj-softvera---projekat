@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Long> {	//	nasljedjene implementacije poput findById i findByAll
-
+    boolean existsByJmbg(String jmbg);
 
 
 
