@@ -27,5 +27,6 @@ public class StudentPodaciResponse {
     private String licnuKartuIzdao;
     private String mestoStanovanja;
     private String adresaStanovanja;   // u toku studija
-
+    private Integer brojIndeksa;
+    private String srednjaSkola;
 }

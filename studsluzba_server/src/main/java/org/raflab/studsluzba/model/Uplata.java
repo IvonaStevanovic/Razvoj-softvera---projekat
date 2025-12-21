@@ -15,8 +15,8 @@ public class Uplata {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private StudentPodaci student;  // ← PROMENJENO SA Student NA StudentPodaci
+    @JoinColumn(name = "student_id")
+    private StudentPodaci studentPodaci;
 
     @Column(name = "datum_uplate", nullable = false)
     private LocalDate datumUplate;
@@ -32,16 +32,13 @@ public class Uplata {
 
     @Column(name = "napomena")
     private String napomena;
-    @ManyToOne
-    @JoinColumn(name = "student_podaci_id")
-    private StudentPodaci studentPodaci;
 
     // Constructors
     public Uplata() {
     }
 
-    public Uplata(StudentPodaci student, LocalDate datumUplate, Double iznosRsd, Double srednjiKurs) {
-        this.student = student;
+    public Uplata(StudentPodaci studentPodaci, LocalDate datumUplate, Double iznosRsd, Double srednjiKurs) {
+        this.studentPodaci = studentPodaci;
         this.datumUplate = datumUplate;
         this.iznosRsd = iznosRsd;
         this.srednjiKurs = srednjiKurs;
@@ -57,12 +54,12 @@ public class Uplata {
         this.id = id;
     }
 
-    public StudentPodaci getStudent() {  // ← PROMENJEN TIP
-        return student;
+    public StudentPodaci getStudentPodaci() {
+        return studentPodaci;
     }
 
-    public void setStudent(StudentPodaci student) {  // ← PROMENJEN TIP
-        this.student = student;
+    public void setStudentPodaci(StudentPodaci studentPodaci) {
+        this.studentPodaci = studentPodaci;
     }
 
     public LocalDate getDatumUplate() {
@@ -129,7 +126,4 @@ public class Uplata {
         this.napomena = napomena;
     }
 
-    public void setStudentIndeks(StudentIndeks studentIndeks) {
-
-    }
 }

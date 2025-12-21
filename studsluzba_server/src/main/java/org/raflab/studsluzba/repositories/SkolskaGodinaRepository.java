@@ -11,6 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface SkolskaGodinaRepository extends JpaRepository<SkolskaGodina, Long> {
+    Optional<SkolskaGodina> findByNaziv(String naziv);
+    Optional<SkolskaGodina> findByAktivnaTrue();
     /*
     /// Sve aktivne školske godine
     @Query("select s from SkolskaGodina s where s.aktivna = true")

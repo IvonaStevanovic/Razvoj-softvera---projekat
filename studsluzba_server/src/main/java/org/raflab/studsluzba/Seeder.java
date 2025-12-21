@@ -255,7 +255,7 @@ public class Seeder implements CommandLineRunner {
         //  UPLATE - Prvi 5 studenata je uplatilo različite iznose
         for (int i = 0; i < 5; i++) {
             Uplata uplata = new Uplata();
-            uplata.setStudent(studentPodaciList.get(i));
+            uplata.setStudentPodaci(studentPodaciList.get(i));
             uplata.setDatumUplate(LocalDate.of(2024, 10, 1 + i));
             uplata.setIznosEur(500.0 + (i * 100));  // 500, 600, 700, 800, 900 EUR
             uplata.setSrednjiKurs(117.5);

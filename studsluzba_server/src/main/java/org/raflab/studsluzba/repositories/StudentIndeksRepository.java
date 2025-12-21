@@ -15,7 +15,23 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Long> {
-	
+
+    Optional<StudentIndeks> findByBroj(Integer broj);
+
+    Optional<StudentIndeks> findByGodinaAndBrojAndStudProgramOznaka(
+            Integer godina,
+            Integer broj,
+            String studProgramOznaka
+    );
+    Page<StudentIndeks> findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(
+            String ime, String prezime, Pageable pageable);
+
+    Page<StudentIndeks> findByStudent_ImeContainingIgnoreCase(String ime, Pageable pageable);
+
+    Page<StudentIndeks> findByStudent_PrezimeContainingIgnoreCase(String prezime, Pageable pageable);
+    @Query("SELECT si FROM StudentIndeks si WHERE LOWER(si.student.srednjaSkola.naziv) LIKE LOWER(CONCAT('%', :naziv, '%'))")
+    List<StudentIndeks> findByStudentSrednjaSkolaNazivContainingIgnoreCase(@Param("naziv") String naziv);
+
 	/*
 	@Query("select indeks from StudentIndeks indeks where indeks.studProgramOznaka like ?1 and indeks.godina = ?2 "
 			+ "and indeks.broj = ?3 ")
