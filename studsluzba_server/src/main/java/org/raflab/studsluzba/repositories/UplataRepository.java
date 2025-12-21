@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UplataRepository extends CrudRepository<Uplata, Long> {
+public interface  UplataRepository extends CrudRepository<Uplata, Long> {
+    List<Uplata> findByStudentPodaci_Id(Long studentId);
 /*
     List<Uplata> findAll();
     List<Uplata> findByStudentIndeksId(Long studentIndeksId);

@@ -4,11 +4,15 @@ import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.response.UpisGodineResponse;
 import org.raflab.studsluzba.model.*;
+import org.raflab.studsluzba.model.dtos.UpisanaGodinaDTO;
 import org.raflab.studsluzba.repositories.*;
 import org.raflab.studsluzba.utils.Converters;
 import org.raflab.studsluzba.utils.EntityMappers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;

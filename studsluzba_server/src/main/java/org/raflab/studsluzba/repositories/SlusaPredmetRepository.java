@@ -12,6 +12,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Long> {
+
+
+    List<SlusaPredmet> findByStudentIndeks(StudentIndeks studentIndeks);
+
+
 /*
     @Query("SELECT sp FROM SlusaPredmet sp WHERE sp.studentIndeks.id = :indeksId AND sp.skolskaGodina.aktivna = true")
     List<SlusaPredmet> getSlusaPredmetForIndeksAktivnaGodina(@Param("indeksId") Long indeksId);

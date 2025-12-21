@@ -65,11 +65,7 @@ public class SkolskaGodina {
         return Objects.hash(id);
     }
 
-    public Boolean getAktivna() {
-        return false;
-    }
-
-    public boolean isAktivna() {
+    public boolean getAktivna() {
         return true;
     }
 }

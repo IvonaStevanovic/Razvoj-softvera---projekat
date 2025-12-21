@@ -57,17 +57,10 @@ public class UpisGodine {
     }
 
     public void setDatum(LocalDate datum) {
-    }
-
-    public void setPrenetiPredmeti(Set<?> objects) {
+        this.datumUpisa = datum;
     }
 
     public LocalDate getDatum() {
         return LocalDate.now();
-    }
-
-
-    public double[] getPrenetiPredmeti() {
-        return null;
     }
 }

@@ -3,14 +3,31 @@ package org.raflab.studsluzba.repositories;
 import org.raflab.studsluzba.model.PolozeniPredmeti;
 import org.raflab.studsluzba.model.Predmet;
 import org.raflab.studsluzba.model.StudentIndeks;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 @Repository
 public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredmeti, Long> {
+
+    Page<PolozeniPredmeti> findByStudentIndeks(StudentIndeks studentIndeks, Pageable pageable);
+
+    List<PolozeniPredmeti> findByStudentIndeks(StudentIndeks studentIndeks);
+
+    Page<PolozeniPredmeti> findByStudentIndeksAndOcenaIsNull(StudentIndeks studentIndeks, Pageable pageable);
+    // Za sve nepoložene predmete određenog studenta
+    @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena IS NULL")
+    List<PolozeniPredmeti> findNepolozeniByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);
+
+    // Za sve položene predmete određenog studenta
+    @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena IS NOT NULL")
+    List<PolozeniPredmeti> findPolozeniByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);
+
 /*
     /// Svi položeni predmeti za određenog studenta
     @Query("select p from PolozeniPredmeti p where p.studentIndeks.id = :idStudenta")

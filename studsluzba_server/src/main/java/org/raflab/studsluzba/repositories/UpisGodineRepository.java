@@ -11,6 +11,11 @@ import java.util.Optional;
 
 @Repository
 public interface UpisGodineRepository extends JpaRepository<UpisGodine, Long> {
+
+
+    List<UpisGodine> findByStudentIndeksOrderByGodinaStudijaAsc(StudentIndeks studentIndeks);
+
+
     /*
     /// Svi upisi za određenog studenta
     @Query("select u from UpisGodine u where u.studentIndeks.id = :studentId")

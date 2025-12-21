@@ -1,43 +1,115 @@
 package org.raflab.studsluzba.controllers;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-import org.raflab.studsluzba.controllers.request.StudentIndeksRequest;
-import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
-import org.raflab.studsluzba.controllers.response.StudentIndeksResponse;
-import org.raflab.studsluzba.controllers.response.StudentPodaciResponse;
-import org.raflab.studsluzba.model.StudentIndeks;
-import org.raflab.studsluzba.model.StudentPodaci;
-import org.raflab.studsluzba.model.StudijskiProgram;
-import org.raflab.studsluzba.model.dtos.StudentDTO;
-import org.raflab.studsluzba.model.dtos.StudentProfileDTO;
-import org.raflab.studsluzba.model.dtos.StudentWebProfileDTO;
-import org.raflab.studsluzba.repositories.StudentIndeksRepository;
-import org.raflab.studsluzba.repositories.StudentPodaciRepository;
-import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
-import org.raflab.studsluzba.services.StudentIndeksService;
+import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
+import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
+import org.raflab.studsluzba.controllers.request.UplataRequest;
+import org.raflab.studsluzba.controllers.response.*;
+import org.raflab.studsluzba.model.Uplata;
+import org.raflab.studsluzba.model.dtos.NepolozeniPredmetDTO;;
 import org.raflab.studsluzba.services.StudentProfileService;
-import org.raflab.studsluzba.utils.Converters;
-import org.raflab.studsluzba.utils.EntityMappers;
-import org.raflab.studsluzba.utils.ParseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
 @RequestMapping("/api/student")
 @AllArgsConstructor
 public class StudentController {
+    private final StudentProfileService studentProfileService;
+
+    @GetMapping("/indeks/{brojIndeksa}")
+    public ResponseEntity<StudentPodaciResponse> getStudentByIndeks(@PathVariable Integer brojIndeksa) {
+        return ResponseEntity.ok(studentProfileService.getStudentByBrojIndeksa(brojIndeksa));
+    }
+    @GetMapping("/{studentIndeksId}/polozeni-predmeti")
+    public ResponseEntity<Page<PolozeniPredmetiResponse>> getPolozeniPredmeti(
+            @PathVariable Long studentIndeksId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<PolozeniPredmetiResponse> response = studentProfileService
+                .getPolozeniPredmeti(studentIndeksId, page, size);
+
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/{brojIndeksa}/nepolozeni")
+    public ResponseEntity<Page<PolozeniPredmetiResponse>> getNepolozeniPredmeti(
+            @PathVariable Integer brojIndeksa,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(studentProfileService.getNepolozeniPredmeti(brojIndeksa, page, size));
+    }
+    @GetMapping("/{studentIndeksId}/upisane-godine")
+    public ResponseEntity<List<UpisGodineResponse>> getUpisaneGodine(@PathVariable Long studentIndeksId) {
+        return ResponseEntity.ok(studentProfileService.getUpisaneGodine(studentIndeksId));
+    }
+
+    @PostMapping("/{studentIndeksId}/upis-godine")
+    public ResponseEntity<UpisGodineResponse> upisStudentaNaGodinu(
+            @PathVariable Long studentIndeksId,
+            @RequestBody UpisGodineRequest request) {
+        UpisGodineResponse upis = studentProfileService.upisStudentaNaGodinu(studentIndeksId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(upis);
+    }
+
+    @GetMapping("/{studentIndeksId}/obnovljene-godine")
+    public ResponseEntity<List<ObnovaGodineResponse>> getObnovljeneGodine(@PathVariable Long studentIndeksId) {
+        return ResponseEntity.ok(studentProfileService.getObnovljeneGodine(studentIndeksId));
+    }
+
+    @PostMapping("/{studentIndeksId}/obnova-godine")
+    public ResponseEntity<ObnovaGodineResponse> obnovaGodine(
+            @PathVariable Long studentIndeksId,
+            @RequestBody ObnovaGodineRequest request) {
+        ObnovaGodineResponse obnova = studentProfileService.obnovaGodine(studentIndeksId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(obnova);
+    }
+    @PostMapping("/{studentIndeksId}/obnova-godine-espb")
+    public ResponseEntity<ObnovaGodineResponse> obnovaGodineSaESPB(
+            @PathVariable Long studentIndeksId,
+            @RequestBody ObnovaGodineRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(studentProfileService.obnovaGodineSaESPB(studentIndeksId, request));
+    }
+
+    @PostMapping("/{studentIndeksId}/uplate")
+    public ResponseEntity<UplataResponse> dodajUplatu(
+            @PathVariable Long studentIndeksId,
+            @RequestBody UplataRequest request) {
+        UplataResponse uplata = studentProfileService.dodajUplatu(studentIndeksId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(uplata);
+    }
+
+    @GetMapping("/{studentIndeksId}/preostali-iznos")
+    public ResponseEntity<IznosPreostaliResponse> getPreostaliIznos(@PathVariable Long studentIndeksId) {
+        IznosPreostaliResponse response = studentProfileService.getPreostaliIznos(studentIndeksId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public Page<StudentPodaciResponse> searchStudente(
+            @RequestParam(required = false) String ime,
+            @RequestParam(required = false) String prezime,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return studentProfileService.searchStudente(ime, prezime, page, size);
+    }
+
+    @GetMapping("/srednja-skola")
+    public List<StudentPodaciResponse> getStudentiPoSrednjojSkoli(
+            @RequestParam String srednjaSkola
+    ) {
+        return studentProfileService.getStudentiPoSrednjojSkoli(srednjaSkola);
+    }
 /*
     private final StudentPodaciRepository studentPodaciRepository;
     private final StudentIndeksRepository studentIndeksRepository;

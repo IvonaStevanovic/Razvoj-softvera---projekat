@@ -13,5 +13,12 @@ public class PredmetResponse {
     private String studijskiProgramNaziv;
     private Boolean obavezan;
 
+    public PredmetResponse() {
+    }
 
+    public PredmetResponse(Long id, String naziv, Integer espb) {
+        this.id=id;
+        this.naziv=naziv;
+        this.espb=espb;
+    }
 }

@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -94,6 +95,8 @@ public class ObnovaGodine {
     }
 
     public void setDatumObnove(LocalDate of) {
-
+    }
+    public LocalDate getDatum() {
+        return datum;
     }
 }

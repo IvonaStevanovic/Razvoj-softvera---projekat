@@ -1,13 +1,16 @@
 package org.raflab.studsluzba.controllers;
 
 import lombok.AllArgsConstructor;
+import net.bytebuddy.implementation.auxiliary.AuxiliaryType;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.response.UpisGodineResponse;
 import org.raflab.studsluzba.model.UpisGodine;
+import org.raflab.studsluzba.model.dtos.UpisanaGodinaDTO;
 import org.raflab.studsluzba.repositories.UpisGodineRepository;
 import org.raflab.studsluzba.services.UpisGodineService;
 import org.raflab.studsluzba.utils.Converters;
 import org.raflab.studsluzba.utils.EntityMappers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/upis-godine")
 @AllArgsConstructor
 public class UpisGodineController {
+
+
 /*
     private final UpisGodineService service;
     private final UpisGodineRepository upisGodineRepository;
