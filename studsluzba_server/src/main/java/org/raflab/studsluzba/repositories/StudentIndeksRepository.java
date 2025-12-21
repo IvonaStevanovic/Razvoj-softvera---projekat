@@ -18,11 +18,6 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
 
     Optional<StudentIndeks> findByBroj(Integer broj);
 
-    Optional<StudentIndeks> findByGodinaAndBrojAndStudProgramOznaka(
-            Integer godina,
-            Integer broj,
-            String studProgramOznaka
-    );
     Page<StudentIndeks> findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(
             String ime, String prezime, Pageable pageable);
 
@@ -31,8 +26,14 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
     Page<StudentIndeks> findByStudent_PrezimeContainingIgnoreCase(String prezime, Pageable pageable);
     @Query("SELECT si FROM StudentIndeks si WHERE LOWER(si.student.srednjaSkola.naziv) LIKE LOWER(CONCAT('%', :naziv, '%'))")
     List<StudentIndeks> findByStudentSrednjaSkolaNazivContainingIgnoreCase(@Param("naziv") String naziv);
+    boolean existsByBroj(Integer broj);
+    List<StudentIndeks> findByStudent(StudentPodaci student);
 
-	/*
+
+
+
+
+    /*
 	@Query("select indeks from StudentIndeks indeks where indeks.studProgramOznaka like ?1 and indeks.godina = ?2 "
 			+ "and indeks.broj = ?3 ")
     StudentIndeks findStudentIndeks(String studProgramOznaka, int godina, int broj);
