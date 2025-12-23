@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.services;
 
+import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
 import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
@@ -26,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 @Service
 @Transactional
+@AllArgsConstructor
 public class StudentProfileService  {
     @Autowired
     private  StudentIndeksRepository studentIndeksRepository;
