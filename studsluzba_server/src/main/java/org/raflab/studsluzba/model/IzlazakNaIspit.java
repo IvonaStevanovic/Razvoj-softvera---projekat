@@ -2,8 +2,7 @@ package org.raflab.studsluzba.model;
 
 import lombok.Data;
 
-import javax.persistence.*;
-@Entity
+import javax.persistence.*;@Entity
 @Data
 public class IzlazakNaIspit {
 
@@ -12,26 +11,26 @@ public class IzlazakNaIspit {
     private Long id;
 
     @ManyToOne
-    private PrijavaIspita prijavaIspita; // veza ka prijavi ispita (sadrži student + predmet + rok)
+    private PrijavaIspita prijavaIspita;
 
     @ManyToOne
-    private SlusaPredmet slusaPredmet; // za evidenciju po školskoj godini i nastavniku
+    private SlusaPredmet slusaPredmet;
 
-    private Integer poeniPredispitne; // poeni sa predispitnih
-    private Integer poeniIspit;       // poeni sa ispita
-    private Integer ukupnoPoeni;      // zbir predispitnih + ispita
-    private Integer ocena;            // 5-10, automatski se računa
+    private Integer poeniPredispitne = 0;
+    private Integer poeniIspit = 0;
+    private Integer ukupnoPoeni = 0;
+    private Integer ocena = 5;
 
     private String napomena;
     private Boolean ponisteno = false;
-    private Boolean izasao = false;   // da li je student izašao
+    private Boolean izasao = false;
 
     @OneToOne(mappedBy = "izlazakNaIspit", cascade = CascadeType.ALL)
     private PolozeniPredmeti polozeniPredmet;
+
     @ManyToOne
     @JoinColumn(name = "student_indeks_id")
     private StudentIndeks studentIndeks;
-
 
     public IzlazakNaIspit() {}
 
@@ -39,12 +38,27 @@ public class IzlazakNaIspit {
                           Integer poeniPredispitne, Integer poeniIspit) {
         this.prijavaIspita = prijavaIspita;
         this.slusaPredmet = slusaPredmet;
-        this.poeniPredispitne = poeniPredispitne;
-        this.poeniIspit = poeniIspit;
-        this.ukupnoPoeni = poeniPredispitne + poeniIspit;
-        this.ocena = izracunajOcenu(this.ukupnoPoeni);
+        this.poeniPredispitne = poeniPredispitne != null ? poeniPredispitne : 0;
+        this.poeniIspit = poeniIspit != null ? poeniIspit : 0;
+        updateUkupnoPoeni();
         this.ponisteno = false;
         this.izasao = true;
+    }
+
+    public void setPoeniPredispitne(Integer poeniPredispitne) {
+        this.poeniPredispitne = poeniPredispitne != null ? poeniPredispitne : 0;
+        updateUkupnoPoeni();
+    }
+
+    public void setPoeniIspit(Integer poeniIspit) {
+        this.poeniIspit = poeniIspit != null ? poeniIspit : 0;
+        updateUkupnoPoeni();
+    }
+
+    private void updateUkupnoPoeni() {
+        this.ukupnoPoeni = (poeniPredispitne != null ? poeniPredispitne : 0)
+                + (poeniIspit != null ? poeniIspit : 0);
+        this.ocena = izracunajOcenu(this.ukupnoPoeni);
     }
 
     private Integer izracunajOcenu(Integer ukupnoPoeni) {
@@ -59,53 +73,20 @@ public class IzlazakNaIspit {
     public boolean jePolozio() {
         return !ponisteno && ocena != null && ocena >= 6;
     }
-
-    public void setPoeniPredispitne(Integer poeniPredispitne) {
-        this.poeniPredispitne = poeniPredispitne;
-        updateUkupnoPoeni();
-    }
-
-    public void setPoeniIspit(Integer poeniIspit) {
-        this.poeniIspit = poeniIspit;
-        updateUkupnoPoeni();
-    }
-
-    private void updateUkupnoPoeni() {
-        if (poeniPredispitne != null && poeniIspit != null) {
-            this.ukupnoPoeni = poeniPredispitne + poeniIspit;
-            this.ocena = izracunajOcenu(this.ukupnoPoeni);
-        }
-    }
-
-    public void setStudentIndeks(StudentIndeks studentIndeks) {
-    }
-
-    public void setIspit(Ispit ispit) {
-    }
-
-    public void setOstvarenoNaIspitu(Integer ostvarenoNaIspitu) {
-    }
-
-    public void setPonistio(boolean ponistio) {
-    }
-
-    public Integer getOstvarenoNaIspitu() {
-        return poeniIspit;
-    }
-
     public boolean isPonistio() {
-        return false;
+        return ponisteno != null ? ponisteno : false;
     }
 
     public boolean isIzasao() {
-        return true;
+        return izasao != null ? izasao : false;
     }
 
-    public Uplata getStudentIndeks() {
-        return null;
+    public void setPonistio(boolean ponistio) {
+        this.ponisteno = ponistio;
     }
 
-    public Thread getIspit() {
-        return null;
+    public void setIzasao(boolean izasao) {
+        this.izasao = izasao;
     }
 }
+

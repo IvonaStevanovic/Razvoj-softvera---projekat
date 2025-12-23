@@ -313,7 +313,7 @@ public class Seeder implements CommandLineRunner {
         junskiRok.setDatumZavrsetka(LocalDate.of(2024, 6, 30));
         junskiRok.setSkolskaGodina(godina1);
         junskiRok.setAktivan(true);
-        ispitniRokRepository.save(junskiRok);
+        junskiRok=ispitniRokRepository.save(junskiRok);
 
         IspitniRok septembarskiRok = new IspitniRok();
         septembarskiRok.setNaziv("Septembar 2024");
@@ -321,14 +321,15 @@ public class Seeder implements CommandLineRunner {
         septembarskiRok.setDatumZavrsetka(LocalDate.of(2024, 9, 15));
         septembarskiRok.setSkolskaGodina(godina1);
         septembarskiRok.setAktivan(false);
-        ispitniRokRepository.save(septembarskiRok);
+        septembarskiRok=ispitniRokRepository.save(septembarskiRok);
+
 
 // 2. KREIRAJ ISPITE (5 ispita - 3 u junskom, 2 u septembarskom roku)
         List<Ispit> ispitiList = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             Ispit ispit = new Ispit();
             ispit.setPredmet(predmetList.get(i));
-            ispit.setIspitniRok(junskiRok);
+           // ispit.setIspitniRok(junskiRok);
             ispit.setDrziPredmet(drziPredmetList.get(i));
             ispit.setDatumOdrzavanja(LocalDate.of(2024, 6, 10 + i));
             ispit.setVremePocetka(null);
@@ -339,7 +340,7 @@ public class Seeder implements CommandLineRunner {
         for (int i = 3; i < 5; i++) {
             Ispit ispit = new Ispit();
             ispit.setPredmet(predmetList.get(i));
-            ispit.setIspitniRok(septembarskiRok);
+            //ispit.setIspitniRok(septembarskiRok);
             ispit.setDrziPredmet(drziPredmetList.get(i));
             ispit.setDatumOdrzavanja(LocalDate.of(2024, 9, 5 + (i - 3)));
             ispit.setVremePocetka(null);

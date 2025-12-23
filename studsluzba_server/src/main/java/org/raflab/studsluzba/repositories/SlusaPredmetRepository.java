@@ -3,6 +3,7 @@ package org.raflab.studsluzba.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.raflab.studsluzba.model.DrziPredmet;
 import org.raflab.studsluzba.model.SlusaPredmet;
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.jpa.repository.Query;
@@ -15,8 +16,8 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
 
 
     List<SlusaPredmet> findByStudentIndeks(StudentIndeks studentIndeks);
-
-
+    Optional<SlusaPredmet> findByStudentIndeksAndDrziPredmet(StudentIndeks studentIndeks, DrziPredmet drziPredmet);
+    Optional<SlusaPredmet> findByIdAndStudentIndeks(Long id, StudentIndeks studentIndeks);
 /*
     @Query("SELECT sp FROM SlusaPredmet sp WHERE sp.studentIndeks.id = :indeksId AND sp.skolskaGodina.aktivna = true")
     List<SlusaPredmet> getSlusaPredmetForIndeksAktivnaGodina(@Param("indeksId") Long indeksId);

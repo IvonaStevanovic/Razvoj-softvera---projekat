@@ -24,6 +24,26 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class DrziPredmetService {
+    final DrziPredmetRepository drziPredmetRepository;
+    final PredmetRepository predmetRepository;
+    final NastavnikRepository nastavnikRepository;
+
+
+
+    public Optional<DrziPredmet> findById(Long id) {
+        return drziPredmetRepository.findById(id);
+    }
+    public List<DrziPredmet> findAll() {
+        return (List<DrziPredmet>) drziPredmetRepository.findAll();
+    }
+
+    public DrziPredmet save(DrziPredmet drziPredmet) {
+        return drziPredmetRepository.save(drziPredmet);
+    }
+
+    public boolean existsById(Long id) {
+        return drziPredmetRepository.existsById(id);
+    }
 /*
     private final DrziPredmetRepository drziPredmetRepository;
     private final PredmetRepository predmetRepository;

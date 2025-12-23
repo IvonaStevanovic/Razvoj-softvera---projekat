@@ -32,6 +32,7 @@ public class Ispit {
     private boolean zakljucen;
     private String napomena;
 
+
     public Ispit(LocalDate datumOdrzavanja, Predmet predmet, DrziPredmet drziPredmet, LocalTime vremePocetka, boolean zakljucen, String napomena) {
         this.datumOdrzavanja = datumOdrzavanja;
         this.predmet = predmet;
@@ -101,10 +102,9 @@ public class Ispit {
         this.napomena = napomena;
     }
 
-    public void setIspitniRok(IspitniRok junskiRok) {
 
-    }
-/*
+
+    /*
     @JsonIgnore
     @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PrijavaIspita> prijave;
