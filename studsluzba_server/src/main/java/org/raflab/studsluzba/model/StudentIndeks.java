@@ -1,11 +1,14 @@
 package org.raflab.studsluzba.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
+import net.minidev.json.annotate.JsonIgnore;
+
 @Entity
 @Data
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"broj", "godina", "studProgramOznaka"}))
@@ -37,6 +40,7 @@ public class StudentIndeks {
     private Set<PrijavaIspita> prijaveIspita = new HashSet<>();
 
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<UpisGodine> upisiGodina = new HashSet<>();
 
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
@@ -60,4 +64,25 @@ public class StudentIndeks {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    public void dodajPolozeniPredmet(Predmet predmet, int ukupnoPoena, IzlazakNaIspit izlazak) {
+        if (predmet == null || izlazak == null) {
+            throw new IllegalArgumentException("Predmet i izlazak na ispit ne mogu biti null");
+        }
+
+        PolozeniPredmeti pp = new PolozeniPredmeti();
+        pp.setPredmet(predmet);
+        pp.setOcena(ukupnoPoena); // čuvamo ukupno poena (predispitne + ispit)
+        pp.setPriznat(ukupnoPoena >= 51); // priznato ako ukupno >= 51
+        pp.setDatumPolaganja(LocalDate.now());
+        pp.setIzlazakNaIspit(izlazak);
+
+        // Dodavanje u listu položenih predmeta
+        if (this.polozeniPredmeti == null) {
+            this.polozeniPredmeti = new HashSet<>();
+        }
+        this.polozeniPredmeti.add(pp);
+    }
+
+
 }

@@ -14,6 +14,32 @@ import java.util.Optional;
 
 @Service
 public class IspitniRokService {
+    @Autowired
+    private IspitniRokRepository repository;
+
+    public List<IspitniRok> findAll() {
+        return (List<IspitniRok>) repository.findAll();
+    }
+
+    public Optional<IspitniRok> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    //public List<IspitniRok> findBySkolskaGodina(Long godinaId) {
+       // return repository.findBySkolskaGodinaId(godinaId);
+ //   }
+
+    public IspitniRok save(IspitniRok rok) {
+        return repository.save(rok);
+    }
+
+    public void deleteById(Long id) {
+        repository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return repository.existsById(id);
+    }
 /*
     @Autowired
     private IspitniRokRepository repository;

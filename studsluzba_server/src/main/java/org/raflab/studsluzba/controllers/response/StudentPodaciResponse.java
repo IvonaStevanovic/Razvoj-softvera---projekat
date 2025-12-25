@@ -29,4 +29,13 @@ public class StudentPodaciResponse {
     private String adresaStanovanja;   // u toku studija
     private Integer brojIndeksa;
     private String srednjaSkola;
+
+    public StudentPodaciResponse() {
+    }
+
+    public StudentPodaciResponse(Long id, String ime, String prezime, int broj, int godina) {
+        this.id = id;
+        this.ime = ime;
+        this.prezime = prezime;
+    }
 }

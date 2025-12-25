@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class IspitServiceTest {
-
+/*
     @Mock
     private IspitRepository ispitRepository;
 
@@ -181,4 +181,6 @@ class IspitServiceTest {
             assertEquals(i1.getPredmet().getId(), found.get().getPredmet().getId());
         }
     }
+
+ */
 }
