@@ -25,8 +25,22 @@ public class IspitResponse {
     private String nastavnikPrezime;
 
     private LocalDate datumOdrzavanja;
-    private LocalDateTime vremePocetka;
+    private LocalTime vremePocetka;
     private Boolean zakljucen;
     private String napomena;
+    private LocalDate ispitniRokPocetak;
+    private LocalDate ispitniRokKraj;
+
+    public Long getIspitniRokId() { return ispitniRokId; }
+    public void setIspitniRokId(Long ispitniRokId) { this.ispitniRokId = ispitniRokId; }
+
+    public String getIspitniRokNaziv() { return ispitniRokNaziv; }
+    public void setIspitniRokNaziv(String ispitniRokNaziv) { this.ispitniRokNaziv = ispitniRokNaziv; }
+
+    public LocalDate getIspitniRokPocetak() { return ispitniRokPocetak; }
+    public void setIspitniRokPocetak(LocalDate ispitniRokPocetak) { this.ispitniRokPocetak = ispitniRokPocetak; }
+
+    public LocalDate getIspitniRokKraj() { return ispitniRokKraj; }
+    public void setIspitniRokKraj(LocalDate ispitniRokKraj) { this.ispitniRokKraj = ispitniRokKraj; }
 
 }

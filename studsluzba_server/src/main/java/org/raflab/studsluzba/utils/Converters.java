@@ -9,6 +9,7 @@ import org.raflab.studsluzba.repositories.PredispitniPoeniRepository;
 import org.raflab.studsluzba.repositories.PredmetRepository;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -185,7 +186,7 @@ public class Converters {
         if (osvojeniPoeni.getPredispitnaObaveza() != null) {
             response.setPredispitnaObavezaId(osvojeniPoeni.getPredispitnaObaveza().getId());
             response.setObavezaVrsta(osvojeniPoeni.getPredispitnaObaveza().getVrsta());
-            response.setPoeni(osvojeniPoeni.getPredispitnaObaveza().getMaksPoeni());
+            response.setPoeni(osvojeniPoeni.getPoeni());
 
             // Predmet podaci
             if (osvojeniPoeni.getPredispitnaObaveza().getDrziPredmet() != null &&
@@ -240,46 +241,38 @@ public class Converters {
         IspitResponse response = new IspitResponse();
         response.setId(ispit.getId());
 
-        // Predmet podaci
         if (ispit.getPredmet() != null) {
             response.setPredmetId(ispit.getPredmet().getId());
             response.setPredmetSifra(ispit.getPredmet().getSifra());
             response.setPredmetNaziv(ispit.getPredmet().getNaziv());
         }
 
-        // Ispitni rok i školska godina
-        if (ispit.getDrziPredmet() != null && ispit.getDrziPredmet().getSkolskaGodina() != null) {
-            SkolskaGodina skolskaGodina = ispit.getDrziPredmet().getSkolskaGodina();
-            response.setSkolskaGodinaId(skolskaGodina.getId());
-            response.setSkolskaGodinaNaziv(skolskaGodina.getNaziv());
+        if (ispit.getIspitniRok() != null) {
+            response.setIspitniRokId(ispit.getIspitniRok().getId());
+            response.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+            response.setIspitniRokPocetak(ispit.getIspitniRok().getDatumPocetka());
+            response.setIspitniRokKraj(ispit.getIspitniRok().getDatumZavrsetka());
+
+            if (ispit.getIspitniRok().getSkolskaGodina() != null) {
+                response.setSkolskaGodinaId(ispit.getIspitniRok().getSkolskaGodina().getId());
+                response.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+            }
         }
 
-        if (ispit.getDrziPredmet() != null && ispit.getDrziPredmet().getPredmet() != null) {
-            Predmet predmet = ispit.getDrziPredmet().getPredmet();
-            // Ukoliko želiš da prepišeš podatke iz DrziPredmet, možeš ovde
-            // response.setPredmetId(predmet.getId());
-            // response.setPredmetSifra(predmet.getSifra());
-            // response.setPredmetNaziv(predmet.getNaziv());
-        }
-
-        // Nastavnik podaci
         if (ispit.getDrziPredmet() != null && ispit.getDrziPredmet().getNastavnik() != null) {
-            Nastavnik nastavnik = ispit.getDrziPredmet().getNastavnik();
-            response.setNastavnikId(nastavnik.getId());
-            response.setNastavnikIme(nastavnik.getIme());
-            response.setNastavnikPrezime(nastavnik.getPrezime());
+            response.setNastavnikId(ispit.getDrziPredmet().getNastavnik().getId());
+            response.setNastavnikIme(ispit.getDrziPredmet().getNastavnik().getIme());
+            response.setNastavnikPrezime(ispit.getDrziPredmet().getNastavnik().getPrezime());
         }
 
-        // Ispit podaci
         response.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
-        if (ispit.getVremePocetka() != null) {
-            response.setVremePocetka(ispit.getVremePocetka().atDate(ispit.getDatumOdrzavanja()));
-        }
+        response.setVremePocetka(ispit.getVremePocetka());
         response.setZakljucen(ispit.isZakljucen());
         response.setNapomena(ispit.getNapomena());
 
         return response;
     }
+
 
 
     // Predmet converters

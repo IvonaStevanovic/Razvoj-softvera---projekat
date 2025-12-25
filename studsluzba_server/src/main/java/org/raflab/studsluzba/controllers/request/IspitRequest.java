@@ -14,13 +14,16 @@ public class IspitRequest {
     @NotNull(message = "Ispitni rok je obavezan")
     private Long ispitniRokId;
 
+    private LocalDate ispitniRokKraj;
     @NotNull(message = "Nastavnik je obavezan")
     private Long drziPredmetId;  // ID iz DrziPredmet tabele
 
     @NotNull(message = "Datum održavanja je obavezan")
     private LocalDate datumOdrzavanja;
 
-    private LocalDateTime vremePocetka;
+    private LocalTime vremePocetka;
 
     private String napomena;
+
+
 }
