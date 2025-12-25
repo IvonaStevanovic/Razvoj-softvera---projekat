@@ -9,18 +9,40 @@ import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
-public class PredmetService {
-    @Autowired
-    private PredmetRepository repository;
-    public Optional<Predmet> findById(Long id) {
-        return repository.findById(id);
+
+    @Service
+    @Transactional
+    public class PredmetService {
+
+        @Autowired
+        private PredmetRepository predmetRepository;
+
+        public Optional<Predmet> findById(Long id) {
+            return predmetRepository.findById(id);
+        }
+
+        public Predmet save(Predmet predmet) {
+            return predmetRepository.save(predmet);
+        }
+
+        public void deleteById(Long id) {
+            predmetRepository.deleteById(id);
+        }
+
+        public boolean existsById(Long id) {
+            return predmetRepository.existsById(id);
+        }
+
+        public boolean existsBySifra(String sifra) {
+            return predmetRepository.existsBySifra(sifra);
+        }
     }
 
     /*
@@ -134,4 +156,4 @@ public class PredmetService {
 
      */
 
-}
+

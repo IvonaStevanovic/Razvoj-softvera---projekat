@@ -3,13 +3,24 @@ package org.raflab.studsluzba.services;
 import lombok.AllArgsConstructor;
 import org.raflab.studsluzba.model.VrstaStudija;
 import org.raflab.studsluzba.repositories.VrstaStudijaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 @Service
-@AllArgsConstructor
+@Transactional
 public class VrstaStudijaService {
+
+    @Autowired
+    private VrstaStudijaRepository vrstaStudijaRepository;
+
+    public Optional<VrstaStudija> findById(Long id) {
+        return vrstaStudijaRepository.findById(id);
+    }
+}
+
 /*
     private final VrstaStudijaRepository repository;
 
@@ -62,4 +73,4 @@ public class VrstaStudijaService {
     }
 
  */
-}
+
