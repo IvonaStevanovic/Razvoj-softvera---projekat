@@ -8,6 +8,7 @@ import net.minidev.json.annotate.JsonIgnore;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +31,8 @@ public class IspitniRok {
 
     @Column(nullable = false)
     private Boolean aktivan = false;
+    @OneToMany(mappedBy = "ispitniRok", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ispit> ispiti = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -79,6 +82,15 @@ public class IspitniRok {
         this.aktivan = aktivan;
     }
 
+    public void addIspit(Ispit ispit) {
+        ispiti.add(ispit);
+        ispit.setIspitniRok(this);
+    }
+
+    public void removeIspit(Ispit ispit) {
+        ispiti.remove(ispit);
+        ispit.setIspitniRok(null);
+    }
 
     /* @OneToMany(mappedBy = "ispitniRok", cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
     @ToString.Exclude

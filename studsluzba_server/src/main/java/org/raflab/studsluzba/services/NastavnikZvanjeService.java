@@ -15,6 +15,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class NastavnikZvanjeService {
+    private final NastavnikZvanjeRepository repository;
+    @Transactional(readOnly = true)
+    public List<NastavnikZvanje> findAll() {
+        List<NastavnikZvanje> lista = repository.findAll();
+        // inicijalizacija lazy-nastavnika
+        lista.forEach(nz -> nz.getNastavnik().getIme());
+        return lista;
+    }
     /*
     private final NastavnikZvanjeRepository repository;
     private final NastavnikRepository nastavnikRepository;
@@ -42,13 +50,7 @@ public class NastavnikZvanjeService {
     }
 
 
-    @Transactional(readOnly = true)
-    public List<NastavnikZvanje> findAll() {
-        List<NastavnikZvanje> lista = repository.findAll();
-        // inicijalizacija lazy-nastavnika
-        lista.forEach(nz -> nz.getNastavnik().getIme());
-        return lista;
-    }
+
     public NastavnikZvanje findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("NastavnikZvanje sa ID " + id + " ne postoji"));

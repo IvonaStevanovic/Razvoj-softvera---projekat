@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.services;
 
 import lombok.RequiredArgsConstructor;
+import org.raflab.studsluzba.controllers.request.IspitRequest;
 import org.raflab.studsluzba.controllers.request.IzlazakNaIspitRequest;
 import org.raflab.studsluzba.controllers.request.PrijavaIspitaRequest;
 import org.raflab.studsluzba.controllers.response.*;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -22,40 +24,146 @@ import java.util.stream.Collectors;
 @Transactional
 public class IspitService {
 
-    private final IspitRepository ispitRepository;
-    private final PrijavaIspitaRepository prijavaIspitaRepository;
-    private final IzlazakNaIspitRepository izlazakNaIspitRepository;
-    private final PredispitniPoeniRepository predispitniPoeniRepository;
-    private final PredispitneObavezeRepository predispitneObavezeRepository;
-    private final StudentIndeksRepository studentIndeksRepository;
-    private final SlusaPredmetRepository slusaPredmetRepository;
-/*
-    public List<Ispit> findAll() {
-        return (List<Ispit>) ispitRepository.findAll();
+    @Autowired
+    private  IspitRepository ispitRepository;
+    @Autowired
+    private  PrijavaIspitaRepository prijavaIspitaRepository;
+    @Autowired
+    private  IzlazakNaIspitRepository izlazakNaIspitRepository;
+    @Autowired
+    private  PredispitniPoeniRepository predispitniPoeniRepository;
+    @Autowired
+    private  PredispitneObavezeRepository predispitneObavezeRepository;
+    @Autowired
+    private  StudentIndeksRepository studentIndeksRepository;
+    @Autowired
+    private  SlusaPredmetRepository slusaPredmetRepository;
+    @Autowired
+    private IspitniRokRepository ispitniRokRepository;
+    @Autowired
+    private DrziPredmetRepository drziPredmetRepository;
+
+    @Transactional(readOnly = true)
+    public List<IspitResponse> findAllResponses() {
+        List<Ispit> ispiti = ispitRepository.findAll();
+        return ispiti.stream().map(ispit -> {
+            IspitResponse resp = new IspitResponse();
+            resp.setId(ispit.getId());
+            resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+            resp.setVremePocetka(ispit.getVremePocetka());
+            // ovo je safe jer je session jos uvek otvoren
+            resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
+            resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+            resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+            return resp;
+        }).collect(Collectors.toList());
     }
 
-    public Optional<Ispit> findById(Long id) {
-        return ispitRepository.findById(id);
+
+    @Transactional(readOnly = true)
+    public IspitResponse getIspitResponseById(Long id) {
+        Ispit ispit = ispitRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ispit ne postoji"));
+
+        // session je još otvoren, tako da možeš dohvatiti LAZY veze
+        IspitResponse resp = new IspitResponse();
+        resp.setId(ispit.getId());
+        resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+        resp.setVremePocetka(ispit.getVremePocetka());
+        resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
+        resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+        resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+
+        return resp;
     }
 
-
-
-    public List<Ispit> findByPredmetAndRok(Long predmetId, Long rokId) {
-        return ispitRepository.findByPredmetIdAndIspitniRokId(predmetId, rokId);
-    }
-
+    @Transactional
     public Ispit save(Ispit ispit) {
+        // Pronađi DrziPredmet preko ID-ja poslatog u Ispit (pretpostavljam da si dodao drziPredmet polje u Ispit)
+        DrziPredmet drziPredmet = drziPredmetRepository.findById(ispit.getDrziPredmet().getId())
+                .orElseThrow(() -> new EntityNotFoundException("DrziPredmet ne postoji"));
+
+        IspitniRok rok = ispitniRokRepository.findById(ispit.getIspitniRok().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Ispitni rok ne postoji"));
+
+        // Postavi predmet i nastavnika iz DrziPredmet
+        ispit.setPredmet(drziPredmet.getPredmet());
+        ispit.setNastavnik(drziPredmet.getNastavnik());
+        ispit.setIspitniRok(rok);
+
+        boolean exists = ispitRepository.existsByDatumOdrzavanjaAndDrziPredmetIdAndIspitniRokId(
+                ispit.getDatumOdrzavanja(),
+                ispit.getDrziPredmet().getId(),
+                rok.getId()
+        );
+
+        if (exists) {
+            throw new IllegalArgumentException("Ispit već postoji za zadati datum, predmet i nastavnika u ovom roku!");
+        }
+
         return ispitRepository.save(ispit);
     }
+    public boolean existsByDatumPredmetNastavnikRok(LocalDate datum, Long predmetId, Long nastavnikId, Long rokId) {
+        return ispitRepository.existsByDatumPredmetNastavnikRok(datum, predmetId, nastavnikId, rokId);
+    }
+    @Transactional
+    public Ispit createFromRequest(IspitRequest request) {
 
-    public void deleteById(Long id) {
-        ispitRepository.deleteById(id);
+        DrziPredmet drziPredmet = drziPredmetRepository.findById(request.getDrziPredmetId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "DrziPredmet ne postoji"));
+
+        IspitniRok rok = ispitniRokRepository.findById(request.getIspitniRokId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Ispitni rok ne postoji"));
+
+        boolean exists = ispitRepository
+                .existsByDatumOdrzavanjaAndDrziPredmetIdAndIspitniRokId(
+                        request.getDatumOdrzavanja(),
+                        drziPredmet.getId(),
+                        rok.getId()
+                );
+
+        if (exists) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ispit već postoji za zadati datum, predmet i nastavnika u ovom roku!"
+            );
+        }
+
+        Ispit ispit = new Ispit();
+        ispit.setDatumOdrzavanja(request.getDatumOdrzavanja());
+        ispit.setVremePocetka(request.getVremePocetka());
+        ispit.setNapomena(request.getNapomena());
+        ispit.setZakljucen(false);
+
+        ispit.setDrziPredmet(drziPredmet);
+        ispit.setPredmet(drziPredmet.getPredmet());
+        ispit.setIspitniRok(rok);
+
+        return ispitRepository.save(ispit);
+    }
+    @Transactional
+    public IspitResponse createAndMap(IspitRequest request) {
+
+        Ispit ispit = createFromRequest(request);
+
+        IspitResponse resp = new IspitResponse();
+        resp.setId(ispit.getId());
+        resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+        resp.setVremePocetka(ispit.getVremePocetka());
+        resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
+        resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+
+
+        resp.setSkolskaGodinaNaziv(
+                ispit.getIspitniRok().getSkolskaGodina().getNaziv()
+        );
+
+        return resp;
     }
 
-    public boolean existsById(Long id) {
-        return ispitRepository.existsById(id);
-    }
-*/
+
     // -------------------- PRIJAVA ISPITA --------------------
     public PrijavaIspitaResponse prijaviIspit(PrijavaIspitaRequest request) {
         StudentIndeks student = studentIndeksRepository.findById(request.getStudentIndeksId())
@@ -304,62 +412,16 @@ public class IspitService {
                 .collect(Collectors.toList());
     }
 
+
+
+
+
+
+
+
+
 /*
-    @Autowired
-    private IspitRepository ispitRepository;
-    @Autowired
-    private PredmetRepository predmetRepository;
-    @Autowired
-    private NastavnikRepository nastavnikRepository;
-    @Autowired
-    private IspitniRokRepository ispitniRokRepository;
-    @Autowired
-    private PrijavaIspitaRepository prijavaIspitaRepository;
-    @Autowired
-    private IzlazakNaIspitRepository izlazakNaIspitRepository;
-    @Autowired
-    private StudentIndeksRepository studentIndeksRepository;
 
-    public Ispit save(Ispit ispit) {
-        Predmet predmet = predmetRepository.findById(ispit.getPredmet().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Predmet ne postoji"));
-        Nastavnik nastavnik = nastavnikRepository.findById(ispit.getNastavnik().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Nastavnik ne postoji"));
-        IspitniRok rok = ispitniRokRepository.findById(ispit.getIspitniRok().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Ispitni rok ne postoji"));
-
-        ispit.setPredmet(predmet);
-        ispit.setNastavnik(nastavnik);
-        ispit.setIspitniRok(rok);
-
-        boolean exists = ispitRepository.existsByDatumOdrzavanjaAndPredmetIdAndNastavnikIdAndIspitniRokId(
-                ispit.getDatumOdrzavanja(),
-                predmet.getId(),
-                nastavnik.getId(),
-                rok.getId()
-        );
-
-        if (exists) {
-            throw new IllegalArgumentException("Ispit već postoji za zadati datum, predmet i nastavnika u ovom roku!");
-        }
-
-        return ispitRepository.save(ispit);
-    }
-    @Transactional(readOnly = true)
-    public List<PrijavaIspitaResponse> getPrijavljeniStudenti(Long ispitId) {
-        // Pronađi ispit po ID-ju
-        Ispit ispit = ispitRepository.findById(ispitId)
-                .orElseThrow(() -> new RuntimeException("Ispit ne postoji"));
-
-        // Pronađi sve prijave za taj ispit
-        List<PrijavaIspita> prijave = prijavaIspitaRepository.findByIspit(ispitId);
-
-        // Konvertuj svaku prijavu u response objekat
-        return prijave.stream()
-                .map(this::convertToPrijavaResponse)
-                .collect(Collectors.toList());
-
-    }
 
     private PrijavaIspitaResponse convertToPrijavaResponse(PrijavaIspita p) {
         PrijavaIspitaResponse response = new PrijavaIspitaResponse();
@@ -406,6 +468,48 @@ public class IspitService {
         else
             return findAll();
     }
-    */
+     @Transactional(readOnly = true)
+    public List<PrijavaIspitaResponse> getPrijavljeniStudenti(Long ispitId) {
+        // Pronađi ispit po ID-ju
+        Ispit ispit = ispitRepository.findById(ispitId)
+                .orElseThrow(() -> new RuntimeException("Ispit ne postoji"));
+
+        // Pronađi sve prijave za taj ispit
+        List<PrijavaIspita> prijave = prijavaIspitaRepository.findByIspit(ispitId);
+
+        // Konvertuj svaku prijavu u response objekat
+        return prijave.stream()
+                .map(this::convertToPrijavaResponse)
+                .collect(Collectors.toList());
+
+    }
+ */
+    /*
+    public List<Ispit> findAll() {
+        return (List<Ispit>) ispitRepository.findAll();
+    }
+
+    public Optional<Ispit> findById(Long id) {
+        return ispitRepository.findById(id);
+    }
+
+
+
+    public List<Ispit> findByPredmetAndRok(Long predmetId, Long rokId) {
+        return ispitRepository.findByPredmetIdAndIspitniRokId(predmetId, rokId);
+    }
+
+    public Ispit save(Ispit ispit) {
+        return ispitRepository.save(ispit);
+    }
+
+    public void deleteById(Long id) {
+        ispitRepository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return ispitRepository.existsById(id);
+    }
+*/
 }
 

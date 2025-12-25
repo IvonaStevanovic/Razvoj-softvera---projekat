@@ -31,21 +31,31 @@ public class Ispit {
 
     private boolean zakljucen;
     private String napomena;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ispitni_rok_id", nullable = false)
+    private IspitniRok ispitniRok;
 
 
-    public Ispit(LocalDate datumOdrzavanja, Predmet predmet, DrziPredmet drziPredmet, LocalTime vremePocetka, boolean zakljucen, String napomena) {
+    public Ispit(LocalDate datumOdrzavanja, Predmet predmet, DrziPredmet drziPredmet, LocalTime vremePocetka, boolean zakljucen, String napomena,IspitniRok ispitniRok) {
         this.datumOdrzavanja = datumOdrzavanja;
         this.predmet = predmet;
         this.drziPredmet = drziPredmet;
         this.vremePocetka = vremePocetka;
         this.zakljucen = zakljucen;
         this.napomena = napomena;
+        this.ispitniRok = ispitniRok;
     }
 
     public Ispit() {
 
     }
+    public IspitniRok getIspitniRok() {
+        return ispitniRok;
+    }
 
+    public void setIspitniRok(IspitniRok ispitniRok) {
+        this.ispitniRok = ispitniRok;
+    }
     public Long getId() {
         return id;
     }
@@ -100,6 +110,10 @@ public class Ispit {
 
     public void setNapomena(String napomena) {
         this.napomena = napomena;
+    }
+
+    public void setNastavnik(Nastavnik nastavnik) {
+        this.drziPredmet.setNastavnik(nastavnik);
     }
 
 

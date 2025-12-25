@@ -329,7 +329,7 @@ public class Seeder implements CommandLineRunner {
         for (int i = 0; i < 3; i++) {
             Ispit ispit = new Ispit();
             ispit.setPredmet(predmetList.get(i));
-           // ispit.setIspitniRok(junskiRok);
+            ispit.setIspitniRok(junskiRok);
             ispit.setDrziPredmet(drziPredmetList.get(i));
             ispit.setDatumOdrzavanja(LocalDate.of(2024, 6, 10 + i));
             ispit.setVremePocetka(null);
@@ -340,7 +340,7 @@ public class Seeder implements CommandLineRunner {
         for (int i = 3; i < 5; i++) {
             Ispit ispit = new Ispit();
             ispit.setPredmet(predmetList.get(i));
-            //ispit.setIspitniRok(septembarskiRok);
+            ispit.setIspitniRok(septembarskiRok);
             ispit.setDrziPredmet(drziPredmetList.get(i));
             ispit.setDatumOdrzavanja(LocalDate.of(2024, 9, 5 + (i - 3)));
             ispit.setVremePocetka(null);
