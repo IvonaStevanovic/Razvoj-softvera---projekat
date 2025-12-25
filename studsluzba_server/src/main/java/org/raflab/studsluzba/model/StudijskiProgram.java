@@ -7,6 +7,7 @@ import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Data
@@ -23,10 +24,11 @@ public class StudijskiProgram {
 	private Integer trajanjeSemestara;
 	///private String vrstaStudija; // OAS - osnovne akademske studje, OSS - osnovne strukovne, 	MAS - master akademske studije
 	private Integer ukupnoEspb;
-	
-	@JsonIgnore
-	@OneToMany(mappedBy = "studProgram")//mora ManyToMany????
-	private List<Predmet> predmeti;
+
+    @ToString.Exclude
+    @JsonIgnore
+    @OneToMany(mappedBy = "studProgram")
+    private List<Predmet> predmeti;
 
    @ManyToOne
     private VrstaStudija vrstaStudija;

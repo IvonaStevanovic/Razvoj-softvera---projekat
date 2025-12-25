@@ -12,6 +12,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StudijskiProgramRepository extends CrudRepository<StudijskiProgram, Long> {
+
+    boolean existsByOznaka(String oznaka);
+}
+
 	/*
 	@Query("select distinct oznaka from StudijskiProgram")
     List<String> findAllOznaka();
@@ -23,4 +27,4 @@ public interface StudijskiProgramRepository extends CrudRepository<StudijskiProg
 	Optional<StudijskiProgram> findByOznaka( String oznaka);
 
 	 */
-}
+

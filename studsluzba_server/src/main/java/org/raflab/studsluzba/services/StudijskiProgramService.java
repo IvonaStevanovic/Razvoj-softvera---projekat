@@ -17,8 +17,33 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@Transactional
 public class StudijskiProgramService {
+
+    @Autowired
+    private StudijskiProgramRepository studijskiProgramRepository;
+
+    public Optional<StudijskiProgram> findById(Long id) {
+        return studijskiProgramRepository.findById(id);
+    }
+
+    public StudijskiProgram save(StudijskiProgram program) {
+        return studijskiProgramRepository.save(program);
+    }
+
+    public void deleteById(Long id) {
+        studijskiProgramRepository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return studijskiProgramRepository.existsById(id);
+    }
+
+    public boolean existsByOznaka(String oznaka) {
+        return studijskiProgramRepository.existsByOznaka(oznaka);
+    }
+}
+
 /*
     private final StudijskiProgramRepository studProgramRepo;
 
@@ -71,4 +96,4 @@ public class StudijskiProgramService {
 
  */
 
-}
+

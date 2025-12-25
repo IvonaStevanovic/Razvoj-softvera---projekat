@@ -1,9 +1,14 @@
 package org.raflab.studsluzba.controllers.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class StudijskiProgramResponse {
+
     private Long id;
     private String oznaka;
     private String naziv;
@@ -12,5 +17,7 @@ public class StudijskiProgramResponse {
     private Integer trajanjeGodina;
     private Integer trajanjeSemestara;
     private Integer ukupnoEspb;
-    private String vrstaStudijaNaziv;  // naziv vrste studija, za lakši prikaz
+
+    private String vrstaStudijaNaziv;
 }
+
