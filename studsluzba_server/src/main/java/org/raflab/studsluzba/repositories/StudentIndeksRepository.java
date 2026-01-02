@@ -16,6 +16,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Long> {
 
+    @Override
+    List<StudentIndeks> findAll();
     Optional<StudentIndeks> findByBroj(Integer broj);
 
     Page<StudentIndeks> findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(

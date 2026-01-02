@@ -37,7 +37,7 @@ public class StudijskiProgramController {
     }
 
     // ADD
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<StudijskiProgramResponse> add(
             @RequestBody @Valid StudijskiProgramRequest request) {
 
