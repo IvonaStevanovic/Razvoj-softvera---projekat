@@ -21,89 +21,34 @@ import java.util.List;
 public class StudijskiProgramController {
 
     @Autowired
-    private StudijskiProgramService studijskiProgramService;
-
-    @Autowired
-    private VrstaStudijaService vrstaStudijaService;
-
-    // GET BY ID
-    @GetMapping("/{id}")
-    public ResponseEntity<StudijskiProgramResponse> getById(@PathVariable Long id) {
-        StudijskiProgram program = studijskiProgramService.findById(id).orElse(null);
-        if (program == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(StudijskiProgramConverter.toResponse(program));
-    }
-
-    // ADD
-    @PostMapping("/add")
-    public ResponseEntity<StudijskiProgramResponse> add(
-            @RequestBody @Valid StudijskiProgramRequest request) {
-
-        if (studijskiProgramService.existsByOznaka(request.getOznaka())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        VrstaStudija vrstaStudija = null;
-        if (request.getVrstaStudijaId() != null) {
-            vrstaStudija = vrstaStudijaService.findById(request.getVrstaStudijaId())
-                    .orElseThrow(() -> new RuntimeException("Vrsta studija ne postoji"));
-        }
-
-        StudijskiProgram program =
-                StudijskiProgramConverter.toEntity(request, vrstaStudija);
-
-        StudijskiProgram saved = studijskiProgramService.save(program);
-
-        return ResponseEntity.ok(StudijskiProgramConverter.toResponse(saved));
-    }
-
-    // DELETE
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!studijskiProgramService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        studijskiProgramService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
-/*
-    private final StudijskiProgramService service;
-
-    @PostMapping("/add")
-    public StudijskiProgramResponse add(@RequestBody StudijskiProgramRequest request) {
-        return service.save(request);
-    }
-
-    @PutMapping("/update/{id}")
-    public StudijskiProgramResponse update(@PathVariable Long id, @RequestBody StudijskiProgramRequest request) {
-        // dodaj ID u entitet za update
-        return service.save(request);
-    }
+    private StudijskiProgramService service;
 
     @GetMapping("/all")
-    public List<StudijskiProgramResponse> getAll() {
-        return service.getAll();
+    public ResponseEntity<List<StudijskiProgramResponse>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
-    public StudijskiProgramResponse getById(@PathVariable Long id) {
-        return service.getById(id);
+    public ResponseEntity<StudijskiProgramResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
-        try {
-            service.delete(id);
-            return ResponseEntity.ok("Obrisan studijski program sa ID " + id);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping("/add")
+    public ResponseEntity<StudijskiProgramResponse> add(@RequestBody @Valid StudijskiProgramRequest request) {
+        return ResponseEntity.ok(service.save(request));
     }
 
- */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 
-
+    @GetMapping("/{id}/prosek-programa")
+    public ResponseEntity<Double> getProsekPrograma(@PathVariable Long id,
+                                                    @RequestParam int godinaOd,
+                                                    @RequestParam int godinaDo) {
+        Double prosek = service.getProsecnaOcenaProgramazaPeriod(id, godinaOd, godinaDo);
+        return ResponseEntity.ok(prosek);
+    }
+}

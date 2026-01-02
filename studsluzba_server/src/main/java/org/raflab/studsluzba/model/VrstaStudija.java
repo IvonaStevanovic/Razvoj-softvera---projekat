@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -14,6 +16,9 @@ public class VrstaStudija {
 
     private String oznaka;    // "OAS"
     private String punNaziv;  // "Osnovne akademske studije"
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "vrstaStudija")
     private Set<StudijskiProgram> programi;
     public VrstaStudija() {

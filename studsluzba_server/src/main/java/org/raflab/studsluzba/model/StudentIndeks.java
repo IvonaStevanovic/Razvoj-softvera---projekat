@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.minidev.json.annotate.JsonIgnore;
 
 @Entity
@@ -25,30 +27,46 @@ public class StudentIndeks {
     private boolean aktivan;
     private LocalDate vaziOd;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private StudentPodaci student;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private StudijskiProgram studijskiProgram;   // na koji studijski program je upisan
 
     private Integer ostvarenoEspb;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     private Set<IzlazakNaIspit> izlazakNaIspite = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     private Set<PrijavaIspita> prijaveIspita = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<UpisGodine> upisiGodina = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     private Set<ObnovaGodine> obnoveGodina = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     private Set<PredispitniPoeni> predispitniPoeni = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
     private Set<PolozeniPredmeti> polozeniPredmeti = new HashSet<>();
 

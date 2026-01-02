@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.minidev.json.annotate.JsonIgnore;
 
 import java.time.LocalDate;
@@ -41,16 +43,24 @@ public class StudentPodaci {
     private Double uspehSrednjaSkola;
     private Double uspehPrijemni;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private SrednjaSkola srednjaSkola;  // šifarnik
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private VisokoskolskaUstanova ustanovaPrelaska;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "student")
     @JsonIgnore
     private Set<StudentIndeks> indeksi = new HashSet<>();
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "studentPodaci", cascade = CascadeType.ALL)
     private Set<Uplata> uplate;
 

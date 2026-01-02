@@ -3,6 +3,7 @@ package org.raflab.studsluzba.model;
 import javax.persistence.*;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.Set;
@@ -22,14 +23,18 @@ public class Predmet {
 	private String opis;
 	private Integer espb;
 
+    @EqualsAndHashCode.Exclude
 	@ManyToOne
 	private StudijskiProgram studProgram;
     private Integer fondVezbe;
     private Integer fondPredavanja;
 	private boolean obavezan;
 
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "drziPredmet", cascade = CascadeType.ALL)
           private Set<SlusaPredmet> slusaPredmetSet;
+
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
           private Set<DrziPredmet> drziPredmetSet;
 

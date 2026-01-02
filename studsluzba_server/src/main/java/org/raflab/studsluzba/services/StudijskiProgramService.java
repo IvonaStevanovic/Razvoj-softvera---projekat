@@ -1,10 +1,10 @@
 package org.raflab.studsluzba.services;
 
 import lombok.AllArgsConstructor;
+import org.raflab.studsluzba.controllers.mappers.StudijskiProgramConverter;
 import org.raflab.studsluzba.controllers.request.StudijskiProgramRequest;
 import org.raflab.studsluzba.controllers.response.StudijskiProgramResponse;
-import org.raflab.studsluzba.model.StudijskiProgram;
-import org.raflab.studsluzba.model.VrstaStudija;
+import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
 import org.raflab.studsluzba.repositories.VrstaStudijaRepository;
 import org.raflab.studsluzba.utils.EntityMappers;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,79 +22,80 @@ import java.util.stream.Collectors;
 public class StudijskiProgramService {
 
     @Autowired
-    private StudijskiProgramRepository studijskiProgramRepository;
+    private StudijskiProgramRepository studProgramRepo;
 
-    public Optional<StudijskiProgram> findById(Long id) {
-        return studijskiProgramRepository.findById(id);
-    }
+    @Autowired
+    private VrstaStudijaRepository vrstaStudijaRepo;
 
-    public StudijskiProgram save(StudijskiProgram program) {
-        return studijskiProgramRepository.save(program);
-    }
-
-    public void deleteById(Long id) {
-        studijskiProgramRepository.deleteById(id);
-    }
-
-    public boolean existsById(Long id) {
-        return studijskiProgramRepository.existsById(id);
-    }
-
-    public boolean existsByOznaka(String oznaka) {
-        return studijskiProgramRepository.existsByOznaka(oznaka);
-    }
-}
-
-/*
-    private final StudijskiProgramRepository studProgramRepo;
-
-    private final VrstaStudijaRepository vrstaStudijaRepo;
-
-    private final EntityMappers entityMappers;
-
-    public StudijskiProgramResponse save(StudijskiProgramRequest request) {
-        StudijskiProgram sp = new StudijskiProgram();
-        if (request.getVrstaStudijaId() != null) {
-            Optional<VrstaStudija> vrsta = vrstaStudijaRepo.findById(request.getVrstaStudijaId());
-            vrsta.ifPresent(sp::setVrstaStudija);
-        }
-        sp.setOznaka(request.getOznaka());
-        sp.setNaziv(request.getNaziv());
-        sp.setGodinaAkreditacije(request.getGodinaAkreditacije());
-        sp.setZvanje(request.getZvanje());
-        sp.setTrajanjeGodina(request.getTrajanjeGodina());
-        sp.setTrajanjeSemestara(request.getTrajanjeSemestara());
-        sp.setUkupnoEspb(request.getUkupnoEspb());
-
-        StudijskiProgram saved = studProgramRepo.save(sp);
-        return entityMappers.fromStudijskiProgramToResponse(saved);
-    }
-
+    // 1. Pretraga po ID
     public StudijskiProgramResponse getById(Long id) {
-        Optional<StudijskiProgram> sp = studProgramRepo.findById(id);
-        return sp.map(entityMappers::fromStudijskiProgramToResponse).orElse(null);
+        return studProgramRepo.findById(id)
+                .map(StudijskiProgramConverter::toResponse)
+                .orElseThrow(() -> new RuntimeException("Studijski program nije pronađen!"));
     }
 
+    // 2. Izlistavanje svih
     public List<StudijskiProgramResponse> getAll() {
-        List<StudijskiProgram> list = (List<StudijskiProgram>) studProgramRepo.findAll();
-        return list.stream()
-                .map(entityMappers::fromStudijskiProgramToResponse)
+        List<StudijskiProgram> programi = (List<StudijskiProgram>) studProgramRepo.findAll();
+        return programi.stream()
+                .map(StudijskiProgramConverter::toResponse)
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void delete(Long id) {
-        StudijskiProgram sp = studProgramRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Studijski program ne postoji: " + id));
-
-        if ((sp.getPredmeti() != null && !sp.getPredmeti().isEmpty())
-                || (sp.getStudenti() != null && !sp.getStudenti().isEmpty())) {
-            throw new RuntimeException("Ne možete obrisati program jer postoje povezani predmeti ili studenti.");
+    // 3. Dodavanje novog
+    public StudijskiProgramResponse save(StudijskiProgramRequest request) {
+        if (studProgramRepo.existsByOznaka(request.getOznaka())) {
+            throw new RuntimeException("Studijski program sa oznakom " + request.getOznaka() + " već postoji!");
         }
 
-        studProgramRepo.delete(sp);
+        VrstaStudija vs = vrstaStudijaRepo.findById(request.getVrstaStudijaId())
+                .orElseThrow(() -> new RuntimeException("Vrsta studija nije pronađena"));
+
+        StudijskiProgram sp = StudijskiProgramConverter.toEntity(request, vs);
+        return StudijskiProgramConverter.toResponse(studProgramRepo.save(sp));
     }
 
- */
+    // 4. Brisanje po ID
+    public void delete(Long id) {
+        if (!studProgramRepo.existsById(id)) {
+            throw new RuntimeException("Ne postoji program sa ID: " + id);
+        }
+        studProgramRepo.deleteById(id);
+    }
 
+    @Transactional(readOnly = true) // Važno za stabilnost čitanja
+    public Double getProsecnaOcenaProgramazaPeriod(Long programId, int godinaOd, int godinaDo) {
+        StudijskiProgram sp = studProgramRepo.findById(programId)
+                .orElseThrow(() -> new RuntimeException("Studijski program nije pronađen"));
 
+        // Hibernate.initialize(sp.getPredmeti()); // Opciono, ako i dalje puca
+
+        List<Integer> sveOcene = new ArrayList<>();
+
+        // Koristimo obične petlje umesto streama radi lakšeg debagovanja i transakcione sigurnosti
+        if (sp.getPredmeti() != null) {
+            for (Predmet p : sp.getPredmeti()) {
+                if (p.getSlusaPredmetSet() != null) {
+                    for (SlusaPredmet sl : p.getSlusaPredmetSet()) {
+                        if (sl.getIzlazakNaIspite() != null) {
+                            for (IzlazakNaIspit iz : sl.getIzlazakNaIspite()) {
+                                // Provera godine ispita
+                                if (iz.getPrijavaIspita() != null && iz.getPrijavaIspita().getIspit() != null) {
+                                    int godina = iz.getPrijavaIspita().getIspit().getDatumOdrzavanja().getYear();
+                                    if (godina >= godinaOd && godina <= godinaDo && iz.getOcena() > 5) {
+                                        sveOcene.add(iz.getOcena());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return sveOcene.stream()
+                .mapToInt(Integer::intValue)
+                .average()
+                .orElse(0.0);
+    }
+}

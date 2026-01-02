@@ -32,6 +32,7 @@ public class SkolskaGodina {
     @Column(name = "kraj_letnjeg", nullable = false)
     private LocalDate krajLetnjeg;
 
+
     @OneToMany(mappedBy = "skolskaGodina")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
