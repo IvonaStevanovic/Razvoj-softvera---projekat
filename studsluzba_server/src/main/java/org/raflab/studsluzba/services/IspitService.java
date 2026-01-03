@@ -63,7 +63,25 @@ public class IspitService {
             return resp;
         }).collect(Collectors.toList());
     }
+    @Transactional(readOnly = true)
+    public List<IspitResponse> searchIspiti(String predmetNaziv, String ispitniRokNaziv) {
+        List<Ispit> ispiti = ispitRepository.findAll();
 
+        return ispiti.stream()
+                .filter(i -> (predmetNaziv == null || i.getPredmet().getNaziv().toLowerCase().contains(predmetNaziv.toLowerCase())))
+                .filter(i -> (ispitniRokNaziv == null || i.getIspitniRok().getNaziv().toLowerCase().contains(ispitniRokNaziv.toLowerCase())))
+                .map(ispit -> {
+                    IspitResponse resp = new IspitResponse();
+                    resp.setId(ispit.getId());
+                    resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+                    resp.setVremePocetka(ispit.getVremePocetka());
+                    resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
+                    resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+                    resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+                    return resp;
+                })
+                .collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public IspitResponse getIspitResponseById(Long id) {

@@ -45,16 +45,22 @@ public class IspitController {
 
         return ResponseEntity.ok(response);
     }
+    // Pretraga ispita po nazivu predmeta ili roku
+    @GetMapping("/search")
+    public ResponseEntity<List<IspitResponse>> searchIspiti(
+            @RequestParam(required = false) String predmet,
+            @RequestParam(required = false) String rok) {
+        return ResponseEntity.ok(ispitService.searchIspiti(predmet, rok));
+    }
 
+    // FindById već imaš, ali evo čisto da potvrdimo putanju
+    @GetMapping("/{id}")
+    public ResponseEntity<IspitResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(ispitService.getIspitResponseById(id));
+    }
     @GetMapping("/all")
     public ResponseEntity<List<IspitResponse>> getAllIspiti() {
         return ResponseEntity.ok(ispitService.findAllResponses());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<IspitResponse> getIspitById(@PathVariable Long id) {
-        IspitResponse resp = ispitService.getIspitResponseById(id);
-        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/prijava")

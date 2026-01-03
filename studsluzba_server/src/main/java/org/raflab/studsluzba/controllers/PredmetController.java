@@ -34,9 +34,14 @@ public class PredmetController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        predmetService.deletePredmet(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try {
+            predmetService.deletePredmet(id);
+            return ResponseEntity.noContent().build(); // Status 204 ako je uspešno
+        } catch (RuntimeException e) {
+            // Vraća status 400 i tvoju poruku: "Ne možete obrisati predmet..."
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/program/{programId}")
