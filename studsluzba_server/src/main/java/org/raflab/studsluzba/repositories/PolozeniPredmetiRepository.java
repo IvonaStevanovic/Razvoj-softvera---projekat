@@ -25,7 +25,8 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
     // Za sve nepoložene predmete određenog studenta
     @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena IS NULL")
     List<PolozeniPredmeti> findNepolozeniByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);
-
+    @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena = 5")
+    Page<PolozeniPredmeti> findNepolozeniPaginirano(@Param("studentIndeksId") Long studentIndeksId, Pageable pageable);
     // Za sve položene predmete određenog studenta
     @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena IS NOT NULL")
     List<PolozeniPredmeti> findPolozeniByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);

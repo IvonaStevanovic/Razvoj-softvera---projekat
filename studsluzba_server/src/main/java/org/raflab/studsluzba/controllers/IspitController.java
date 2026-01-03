@@ -114,6 +114,11 @@ public class IspitController {
     public ResponseEntity<List<StudentIspitRezultatiResponse>> getRezultatiIspita(@PathVariable Long ispitId) {
         return ResponseEntity.ok(ispitService.getRezultatiIspita(ispitId));
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> obrisiIspit(@PathVariable Long id) {
+        ispitService.obrisiIspit(id);
+        return ResponseEntity.ok("Ispit sa ID-jem " + id + " i svi povezani podaci su uspešno obrisani.");
+    }
     /*
     private final IspitService ispitService;
 
