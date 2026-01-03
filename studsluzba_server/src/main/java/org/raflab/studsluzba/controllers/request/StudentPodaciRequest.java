@@ -4,30 +4,30 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-
 @Data
 public class StudentPodaciRequest {
 
     @NotNull
-    private String ime;	  // not null
+    private String ime;
     @NotNull
-    private String prezime;  // not null
+    private String prezime;
     @NotNull
-    private String srednjeIme;   // not null
+    private String srednjeIme;
+    @NotNull
     private String jmbg;
     @NotNull
-    private LocalDate datumRodjenja;  // not null
+    private LocalDate datumRodjenja;
     private String mestoRodjenja;
     @NotNull
-    private String mestoPrebivalista;  // not null
+    private String mestoPrebivalista;
     private String drzavaRodjenja;
     @NotNull
-    private String drzavljanstvo;   // not null
-    private String nacionalnost;   // samoizjasnjavanje, moze bilo sta
+    private String drzavljanstvo;
+    private String nacionalnost;
     @NotNull
-    private Character pol;    // not null
+    private Character pol;
     @NotNull
-    private String adresa;  // not null
+    private String adresa;
     private String brojTelefonaMobilni;
     private String brojTelefonaFiksni;
     @NotNull
@@ -35,8 +35,25 @@ public class StudentPodaciRequest {
     private String emailPrivatni;
     private String brojLicneKarte;
     private String licnuKartuIzdao;
-    private String mestoStanovanja;
-    private String adresaStanovanja;   // u toku studija
+
+
+    private Double uspehSrednjaSkola;
+    private Double uspehPrijemni;
+
+
+    @NotNull
+    private Long srednjaSkolaId;
+
     @NotNull
     private Integer brojIndeksa;
+
+    @NotNull
+    private int godinaUpisa;
+
+    @NotNull
+    private String studProgramOznaka;
+
+    private String nacinFinansiranja;
+    private String mestoStanovanja;
+    private String adresaStanovanja;
 }

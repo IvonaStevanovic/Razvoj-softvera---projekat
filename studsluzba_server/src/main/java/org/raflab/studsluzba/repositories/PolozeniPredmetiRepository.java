@@ -34,6 +34,7 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
     @Transactional
     @Query("DELETE FROM PolozeniPredmeti p WHERE p.studentIndeks = :indeks")
     void deleteByStudentIndeks(@Param("indeks") StudentIndeks indeks);
+    boolean existsByStudentIndeksAndPredmet(StudentIndeks studentIndeks, Predmet predmet);
 /*
     /// Svi položeni predmeti za određenog studenta
     @Query("select p from PolozeniPredmeti p where p.studentIndeks.id = :idStudenta")

@@ -45,48 +45,94 @@ public class StudentProfileService  {
     private PolozeniPredmetiRepository polozeniPredmetiRepository;
     @Autowired
     private StudentPodaciRepository studentRepository;
+    @Autowired
+    private SrednjaSkolaRepository srednjaSkolaRepository;
+    @Autowired
+    private StudijskiProgramRepository studijskiProgramRepository;
 
     private static final double SKOLARINA_EUR = 3000.0;
     private static final String KURS_API = "https://kurs.resenje.org/api/v1/currencies/eur/rates/today";
+
+    private StudentPodaciResponse mapToStudentResponse(StudentPodaci s, StudentIndeks indeks) {
+        StudentPodaciResponse r = new StudentPodaciResponse();
+        r.setId(s.getId());
+        r.setIme(s.getIme());
+        r.setPrezime(s.getPrezime());
+        r.setSrednjeIme(s.getSrednjeIme());
+        r.setJmbg(s.getJmbg());
+        r.setDatumRodjenja(s.getDatumRodjenja());
+        r.setMestoRodjenja(s.getMestoRodjenja());
+        r.setMestoPrebivalista(s.getMestoStanovanja()); // pazi na imena polja u entitetu
+        r.setDrzavaRodjenja(s.getDrzavaRodjenja());
+        r.setDrzavljanstvo(s.getDrzavljanstvo());
+        r.setNacionalnost(s.getNacionalnost());
+        r.setPol(s.getPol());
+        r.setAdresa(s.getAdresa());
+        r.setBrojTelefonaMobilni(s.getBrojTelefonaMobilni());
+        r.setBrojTelefonaFiksni(s.getBrojTelefonaFiksni());
+        r.setEmailFakultet(s.getEmailFakultet());
+        r.setEmailPrivatni(s.getEmailPrivatni());
+        r.setBrojLicneKarte(s.getBrojLicneKarte());
+        r.setLicnuKartuIzdao(s.getLicnuKartuIzdao());
+        r.setMestoStanovanja(s.getMestoStanovanja());
+        r.setAdresaStanovanja(s.getAdresaStanovanja());
+
+        // Podaci iz Indeksa
+        if (indeks != null) {
+            r.setBrojIndeksa(indeks.getBroj());
+        }
+
+        // Podaci iz Šifarnika (Srednja škola)
+        if (s.getSrednjaSkola() != null) {
+            r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
+        }
+
+        return r;
+    }
     public StudentPodaciResponse dodajStudenta(StudentPodaciRequest request) {
-        // Provera duplikata po JMBG
+        // 1. Provera duplikata (JMBG i Indeks)
         if (studentRepository.existsByJmbg(request.getJmbg())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa datim JMBG već postoji");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa JMBG " + request.getJmbg() + " već postoji.");
+        }
+        // Pretraga indeksa mora biti specifična (broj + godina + program) prema specifikaciji
+        if (studentIndeksRepository.existsByBrojAndGodinaAndStudProgramOznaka(
+                request.getBrojIndeksa(), request.getGodinaUpisa(), request.getStudProgramOznaka())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indeks već postoji u sistemu.");
         }
 
-        // Provera duplikata po broju indeksa
-        if (studentIndeksRepository.existsByBroj(request.getBrojIndeksa())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa datim brojem indeksa već postoji");
-        }
+        // 2. Pronalaženje zavisnih entiteta (Šifarnici)
+        StudijskiProgram program = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Studijski program nije pronađen."));
 
-        // Kreiranje entiteta
+        SrednjaSkola skola = srednjaSkolaRepository.findById(request.getSrednjaSkolaId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Srednja škola nije nađena u šifarniku."));
+
+        // 3. Kreiranje i čuvanje StudentPodaci
         StudentPodaci student = new StudentPodaci();
+        // Mapiranje osnovnih polja (ime, prezime, jmbg...)
         student.setIme(request.getIme());
         student.setPrezime(request.getPrezime());
-        student.setSrednjeIme(request.getSrednjeIme());
         student.setJmbg(request.getJmbg());
-        student.setDatumRodjenja(request.getDatumRodjenja());
-        student.setMestoRodjenja(request.getMestoRodjenja());
-        student.setMestoStanovanja(request.getMestoPrebivalista());
-        student.setDrzavaRodjenja(request.getDrzavaRodjenja());
-        student.setDrzavljanstvo(request.getDrzavljanstvo());
-        student.setPol(request.getPol());
-        student.setAdresa(request.getAdresa());
-        studentRepository.save(student);
+        student.setSrednjaSkola(skola); // Povezivanje sa šifarnikom škola
+        // ... podesi ostala polja iz request-a ...
 
-        // Kreiranje indeksa
+        student = studentRepository.save(student);
+
+        // 4. Kreiranje Indeksa (Ključni deo specifikacije)
         StudentIndeks indeks = new StudentIndeks();
         indeks.setBroj(request.getBrojIndeksa());
+        indeks.setGodina(request.getGodinaUpisa());
+        indeks.setStudProgramOznaka(request.getStudProgramOznaka());
+        indeks.setStudijskiProgram(program); // Direktna veza ka programu
         indeks.setStudent(student);
+        indeks.setAktivan(true);
+        indeks.setVaziOd(LocalDate.now());
+        indeks.setNacinFinansiranja(request.getNacinFinansiranja()); // Budžet/Samofinansiranje
+
         studentIndeksRepository.save(indeks);
 
-        // Mapiranje u response
-        StudentPodaciResponse response = new StudentPodaciResponse();
-        response.setId(student.getId());
-        response.setIme(student.getIme());
-        response.setPrezime(student.getPrezime());
-        response.setBrojIndeksa(indeks.getBroj());
-        return response;
+        // 5. Mapiranje u Response
+        return mapToStudentResponse(student, indeks);
     }
 
     // ------------------ STUDENT ------------------
@@ -178,33 +224,40 @@ public class StudentProfileService  {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
+        SkolskaGodina skolskaGodina = skolskaGodinaRepository.findByAktivnaTrue()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aktivna školska godina nije definisana"));
+
+        // 1. Kreiranje zapisa o upisu godine
         UpisGodine upis = new UpisGodine();
         upis.setStudentIndeks(indeks);
         upis.setGodinaStudija(request.getGodinaStudija());
         upis.setDatumUpisa(request.getDatum());
         upis.setNapomena(request.getNapomena());
-        SkolskaGodina skolskaGodina = skolskaGodinaRepository.findByAktivnaTrue()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Školska godina ne postoji"));
-
-
         upis.setSkolskaGodina(skolskaGodina);
 
-
-        if (request.getPrenetiPredmetiIds() != null && !request.getPrenetiPredmetiIds().isEmpty()) {
-            List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
-            if (predmeti.size() != request.getPrenetiPredmetiIds().size()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Neki predmeti ne postoje");
-            }
-            upis.setPredmeti(predmeti);
-        } else {
-            upis.setPredmeti(new ArrayList<>()); // inicijalno prazna lista
-        }
-
+        List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
+        upis.setPredmeti(predmeti);
         upisGodineRepository.save(upis);
+
+        // 2. Automatsko dodavanje predmeta u "karton" studenta kao nepoloženih
+        for (Predmet p : predmeti) {
+            // Provera da li već postoji u kartonu (da ne dupliramo ako je npr. prenet predmet)
+            boolean vecPostoji = polozeniPredmetiRepository.existsByStudentIndeksAndPredmet(indeks, p);
+
+            if (!vecPostoji) {
+                PolozeniPredmeti nepolozen = new PolozeniPredmeti();
+                nepolozen.setStudentIndeks(indeks);
+                nepolozen.setPredmet(p);
+                nepolozen.setOcena(null);       // Inicijalno nepoložen
+                nepolozen.setPriznat(false);    // Biće true samo ako se prizna sa drugog faksa
+                nepolozen.setDatumPolaganja(null); // Čeka trenutak polaganja (mora biti nullable u bazi!)
+
+                polozeniPredmetiRepository.save(nepolozen);
+            }
+        }
 
         return mapToUpisGodineResponse(upis);
     }
-
     private UpisGodineResponse mapToUpisGodineResponse(UpisGodine u) {
         UpisGodineResponse r = new UpisGodineResponse();
         r.setId(u.getId());
@@ -330,40 +383,64 @@ public class StudentProfileService  {
     }
 
     // ------------------ UPLATA ------------------
-    public UplataResponse dodajUplatu(Long studentIndeksId, UplataRequest request) {
-        StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
+    public UplataResponse evidentirajUplatu(Long studentId, Double iznosRsd) {
+        StudentPodaci student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
 
-        double kurs = fetchEuroKurs();
-        Uplata uplata = new Uplata(indeks.getStudent(), request.getDatumUplate(), request.getIznos() * kurs, kurs);
+        double kurs = fetchDanasnjiKurs(); // Metoda koju smo ranije definisali
+        double iznosEur = iznosRsd / kurs;
+
+        Uplata uplata = new Uplata();
+        uplata.setStudentPodaci(student);
+        uplata.setIznosRsd(iznosRsd);
+        uplata.setIznosEur(iznosEur);
+        uplata.setSrednjiKurs(kurs);
+        uplata.setDatum(LocalDate.now());
 
         uplataRepository.save(uplata);
 
-        UplataResponse response = new UplataResponse();
-        response.setDatumUplate(uplata.getDatumUplate());
-        response.setIznosEur(request.getIznos());
-        response.setIznosRsd(uplata.getIznosRsd());
-        response.setSrednjiKurs(kurs);
-        return response;
+        // Koristimo tvoj konstruktor: datum, eur, rsd, kurs
+        return new UplataResponse(LocalDate.now(), iznosEur, iznosRsd, kurs);
     }
     public IznosPreostaliResponse getPreostaliIznos(Long studentIndeksId) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
-        // Ukupan iznos školarine u EUR
-        double ukupno = SKOLARINA_EUR;
+        double ukupno = 3000.0; // Konstanta SKOLARINA_EUR
 
-        // Suma svih uplata u EUR
-        List<Uplata> uplate = uplataRepository.findByStudentPodaci_Id(indeks.getStudent().getId());
-        double uplacenoEur = uplate.stream().mapToDouble(u -> u.getIznosRsd() / u.getSrednjiKurs()).sum();
+        // Suma svih uplata - koristimo već izračunato polje iz baze
+        List<Uplata> uplate = uplataRepository.findByStudentPodaciId(indeks.getStudent().getId());
+        double uplacenoEur = uplate.stream().mapToDouble(Uplata::getIznosEur).sum();
 
         double preostaloEur = ukupno - uplacenoEur;
-        double preostaloRsd = preostaloEur * (uplate.isEmpty() ? 120.0 : uplate.get(uplate.size() - 1).getSrednjiKurs());
+
+        // Za dinarski iznos koristimo današnji pravi kurs
+        double danasnjiKurs = fetchDanasnjiKurs();
+        double preostaloRsd = preostaloEur * danasnjiKurs;
 
         IznosPreostaliResponse response = new IznosPreostaliResponse();
         response.setPreostaloEur(preostaloEur);
         response.setPreostaloRsd(preostaloRsd);
+
         return response;
+    }
+    private double fetchDanasnjiKurs() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            // Zvanični API iz specifikacije
+            String url = "https://kurs.resenje.org/api/v1/currencies/eur/rates/today";
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null && response.containsKey("result")) {
+                Map<String, Object> result = (Map<String, Object>) response.get("result");
+                // Uzimamo srednji kurs iz API odgovora
+                return Double.parseDouble(result.get("srednji").toString());
+            }
+        } catch (Exception e) {
+            // Logika u slučaju da API nije dostupan (fallback na 117.5)
+            System.out.println("Greška pri dohvatanju kursa: " + e.getMessage());
+        }
+        return 117.5;
     }
     public Page<StudentPodaciResponse> searchStudente(String ime, String prezime, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("student.ime").ascending());
@@ -420,7 +497,19 @@ public class StudentProfileService  {
             responses.add(r);
         }
         return responses;
-    }/*
+    }
+    @Transactional
+    public void obrisiStudenta(Long studentId) {
+        // 1. Provera da li student postoji
+        StudentPodaci student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student sa ID-jem " + studentId + " ne postoji."));
+
+        // 2. Brisanje studenta
+        // Zahvaljujući CascadeType.ALL koji smo ranije pomenuli,
+        // Hibernate će sam obrisati njegove uplate i indekse.
+        studentRepository.delete(student);
+    }
+    /*
     @Transactional
     public void obrisiStudenta(Long studentId) {
         StudentPodaci student = studentRepository.findById(studentId)

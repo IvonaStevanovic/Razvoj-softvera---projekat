@@ -67,7 +67,7 @@ public class StudentIndeks {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PolozeniPredmeti> polozeniPredmeti = new HashSet<>();
 
     @Override

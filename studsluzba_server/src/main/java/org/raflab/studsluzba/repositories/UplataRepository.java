@@ -13,6 +13,7 @@ import java.util.List;
 public interface  UplataRepository extends CrudRepository<Uplata, Long> {
     List<Uplata> findByStudentPodaci_Id(Long studentId);
     void deleteByStudentPodaci(StudentPodaci student);
+    List<Uplata> findByStudentPodaciId(Long studentId);
 /*
     List<Uplata> findAll();
     List<Uplata> findByStudentIndeksId(Long studentIndeksId);

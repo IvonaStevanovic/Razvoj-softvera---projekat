@@ -275,11 +275,15 @@ public class IspitService {
 
         return prijavaIspitaRepository.findByIspit(ispit)
                 .stream()
-                .map(p -> new StudentPodaciResponse(p.getStudentIndeks().getId(),
-                        p.getStudentIndeks().getStudent().getIme(),
-                        p.getStudentIndeks().getStudent().getPrezime(),
-                        p.getStudentIndeks().getBroj(),
-                        p.getStudentIndeks().getGodina()))
+                .map(p -> {
+                    StudentPodaciResponse r = new StudentPodaciResponse();
+                    r.setId(p.getStudentIndeks().getId());
+                    r.setIme(p.getStudentIndeks().getStudent().getIme());
+                    r.setPrezime(p.getStudentIndeks().getStudent().getPrezime());
+                    r.setBrojIndeksa(p.getStudentIndeks().getBroj());
+                    // Ako ti treba godina, dodaj polje u Response ili je ignoriši ako nije u DTO
+                    return r;
+                })
                 .collect(Collectors.toList());
     }
 
