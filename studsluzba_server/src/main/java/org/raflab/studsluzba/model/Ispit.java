@@ -7,6 +7,7 @@ import org.raflab.studsluzba.model.dtos.NastavnikDTO;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,6 +36,9 @@ public class Ispit {
     @JoinColumn(name = "ispitni_rok_id", nullable = false)
     private IspitniRok ispitniRok;
 
+    @OneToMany(mappedBy = "ispit", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<PrijavaIspita> prijave;
 
     public Ispit(LocalDate datumOdrzavanja, Predmet predmet, DrziPredmet drziPredmet, LocalTime vremePocetka, boolean zakljucen, String napomena,IspitniRok ispitniRok) {
         this.datumOdrzavanja = datumOdrzavanja;

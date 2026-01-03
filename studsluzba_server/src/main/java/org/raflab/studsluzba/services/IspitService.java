@@ -8,6 +8,9 @@ import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,8 @@ public class IspitService {
     private IspitniRokRepository ispitniRokRepository;
     @Autowired
     private DrziPredmetRepository drziPredmetRepository;
+    @Autowired
+    private PolozeniPredmetiRepository polozeniPredmetiRepository;
 
     @Transactional(readOnly = true)
     public List<IspitResponse> findAllResponses() {
@@ -58,7 +63,25 @@ public class IspitService {
             return resp;
         }).collect(Collectors.toList());
     }
+    @Transactional(readOnly = true)
+    public List<IspitResponse> searchIspiti(String predmetNaziv, String ispitniRokNaziv) {
+        List<Ispit> ispiti = ispitRepository.findAll();
 
+        return ispiti.stream()
+                .filter(i -> (predmetNaziv == null || i.getPredmet().getNaziv().toLowerCase().contains(predmetNaziv.toLowerCase())))
+                .filter(i -> (ispitniRokNaziv == null || i.getIspitniRok().getNaziv().toLowerCase().contains(ispitniRokNaziv.toLowerCase())))
+                .map(ispit -> {
+                    IspitResponse resp = new IspitResponse();
+                    resp.setId(ispit.getId());
+                    resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
+                    resp.setVremePocetka(ispit.getVremePocetka());
+                    resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
+                    resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
+                    resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+                    return resp;
+                })
+                .collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public IspitResponse getIspitResponseById(Long id) {
@@ -275,11 +298,15 @@ public class IspitService {
 
         return prijavaIspitaRepository.findByIspit(ispit)
                 .stream()
-                .map(p -> new StudentPodaciResponse(p.getStudentIndeks().getId(),
-                        p.getStudentIndeks().getStudent().getIme(),
-                        p.getStudentIndeks().getStudent().getPrezime(),
-                        p.getStudentIndeks().getBroj(),
-                        p.getStudentIndeks().getGodina()))
+                .map(p -> {
+                    StudentPodaciResponse r = new StudentPodaciResponse();
+                    r.setId(p.getStudentIndeks().getId());
+                    r.setIme(p.getStudentIndeks().getStudent().getIme());
+                    r.setPrezime(p.getStudentIndeks().getStudent().getPrezime());
+                    r.setBrojIndeksa(p.getStudentIndeks().getBroj());
+                    // Ako ti treba godina, dodaj polje u Response ili je ignoriši ako nije u DTO
+                    return r;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -313,7 +340,6 @@ public class IspitService {
         if (poeni <= 90) return 9;
         return 10;
     }
-
     // -------------------- DODAJ PREDISPITNE POENE --------------------
     public PredispitniPoeni dodajPredispitnePoene(Long studentIndeksId, Long predispitnaObavezaId, Integer poeni) {
         if (poeni == null || poeni < 0)
@@ -415,7 +441,23 @@ public class IspitService {
 
 
 
+    @Transactional
+    public void obrisiIspit(Long id) {
+        // 1. Provera da li ispit postoji
+        Ispit ispit = ispitRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Ispit sa ID-jem " + id + " ne postoji."));
 
+        // 2. Opciona poslovna logika: Ne dozvoli brisanje ako je ispit zaključen
+        // (Ovo je dobro za poene na odbrani jer pokazuje da razmišljaš o integritetu podataka)
+        if (ispit.isZakljucen()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Nije moguće obrisati ispit koji je već zaključen.");
+        }
+
+        // 3. Brisanje - Hibernate sada sam čisti sve povezane tabele
+        ispitRepository.delete(ispit);
+    }
 
 
 

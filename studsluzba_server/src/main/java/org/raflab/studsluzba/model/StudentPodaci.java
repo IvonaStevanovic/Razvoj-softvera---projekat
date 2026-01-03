@@ -55,13 +55,13 @@ public class StudentPodaci {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "student")
+    @OneToMany(mappedBy = "student",cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<StudentIndeks> indeksi = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentPodaci", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentPodaci", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Uplata> uplate;
 
 

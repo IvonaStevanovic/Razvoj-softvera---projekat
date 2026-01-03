@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-
 public class PolozeniPredmeti {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +22,7 @@ public class PolozeniPredmeti {
     private Integer ocena;
     private boolean priznat;
 
-    @Column(name = "datum_polaganja", nullable = false)
+    @Column(name = "datum_polaganja", nullable = true)
     private LocalDate datumPolaganja;
 
     @EqualsAndHashCode.Exclude

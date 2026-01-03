@@ -55,12 +55,20 @@ public class StudijskiProgramService {
         return StudijskiProgramConverter.toResponse(studProgramRepo.save(sp));
     }
 
-    // 4. Brisanje po ID
+    // 4. Brisanje po ID - Usklađeno sa proverom integriteta
     public void delete(Long id) {
-        if (!studProgramRepo.existsById(id)) {
-            throw new RuntimeException("Ne postoji program sa ID: " + id);
+        // 1. Pronalaženje programa ili bacanje greške ako ne postoji
+        StudijskiProgram sp = studProgramRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Studijski program ne postoji sa ID: " + id));
+
+        // 2. Provera povezanosti (Integritet baze)
+        // Prema tvom modelu StudijskiProgram, veza ka predmetima se zove 'predmeti'
+        if (sp.getPredmeti() != null && !sp.getPredmeti().isEmpty()) {
+            throw new RuntimeException("Ne možete obrisati program jer su za njega vezani predmeti.");
         }
-        studProgramRepo.deleteById(id);
+
+        // 3. Brisanje ako je "čist"
+        studProgramRepo.delete(sp);
     }
 
     @Transactional(readOnly = true) // Važno za stabilnost čitanja

@@ -3,6 +3,7 @@ package org.raflab.studsluzba.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;@Entity
 @Data
@@ -30,6 +31,7 @@ public class IzlazakNaIspit {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToOne(mappedBy = "izlazakNaIspit", cascade = CascadeType.ALL)
+    @JsonIgnore
     private PolozeniPredmeti polozeniPredmet;
 
     @EqualsAndHashCode.Exclude

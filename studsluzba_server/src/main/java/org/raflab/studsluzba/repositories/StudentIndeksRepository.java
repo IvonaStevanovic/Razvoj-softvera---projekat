@@ -20,16 +20,24 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
     List<StudentIndeks> findAll();
     Optional<StudentIndeks> findByBroj(Integer broj);
 
+    // Ova metoda sprečava da se unese isti broj indeksa za istu godinu na istom smeru
+    boolean existsByBrojAndGodinaAndStudProgramOznaka(Integer broj, int godina, String oznaka);
+
+    // Za pretragu po imenu i prezimenu (već imaš deo, ali proveri nazive)
     Page<StudentIndeks> findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(
             String ime, String prezime, Pageable pageable);
 
     Page<StudentIndeks> findByStudent_ImeContainingIgnoreCase(String ime, Pageable pageable);
 
     Page<StudentIndeks> findByStudent_PrezimeContainingIgnoreCase(String prezime, Pageable pageable);
+
+    // Pretraga po srednjoj školi (iz specifikacije)
     @Query("SELECT si FROM StudentIndeks si WHERE LOWER(si.student.srednjaSkola.naziv) LIKE LOWER(CONCAT('%', :naziv, '%'))")
     List<StudentIndeks> findByStudentSrednjaSkolaNazivContainingIgnoreCase(@Param("naziv") String naziv);
-    boolean existsByBroj(Integer broj);
+
     List<StudentIndeks> findByStudent(StudentPodaci student);
+
+    boolean existsByBroj(Integer broj);
 
 
 

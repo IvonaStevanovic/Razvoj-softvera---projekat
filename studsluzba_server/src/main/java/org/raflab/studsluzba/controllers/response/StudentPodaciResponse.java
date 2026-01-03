@@ -1,24 +1,26 @@
 package org.raflab.studsluzba.controllers.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-
 @Data
+@NoArgsConstructor // Zamenjuje tvoj prazan konstruktor
 public class StudentPodaciResponse {
     private Long id;
-    private String ime;	  // not null
-    private String prezime;  // not null
-    private String srednjeIme;   // not null
+    private String ime;
+    private String prezime;
+    private String srednjeIme;
     private String jmbg;
-    private LocalDate datumRodjenja;  // not null
+    private LocalDate datumRodjenja;
     private String mestoRodjenja;
-    private String mestoPrebivalista;  // not null
+    private String mestoPrebivalista;
     private String drzavaRodjenja;
-    private String drzavljanstvo;   // not null
-    private String nacionalnost;   // samoizjasnjavanje, moze bilo sta
-    private Character pol;    // not null
-    private String adresa;  // not null
+    private String drzavljanstvo;
+    private String nacionalnost;
+    private Character pol;
+    private String adresa;
     private String brojTelefonaMobilni;
     private String brojTelefonaFiksni;
     private String emailFakultet;
@@ -26,16 +28,14 @@ public class StudentPodaciResponse {
     private String brojLicneKarte;
     private String licnuKartuIzdao;
     private String mestoStanovanja;
-    private String adresaStanovanja;   // u toku studija
-    private Integer brojIndeksa;
-    private String srednjaSkola;
+    private String adresaStanovanja;
 
-    public StudentPodaciResponse() {
-    }
-
-    public StudentPodaciResponse(Long id, String ime, String prezime, int broj, int godina) {
+    private Integer brojIndeksa; // Ključno za specifikaciju
+    private String srednjaSkola; // Naziv škole iz šifarnika
+    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
         this.id = id;
         this.ime = ime;
         this.prezime = prezime;
+        this.brojIndeksa = brojIndeksa;
     }
 }

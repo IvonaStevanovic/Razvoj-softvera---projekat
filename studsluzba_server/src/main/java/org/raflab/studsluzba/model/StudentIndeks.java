@@ -67,7 +67,7 @@ public class StudentIndeks {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PolozeniPredmeti> polozeniPredmeti = new HashSet<>();
 
     @Override
@@ -90,17 +90,17 @@ public class StudentIndeks {
 
         PolozeniPredmeti pp = new PolozeniPredmeti();
         pp.setPredmet(predmet);
-        pp.setOcena(ukupnoPoena); // čuvamo ukupno poena (predispitne + ispit)
-        pp.setPriznat(ukupnoPoena >= 51); // priznato ako ukupno >= 51
+        // Ovde koristimo logiku iz izlaska da dobijemo ocenu (6-10), ne poene (51-100)
+        pp.setOcena(izlazak.getOcena());
+        pp.setPriznat(true);
         pp.setDatumPolaganja(LocalDate.now());
         pp.setIzlazakNaIspit(izlazak);
+        pp.setStudentIndeks(this); // OBAVEZNO: poveži sa trenutnim indeksom
 
-        // Dodavanje u listu položenih predmeta
         if (this.polozeniPredmeti == null) {
             this.polozeniPredmeti = new HashSet<>();
         }
         this.polozeniPredmeti.add(pp);
     }
-
 
 }

@@ -29,8 +29,11 @@ public class StudentController {
 
     @PostMapping("/dodaj")
     public ResponseEntity<StudentPodaciResponse> dodajStudenta(@RequestBody StudentPodaciRequest request) {
+        // Pozivamo servis koji smo sredili
         StudentPodaciResponse response = studentProfileService.dodajStudenta(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        // Vraćamo status 201 Created jer kreiramo novi resurs u sistemu
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 /*
     @DeleteMapping("/obrisi/{studentId}")
@@ -69,12 +72,14 @@ public class StudentController {
         return ResponseEntity.ok(studentProfileService.getUpisaneGodine(studentIndeksId));
     }
 
-    @PostMapping("/{studentIndeksId}/upis-godine")
-    public ResponseEntity<UpisGodineResponse> upisStudentaNaGodinu(
-            @PathVariable Long studentIndeksId,
+    @PostMapping("/{id}/upis-godine")
+    public ResponseEntity<UpisGodineResponse> upisiGodinu(
+            @PathVariable Long id,
             @RequestBody UpisGodineRequest request) {
-        UpisGodineResponse upis = studentProfileService.upisStudentaNaGodinu(studentIndeksId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(upis);
+
+        UpisGodineResponse response = studentProfileService.upisStudentaNaGodinu(id, request);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{studentIndeksId}/obnovljene-godine")
@@ -97,17 +102,18 @@ public class StudentController {
                 .body(studentProfileService.obnovaGodineSaESPB(studentIndeksId, request));
     }
 
-    @PostMapping("/{studentIndeksId}/uplate")
-    public ResponseEntity<UplataResponse> dodajUplatu(
-            @PathVariable Long studentIndeksId,
-            @RequestBody UplataRequest request) {
-        UplataResponse uplata = studentProfileService.dodajUplatu(studentIndeksId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(uplata);
+    @PostMapping("/{id}/uplate")
+    public ResponseEntity<UplataResponse> evidentirajUplatu(
+            @PathVariable Long id,
+            @RequestParam Double iznos) {
+        UplataResponse response = studentProfileService.evidentirajUplatu(id, iznos);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{studentIndeksId}/preostali-iznos")
-    public ResponseEntity<IznosPreostaliResponse> getPreostaliIznos(@PathVariable Long studentIndeksId) {
-        IznosPreostaliResponse response = studentProfileService.getPreostaliIznos(studentIndeksId);
+    @GetMapping("/indeks/{indeksId}/dugovanje")
+    public ResponseEntity<IznosPreostaliResponse> getDugovanje(@PathVariable Long indeksId) {
+        IznosPreostaliResponse response = studentProfileService.getPreostaliIznos(indeksId);
         return ResponseEntity.ok(response);
     }
 
@@ -126,6 +132,12 @@ public class StudentController {
             @RequestParam String srednjaSkola
     ) {
         return studentProfileService.getStudentiPoSrednjojSkoli(srednjaSkola);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> obrisiStudenta(@PathVariable Long id) {
+        studentProfileService.obrisiStudenta(id);
+        return ResponseEntity.ok("Student sa ID-jem " + id + " i svi njegovi podaci (uplate, indeksi) su uspešno obrisani.");
     }
 /*
     private final StudentPodaciRepository studentPodaciRepository;

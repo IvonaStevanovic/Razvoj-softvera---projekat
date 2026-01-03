@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 
-@Component
+//@Component
 public class Seeder implements CommandLineRunner {
 
     @Autowired private StudijskiProgramRepository studijskiProgramRepository;

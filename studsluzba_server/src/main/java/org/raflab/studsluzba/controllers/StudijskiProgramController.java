@@ -39,9 +39,14 @@ public class StudijskiProgramController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try {
+            service.delete(id);
+            return ResponseEntity.noContent().build(); // Status 204 ako je uspešno
+        } catch (RuntimeException e) {
+            // Vraća status 400 (Bad Request) sa tvojom porukom iz servisa
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/prosek-programa")

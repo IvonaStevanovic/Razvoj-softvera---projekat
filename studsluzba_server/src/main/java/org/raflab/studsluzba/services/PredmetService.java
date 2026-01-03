@@ -50,12 +50,23 @@ public class PredmetService {
         Predmet predmet = PredmetConverter.toEntity(request, sp);
         return PredmetConverter.toResponse(predmetRepository.save(predmet));
     }
-
+    @Transactional
     public void deletePredmet(Long id) {
-        if (!predmetRepository.existsById(id)) {
-            throw new RuntimeException("Predmet ne postoji");
+        // 1. Pronalaženje predmeta ili bacanje greške ako ne postoji
+        Predmet predmet = predmetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Predmet ne postoji"));
+
+        // 2. Provera povezanosti na osnovu tvog modela
+        // Proveravamo setove 'slusaPredmetSet' i 'drziPredmetSet' koji su definisani u tvojoj Predmet klasi
+        boolean imaStudenteKojiSlusaju = predmet.getSlusaPredmetSet() != null && !predmet.getSlusaPredmetSet().isEmpty();
+        boolean imaProfesoreKojiDrze = predmet.getDrziPredmetSet() != null && !predmet.getDrziPredmetSet().isEmpty();
+
+        if (imaStudenteKojiSlusaju || imaProfesoreKojiDrze) {
+            throw new RuntimeException("Ne možete obrisati predmet jer postoje studenti koji ga slušaju ili profesori koji ga drže.");
         }
-        predmetRepository.deleteById(id);
+
+        // 3. Brisanje ako nema prepreka
+        predmetRepository.delete(predmet);
     }
 
     public List<PredmetResponse> getPredmetiByProgram(Long programId) {
