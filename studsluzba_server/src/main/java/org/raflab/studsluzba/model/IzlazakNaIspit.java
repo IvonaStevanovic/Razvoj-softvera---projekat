@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;@Entity
 @Data
@@ -25,9 +27,13 @@ public class IzlazakNaIspit {
     private Boolean ponisteno = false;
     private Boolean izasao = false;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne(mappedBy = "izlazakNaIspit", cascade = CascadeType.ALL)
     private PolozeniPredmeti polozeniPredmet;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "student_indeks_id")
     private StudentIndeks studentIndeks;

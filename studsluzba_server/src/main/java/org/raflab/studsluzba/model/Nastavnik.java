@@ -2,6 +2,7 @@ package org.raflab.studsluzba.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.raflab.studsluzba.model.NastavnikZvanje;
 import org.raflab.studsluzba.model.VisokoskolskaUstanova;
 
@@ -27,6 +28,8 @@ public class Nastavnik {
     private String brojTelefona;
     private String adresa;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "nastavnik", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<NastavnikZvanje> zvanja;
 
@@ -34,6 +37,8 @@ public class Nastavnik {
     private Character pol;
     private String jmbg;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "nastavnik_obrazovanje",

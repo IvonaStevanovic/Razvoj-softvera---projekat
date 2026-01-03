@@ -108,7 +108,7 @@ public class Converters {
         response.setKrajZimskog(godina.getKrajZimskog());
         response.setPocetakLetnjeg(godina.getPocetakLetnjeg());
         response.setKrajLetnjeg(godina.getKrajLetnjeg());
-        response.setAktivna(godina.getAktivna());
+        //response.setAktivna(godina.getAktivna());
         return response;
     }
 

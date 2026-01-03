@@ -2,6 +2,7 @@ package org.raflab.studsluzba.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
@@ -24,6 +25,8 @@ public class NastavnikZvanje {
     private String zvanje; // ovo ćemo mapirati u DTO kao String
     private boolean aktivno;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     private Nastavnik nastavnik;

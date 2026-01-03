@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StudijskiProgramRepository extends CrudRepository<StudijskiProgram, Long> {
 
+    Optional<StudijskiProgram> findByOznaka(String oznaka);
     boolean existsByOznaka(String oznaka);
 }
 

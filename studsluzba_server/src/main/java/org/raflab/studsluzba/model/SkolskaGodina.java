@@ -32,10 +32,11 @@ public class SkolskaGodina {
     @Column(name = "kraj_letnjeg", nullable = false)
     private LocalDate krajLetnjeg;
 
+
     @OneToMany(mappedBy = "skolskaGodina")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<DrziPredmet> drziPredmetList;
+    private Set<DrziPredmet> drziPredmetList;
 
     @OneToMany(mappedBy = "skolskaGodina", cascade = CascadeType.ALL)
     @ToString.Exclude
@@ -65,7 +66,5 @@ public class SkolskaGodina {
         return Objects.hash(id);
     }
 
-    public boolean getAktivna() {
-        return true;
-    }
+    // Ručni getAktivna() je uklonjen jer Lombok generiše isAktivna()
 }

@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -21,12 +23,18 @@ public class PredispitneObaveze {
     private String vrsta;          // test, kolokvijum, zadatak...
     private Integer maksPoeni;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private DrziPredmet drziPredmet;  // predmet koji se drži u toj školskoj godini
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private SkolskaGodina skolskaGodina;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "predispitnaObaveza", cascade = CascadeType.ALL)
     private Set<PredispitniPoeni> ostvareniPoeni;  // poeni koje studenti ostvaruju na ovoj obavezi
 

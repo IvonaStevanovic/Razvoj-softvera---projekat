@@ -1,8 +1,6 @@
 package org.raflab.studsluzba.model;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -17,6 +15,8 @@ public class PolozeniPredmeti {
     @ManyToOne
     private StudentIndeks studentIndeks;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private Predmet predmet;
 
@@ -26,6 +26,8 @@ public class PolozeniPredmeti {
     @Column(name = "datum_polaganja", nullable = false)
     private LocalDate datumPolaganja;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "izlazak_na_ispit_id")
     private IzlazakNaIspit izlazakNaIspit;

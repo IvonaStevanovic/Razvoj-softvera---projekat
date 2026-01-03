@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -16,15 +18,23 @@ public class PredispitniPoeni {
 
     private Integer poeni;  // poeni koje je student ostvario
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private StudentIndeks studentIndeks;          // čiji su poeni
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private PredispitneObaveze predispitnaObaveza; // kojoj predispitnoj obavezi pripadaju
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private SlusaPredmet slusaPredmet;            // opcionalno, vezano za konkretnog studenta i predmet u školskoj godini
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private SkolskaGodina skolskaGodina;
 

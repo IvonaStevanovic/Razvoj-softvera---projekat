@@ -1,159 +1,71 @@
 package org.raflab.studsluzba.services;
 
+import org.raflab.studsluzba.controllers.mappers.PredmetConverter;
 import org.raflab.studsluzba.controllers.request.PredmetRequest;
 import org.raflab.studsluzba.controllers.response.PredmetResponse;
 import org.raflab.studsluzba.model.Predmet;
 import org.raflab.studsluzba.model.StudijskiProgram;
-import org.raflab.studsluzba.repositories.PolozeniPredmetiRepository;
 import org.raflab.studsluzba.repositories.PredmetRepository;
 import org.raflab.studsluzba.repositories.StudijskiProgramRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Service
+@Transactional
+public class PredmetService {
 
-    @Service
-    @Transactional
-    public class PredmetService {
+    @Autowired
+    private PredmetRepository predmetRepository;
 
-        @Autowired
-        private PredmetRepository predmetRepository;
+    @Autowired
+    private StudijskiProgramRepository studijskiProgramRepository;
 
-        public Optional<Predmet> findById(Long id) {
-            return predmetRepository.findById(id);
-        }
-
-        public Predmet save(Predmet predmet) {
-            return predmetRepository.save(predmet);
-        }
-
-        public void deleteById(Long id) {
-            predmetRepository.deleteById(id);
-        }
-
-        public boolean existsById(Long id) {
-            return predmetRepository.existsById(id);
-        }
-
-        public boolean existsBySifra(String sifra) {
-            return predmetRepository.existsBySifra(sifra);
-        }
-    }
-
-    /*
-    private final PredmetRepository predmetRepository;
-    private final StudijskiProgramRepository studProgramRepository;
-    private final PolozeniPredmetiRepository polozeniPredmetiRepository;
-
-    public PredmetService(PredmetRepository predmetRepository, StudijskiProgramRepository studProgramRepository, PolozeniPredmetiRepository polozeniPredmetiRepository) {
-        this.predmetRepository = predmetRepository;
-        this.studProgramRepository = studProgramRepository;
-        this.polozeniPredmetiRepository = polozeniPredmetiRepository;
-    }
-
-    public List<PredmetResponse> getPredmetiByStudijskiProgram(Long studProgramId) {
-        return predmetRepository.findByStudProgram_Id(studProgramId)
-                .stream()
-                .map(this::toResponseDTO)
+    public List<PredmetResponse> getAllPredmeti() {
+        return predmetRepository.findAll().stream()
+                .map(PredmetConverter::toResponse)
                 .collect(Collectors.toList());
     }
 
-
-    // Entity -> ResponseDTO
-    private PredmetResponse toResponseDTO(Predmet predmet) {
-        PredmetResponse dto = new PredmetResponse();
-        dto.setId(predmet.getId());
-        dto.setSifra(predmet.getSifra());
-        dto.setNaziv(predmet.getNaziv());
-        dto.setOpis(predmet.getOpis());
-        dto.setEspb(predmet.getEspb());
-        dto.setFondPredavanja(predmet.getFondPredavanja());
-        dto.setFondVezbe(predmet.getFondVezbe());
-        dto.setObavezan(predmet.isObavezan());
-        if (predmet.getStudProgram() != null) {
-            dto.setStudProgramNaziv(predmet.getStudProgram().getNaziv());
-        }
-        return dto;
-    }
-
-    // RequestDTO -> Entity
-    private Predmet fromRequestDTO(PredmetRequest dto) {
-        Predmet predmet = new Predmet();
-        predmet.setSifra(dto.getSifra());
-        predmet.setNaziv(dto.getNaziv());
-        predmet.setOpis(dto.getOpis());
-        predmet.setEspb(dto.getEspb());
-        predmet.setFondPredavanja(dto.getFondPredavanja());
-        predmet.setFondVezbe(dto.getFondVezbe());
-        predmet.setObavezan(dto.isObavezan());
-        if (dto.getStudProgramId() != null) {
-            StudijskiProgram sp = studProgramRepository.findById(dto.getStudProgramId())
-                    .orElseThrow(() -> new RuntimeException("Studijski program ne postoji"));
-            predmet.setStudProgram(sp);
-        }
-        return predmet;
-    }
-
-    public List<PredmetResponse> getAllPredmeti() {
-        List<PredmetResponse> dtos = new ArrayList<>();
-        for (Predmet p : predmetRepository.findAll()) {
-            dtos.add(toResponseDTO(p));
-        }
-        return dtos;
-
-    }
-
     public PredmetResponse getPredmetById(Long id) {
-        Predmet p = predmetRepository.findById(id).orElseThrow(() -> new RuntimeException("Predmet ne postoji"));
-        return toResponseDTO(p);
+        Predmet p = predmetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Predmet nije pronađen"));
+        return PredmetConverter.toResponse(p);
     }
 
-    public PredmetResponse createPredmet(PredmetRequest dto) {
-        if (predmetRepository.existsBySifra(dto.getSifra())) {
-            throw new RuntimeException("Predmet sa šifrom " + dto.getSifra() + " već postoji");
+    public PredmetResponse createPredmet(PredmetRequest request) {
+        if (predmetRepository.existsBySifra(request.getSifra())) {
+            throw new RuntimeException("Šifra predmeta već postoji!");
         }
 
-        Predmet p = fromRequestDTO(dto);
-        return toResponseDTO(predmetRepository.save(p));
-    }
-
-
-    public PredmetResponse updatePredmet(Long id, PredmetRequest dto) {
-        Predmet p = predmetRepository.findById(id).orElseThrow(() -> new RuntimeException("Predmet ne postoji"));
-
-        // Provera jedinstvene šifre kod update-a
-        if (!p.getSifra().equals(dto.getSifra()) && predmetRepository.existsBySifra(dto.getSifra())) {
-            throw new RuntimeException("Predmet sa šifrom " + dto.getSifra() + " već postoji");
+        StudijskiProgram sp = null;
+        if (request.getStudijskiProgramId() != null) {
+            sp = studijskiProgramRepository.findById(request.getStudijskiProgramId())
+                    .orElseThrow(() -> new RuntimeException("Studijski program nije pronađen"));
         }
 
-        p.setSifra(dto.getSifra());
-        p.setNaziv(dto.getNaziv());
-        p.setOpis(dto.getOpis());
-        p.setEspb(dto.getEspb());
-        p.setFondPredavanja(dto.getFondPredavanja());
-        p.setFondVezbe(dto.getFondVezbe());
-        p.setObavezan(dto.isObavezan());
-        if (dto.getStudProgramId() != null) {
-            StudijskiProgram sp = studProgramRepository.findById(dto.getStudProgramId())
-                    .orElseThrow(() -> new RuntimeException("Studijski program ne postoji"));
-            p.setStudProgram(sp);
-        }
-        return toResponseDTO(predmetRepository.save(p));
+        Predmet predmet = PredmetConverter.toEntity(request, sp);
+        return PredmetConverter.toResponse(predmetRepository.save(predmet));
     }
 
     public void deletePredmet(Long id) {
+        if (!predmetRepository.existsById(id)) {
+            throw new RuntimeException("Predmet ne postoji");
+        }
         predmetRepository.deleteById(id);
     }
 
-    public Double getProsecnaOcena(Long predmetId, int pocetnaGodina, int krajnjaGodina) {
-        return polozeniPredmetiRepository.findProsecnaOcenaZaPredmetURasponuGodina(predmetId, pocetnaGodina, krajnjaGodina);
+    public List<PredmetResponse> getPredmetiByProgram(Long programId) {
+        return predmetRepository.findByStudProgramId(programId).stream()
+                .map(PredmetConverter::toResponse)
+                .collect(Collectors.toList());
     }
 
-     */
-
-
+    public Double getProsek(Long id, Integer odG, Integer doG) {
+        Double prosek = predmetRepository.getAverageOcenaForPredmetInRange(id, odG, doG);
+        return prosek != null ? prosek : 0.0;
+    }
+}
