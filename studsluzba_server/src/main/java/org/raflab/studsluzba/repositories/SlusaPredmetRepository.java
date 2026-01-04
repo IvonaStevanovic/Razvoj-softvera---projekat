@@ -18,6 +18,7 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
     List<SlusaPredmet> findByStudentIndeks(StudentIndeks studentIndeks);
     Optional<SlusaPredmet> findByStudentIndeksAndDrziPredmet(StudentIndeks studentIndeks, DrziPredmet drziPredmet);
     Optional<SlusaPredmet> findByIdAndStudentIndeks(Long id, StudentIndeks studentIndeks);
+    boolean existsByStudentIndeksAndDrziPredmet(StudentIndeks studentIndeks, DrziPredmet drziPredmet);
 /*
     @Query("SELECT sp FROM SlusaPredmet sp WHERE sp.studentIndeks.id = :indeksId AND sp.skolskaGodina.aktivna = true")
     List<SlusaPredmet> getSlusaPredmetForIndeksAktivnaGodina(@Param("indeksId") Long indeksId);

@@ -41,34 +41,38 @@ public class StudentIndeks {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IzlazakNaIspit> izlazakNaIspite = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PrijavaIspita> prijaveIspita = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<UpisGodine> upisiGodina = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ObnovaGodine> obnoveGodina = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PredispitniPoeni> predispitniPoeni = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PolozeniPredmeti> polozeniPredmeti = new HashSet<>();
+
+    // U StudentIndeks.java dodaj ovo:
+    @OneToMany(mappedBy = "studentIndeks", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SlusaPredmet> slusaPredmeti = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

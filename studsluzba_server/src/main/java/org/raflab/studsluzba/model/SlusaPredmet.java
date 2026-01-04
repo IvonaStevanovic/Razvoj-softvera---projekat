@@ -26,12 +26,12 @@ public class SlusaPredmet {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "slusaPredmet", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "slusaPredmet", cascade = CascadeType.ALL, orphanRemoval = true)
           private Set<PredispitniPoeni> predispitniPoeni;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "slusaPredmet", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "slusaPredmet", cascade = CascadeType.ALL,  orphanRemoval = true)
           private Set<IzlazakNaIspit> izlazakNaIspite;
 
 }

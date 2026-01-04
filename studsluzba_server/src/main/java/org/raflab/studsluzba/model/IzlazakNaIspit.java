@@ -30,13 +30,13 @@ public class IzlazakNaIspit {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToOne(mappedBy = "izlazakNaIspit", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "izlazakNaIspit", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private PolozeniPredmeti polozeniPredmet;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "student_indeks_id")
     private StudentIndeks studentIndeks;
 

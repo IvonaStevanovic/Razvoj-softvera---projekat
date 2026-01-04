@@ -13,6 +13,7 @@ import org.raflab.studsluzba.model.dtos.StudentWebProfileDTO;
 import org.raflab.studsluzba.model.dtos.UpisanaGodinaDTO;
 import org.raflab.studsluzba.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +50,25 @@ public class StudentProfileService  {
     private SrednjaSkolaRepository srednjaSkolaRepository;
     @Autowired
     private StudijskiProgramRepository studijskiProgramRepository;
+    @Autowired
+    private SlusaPredmetRepository slusaPredmetRepository;
 
     private static final double SKOLARINA_EUR = 3000.0;
     private static final String KURS_API = "https://kurs.resenje.org/api/v1/currencies/eur/rates/today";
+
+    public StudentPodaciResponse findById(Long id) {
+        StudentPodaci s = studentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student sa ID " + id + " nije pronađen"));
+
+        // Uzimamo prvi indeks iz seta (obično student ima jedan aktivan, ili prilagodi logiku)
+        StudentIndeks indeks = s.getIndeksi().stream()
+                .filter(StudentIndeks::isAktivan)
+                .findFirst()
+                .orElse(s.getIndeksi().isEmpty() ? null : s.getIndeksi().iterator().next());
+
+        return mapToStudentResponse(s, indeks);
+    }
+
 
     private StudentPodaciResponse mapToStudentResponse(StudentPodaci s, StudentIndeks indeks) {
         StudentPodaciResponse r = new StudentPodaciResponse();
@@ -187,26 +204,51 @@ public class StudentProfileService  {
         });
     }
 
-    public Page<PolozeniPredmetiResponse> getNepolozeniPredmeti(Integer brojIndeksa, int page, int size) {
+    @Transactional(readOnly = true)
+    public Page<NepolozeniPredmetDTO> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
+
+        // 1. Pronađi indeks preko BROJA indeksa, a ne ID-a
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("predmet.naziv").ascending());
+        // 2. Dohvati sve predmete koje student SLUŠA (iz tablice koju smo maloprije popravljali)
+        List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
 
-        Page<PolozeniPredmeti> nepolozeni = polozeniPredmetiRepository.findByStudentIndeksAndOcenaIsNull(indeks, pageable);
+        // 3. Dohvati sve što je već POLOŽENO
+        Set<Long> polozeniPredmetiIds = polozeniPredmetiRepository.findByStudentIndeks(indeks)
+                .stream()
+                .filter(pp -> pp.getOcena() != null && pp.getOcena() > 5)
+                .map(pp -> pp.getPredmet().getId())
+                .collect(Collectors.toSet());
 
-        return nepolozeni.map(p -> {
-            PolozeniPredmetiResponse r = new PolozeniPredmetiResponse();
-            r.setId(p.getId());
-            r.setStudentIndeksId(indeks.getId());
-            r.setStudentImePrezime(indeks.getStudent().getIme() + " " + indeks.getStudent().getPrezime());
-            r.setPredmetId(p.getPredmet().getId());
-            r.setPredmetNaziv(p.getPredmet().getNaziv());
-            r.setOcena(p.getOcena()); // biće null
-            r.setPriznat(p.isPriznat());
-            r.setIzlazakNaIspitId(p.getIzlazakNaIspit() != null ? p.getIzlazakNaIspit().getId() : null);
-            return r;
-        });
+        // 4. Filtriraj: Uzmi one koje sluša, a koji NISU u položenima
+        List<NepolozeniPredmetDTO> nepolozeni = slusaList.stream()
+                .filter(sp -> !polozeniPredmetiIds.contains(sp.getDrziPredmet().getPredmet().getId()))
+                .map(sp -> {
+                    Predmet p = sp.getDrziPredmet().getPredmet();
+                    NepolozeniPredmetDTO dto = new NepolozeniPredmetDTO();
+                    dto.setId(sp.getId());
+                    dto.setSifraPredmeta(p.getSifra());
+                    dto.setNazivPredmeta(p.getNaziv());
+                    dto.setEspb(p.getEspb());
+
+                    if (sp.getDrziPredmet().getNastavnik() != null) {
+                        dto.setImeNastavnika(sp.getDrziPredmet().getNastavnik().getIme());
+                        dto.setPrezimeNastavnika(sp.getDrziPredmet().getNastavnik().getPrezime());
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        // 5. Ručna paginacija
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), nepolozeni.size());
+
+        if (start > nepolozeni.size()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, nepolozeni.size());
+        }
+
+        return new PageImpl<>(nepolozeni.subList(start, end), pageable, nepolozeni.size());
     }
 
     // ------------------ UPIS GODINE ------------------
@@ -500,14 +542,22 @@ public class StudentProfileService  {
     }
     @Transactional
     public void obrisiStudenta(Long studentId) {
-        // 1. Provera da li student postoji
+        // 1. Provera postojanja
         StudentPodaci student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student sa ID-jem " + studentId + " ne postoji."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Student sa ID-jem " + studentId + " ne postoji."));
 
-        // 2. Brisanje studenta
-        // Zahvaljujući CascadeType.ALL koji smo ranije pomenuli,
-        // Hibernate će sam obrisati njegove uplate i indekse.
-        studentRepository.delete(student);
+        // 2. Ručno raskidanje veza (opciono, ali sigurnije kod nekih verzija Hibernate-a)
+        // Ako imaš polja koja nisu pokrivena kaskadom, ovde ih čistiš.
+
+        try {
+            studentRepository.delete(student);
+            studentRepository.flush(); // Forsira bazu da izvrši SQL odmah kako bi uhvatili error ovde
+        } catch (DataIntegrityViolationException e) {
+            // Ako i pored kaskade baza ne dozvoljava brisanje (npr. zbog nekih trećih tabela)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Nije moguće obrisati studenta zbog ograničenja integriteta u bazi podataka.");
+        }
     }
     /*
     @Transactional
