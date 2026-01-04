@@ -107,8 +107,11 @@ public class IspitController {
     }
 
     @GetMapping("/predispitni-poeni/student/{studentIndeksId}")
-    public ResponseEntity<List<PredispitniPoeniResponse>> getPredispitniPoeni(@PathVariable Long studentIndeksId) {
-        return ResponseEntity.ok(ispitService.getPredispitniPoeni(studentIndeksId));
+    public ResponseEntity<List<PredispitniPoeniResponse>> getPredispitniPoeni(
+            @PathVariable Long studentIndeksId,
+            @RequestParam(required = false) Long predmetId,
+            @RequestParam(required = false) Long skolskaGodinaId) {
+        return ResponseEntity.ok(ispitService.getPredispitniPoeni(studentIndeksId, predmetId, skolskaGodinaId));
     }
 
     @GetMapping("/broj-polaganja")
@@ -125,60 +128,4 @@ public class IspitController {
         ispitService.obrisiIspit(id);
         return ResponseEntity.ok("Ispit sa ID-jem " + id + " i svi povezani podaci su uspešno obrisani.");
     }
-    /*
-    private final IspitService ispitService;
-
-    // Endpoint za kreiranje ispita
-    @PostMapping
-    public ResponseEntity<Ispit> createIspit(@RequestBody Ispit ispit) {
-        Ispit saved = ispitService.save(ispit);
-        return ResponseEntity.ok(saved);
-    }
-
-    // Endpoint za dobijanje svih ispita
-    @GetMapping
-    public ResponseEntity<List<Ispit>> getAllIspiti() {
-        return ResponseEntity.ok(ispitService.findAll());
-    }
-
-    // Endpoint za dobijanje ispita po ID-ju
-    @GetMapping("/{id}")
-    public ResponseEntity<Ispit> getIspitById(@PathVariable Long id) {
-        Optional<Ispit> ispit = ispitService.findById(id);
-        return ispit.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Endpoint za dobijanje prijavljenih studenata na određeni ispit
-    @GetMapping("/{ispitId}/studenti")
-    public ResponseEntity<List<PrijavaIspitaResponse>> getPrijavljeniStudenti(
-            @PathVariable Long ispitId) {
-
-        List<PrijavaIspitaResponse> studenti = ispitService.getPrijavljeniStudenti(ispitId);
-        return ResponseEntity.ok(studenti);
-    }
-
-    // Endpointi za filtriranje po predmetu, nastavniku ili ispitnom roku
-    @GetMapping("/filter")
-    public ResponseEntity<List<Ispit>> filterIspiti(
-            @RequestParam(required = false) Long predmetId,
-            @RequestParam(required = false) Long nastavnikId,
-            @RequestParam(required = false) Long ispitniRokId) {
-
-        List<Ispit> ispiti = ispitService.findByPredmetNastavnikRok(predmetId, nastavnikId, ispitniRokId);
-        return ResponseEntity.ok(ispiti);
-    }
-
-     */
-     /* @GetMapping(path = "/predmet/{predmetId}/rok/{rokId}")
-    public List<IspitResponse> getByPredmetAndRok(@PathVariable Long predmetId, @PathVariable Long rokId) {
-        List<Ispit> ispiti = ispitService.findByPredmetAndRok(predmetId, rokId);
-        List<IspitResponse> responses = new ArrayList<>();
-        for (Ispit ispit : ispiti) {
-            responses.add(Converters.toIspitResponse(ispit));
-        }
-        return responses;
-    }
-    */
-
 }
