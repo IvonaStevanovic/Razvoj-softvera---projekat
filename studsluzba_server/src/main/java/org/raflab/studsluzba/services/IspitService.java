@@ -195,6 +195,11 @@ public class IspitService {
         Ispit ispit = ispitRepository.findById(request.getIspitId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Ispit ne postoji"));
 
+        boolean slusa = slusaPredmetRepository.existsByStudentIndeksAndDrziPredmet(student, ispit.getDrziPredmet());
+        if (!slusa) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ne može prijaviti ispit za predmet koji ne sluša!");
+        }
+
         PrijavaIspita prijava = new PrijavaIspita();
         prijava.setStudentIndeks(student);
         prijava.setIspit(ispit);
@@ -316,18 +321,28 @@ public class IspitService {
         Ispit ispit = ispitRepository.findById(ispitId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ispit ne postoji"));
 
-        List<IzlazakNaIspit> izlazci = izlazakNaIspitRepository.findAllByIspitId(ispitId);
+        // Dohvati sve izlaske za taj ispit
+        List<IzlazakNaIspit> izlasci = izlazakNaIspitRepository.findAll();
 
-        // filtriramo studente koji su izašli
-        List<Integer> ocene = izlazci.stream()
-                .filter(z -> Boolean.TRUE.equals(z.getIzasao()))
-                .map(z -> poeniUocenu(z.getPoeniIspit() + z.getPoeniPredispitne()))
+        List<Integer> ocene = izlasci.stream()
+                // 1. Proveri da li izlazak pripada OVOM ispitu preko prijave
+                .filter(z -> z.getPrijavaIspita().getIspit().getId().equals(ispitId))
+                // 2. Proveri da li je student izašao i da nije poništio ispit
+                .filter(z -> Boolean.TRUE.equals(z.getIzasao()) && !Boolean.TRUE.equals(z.getPonisteno()))
+                .map(z -> {
+                    int ukupno = (z.getPoeniIspit() != null ? z.getPoeniIspit() : 0) +
+                            (z.getPoeniPredispitne() != null ? z.getPoeniPredispitne() : 0);
+                    return poeniUocenu(ukupno);
+                })
+                // 3. Obično se u prosek računaju samo prolazne ocene (> 5)
+                .filter(ocena -> ocena > 5)
                 .collect(Collectors.toList());
 
         if (ocene.isEmpty()) return 0.0;
 
+        // Precizno računanje proseka
         return ocene.stream()
-                .mapToInt(Integer::intValue)
+                .mapToDouble(Integer::doubleValue)
                 .average()
                 .orElse(0.0);
     }

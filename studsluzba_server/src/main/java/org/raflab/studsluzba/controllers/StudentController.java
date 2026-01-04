@@ -11,6 +11,7 @@ import org.raflab.studsluzba.model.dtos.NepolozeniPredmetDTO;;
 import org.raflab.studsluzba.services.StudentProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,16 +36,12 @@ public class StudentController {
         // Vraćamo status 201 Created jer kreiramo novi resurs u sistemu
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-/*
-    @DeleteMapping("/obrisi/{studentId}")
-    public ResponseEntity<Map<String, String>> obrisiStudenta(@PathVariable Long studentId) {
-        studentProfileService.obrisiStudenta(studentId);
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "Student sa ID " + studentId + " je obrisan.");
-        return ResponseEntity.ok(response);
+
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentPodaciResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(studentProfileService.findById(id));
     }
-*/
+
     @GetMapping("/indeks/{brojIndeksa}")
     public ResponseEntity<StudentPodaciResponse> getStudentByIndeks(@PathVariable Integer brojIndeksa) {
         return ResponseEntity.ok(studentProfileService.getStudentByBrojIndeksa(brojIndeksa));
@@ -61,11 +58,13 @@ public class StudentController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{brojIndeksa}/nepolozeni")
-    public ResponseEntity<Page<PolozeniPredmetiResponse>> getNepolozeniPredmeti(
-            @PathVariable Integer brojIndeksa,
+    public ResponseEntity<Page<NepolozeniPredmetDTO>> getNepolozeniPredmeti(
+            @PathVariable Integer brojIndeksa, // Prima npr. 2021001
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(studentProfileService.getNepolozeniPredmeti(brojIndeksa, page, size));
+
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(studentProfileService.getNepolozeniPredmetiByBroj(brojIndeksa, pageable));
     }
     @GetMapping("/{studentIndeksId}/upisane-godine")
     public ResponseEntity<List<UpisGodineResponse>> getUpisaneGodine(@PathVariable Long studentIndeksId) {
@@ -137,7 +136,7 @@ public class StudentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> obrisiStudenta(@PathVariable Long id) {
         studentProfileService.obrisiStudenta(id);
-        return ResponseEntity.ok("Student sa ID-jem " + id + " i svi njegovi podaci (uplate, indeksi) su uspešno obrisani.");
+        return ResponseEntity.ok("Student i svi povezani podaci su obrisani.");
     }
 /*
     private final StudentPodaciRepository studentPodaciRepository;
