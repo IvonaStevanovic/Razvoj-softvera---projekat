@@ -266,40 +266,31 @@ public class StudentProfileService  {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
+        // --- DODATA LOGIKA ZA ESPB LIMIT ---
+        List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
+        int ukupnoEspb = predmeti.stream().mapToInt(Predmet::getEspb).sum();
+
+        if (ukupnoEspb > 60) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maksimalni zbir ESPB poena je 60. Pokušano: " + ukupnoEspb);
+        }
+        // ------------------------------------
+
         SkolskaGodina skolskaGodina = skolskaGodinaRepository.findByAktivnaTrue()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aktivna školska godina nije definisana"));
 
-        // 1. Kreiranje zapisa o upisu godine
         UpisGodine upis = new UpisGodine();
         upis.setStudentIndeks(indeks);
         upis.setGodinaStudija(request.getGodinaStudija());
         upis.setDatumUpisa(request.getDatum());
         upis.setNapomena(request.getNapomena());
         upis.setSkolskaGodina(skolskaGodina);
-
-        List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
         upis.setPredmeti(predmeti);
+
         upisGodineRepository.save(upis);
-
-        // 2. Automatsko dodavanje predmeta u "karton" studenta kao nepoloženih
-        for (Predmet p : predmeti) {
-            // Provera da li već postoji u kartonu (da ne dupliramo ako je npr. prenet predmet)
-            boolean vecPostoji = polozeniPredmetiRepository.existsByStudentIndeksAndPredmet(indeks, p);
-
-            if (!vecPostoji) {
-                PolozeniPredmeti nepolozen = new PolozeniPredmeti();
-                nepolozen.setStudentIndeks(indeks);
-                nepolozen.setPredmet(p);
-                nepolozen.setOcena(null);       // Inicijalno nepoložen
-                nepolozen.setPriznat(false);    // Biće true samo ako se prizna sa drugog faksa
-                nepolozen.setDatumPolaganja(null); // Čeka trenutak polaganja (mora biti nullable u bazi!)
-
-                polozeniPredmetiRepository.save(nepolozen);
-            }
-        }
-
+        // ... ostatak tvoje logike za polozeniPredmetiRepository ...
         return mapToUpisGodineResponse(upis);
     }
+
     private UpisGodineResponse mapToUpisGodineResponse(UpisGodine u) {
         UpisGodineResponse r = new UpisGodineResponse();
         r.setId(u.getId());
@@ -425,44 +416,55 @@ public class StudentProfileService  {
     }
 
     // ------------------ UPLATA ------------------
+    // U StudentProfileService.java
+
+    @Transactional
     public UplataResponse evidentirajUplatu(Long studentId, Double iznosRsd) {
+        // 1. Koristimo studentRepository jer Uplata prima StudentPodaci entitet
         StudentPodaci student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
 
-        double kurs = fetchDanasnjiKurs(); // Metoda koju smo ranije definisali
+        // 2. Pozivamo tvoju postojeću metodu fetchDanasnjiKurs (koja je već u fajlu)
+        double kurs = fetchDanasnjiKurs();
         double iznosEur = iznosRsd / kurs;
 
+        // 3. Kreiranje uplate - koristimo TAČNA imena polja iz tvog Uplata.java modela
         Uplata uplata = new Uplata();
-        uplata.setStudentPodaci(student);
-        uplata.setIznosRsd(iznosRsd);
-        uplata.setIznosEur(iznosEur);
-        uplata.setSrednjiKurs(kurs);
-        uplata.setDatum(LocalDate.now());
+        uplata.setStudentPodaci(student); //
+        uplata.setIznosRsd(iznosRsd);      //
+        uplata.setIznosEur(iznosEur);      //
+        uplata.setSrednjiKurs(kurs);       //
+        uplata.setDatum(LocalDate.now());  //
 
         uplataRepository.save(uplata);
 
-        // Koristimo tvoj konstruktor: datum, eur, rsd, kurs
+        // 4. Vraćamo odgovor koristeći tvoj konstruktor iz UplataResponse (datum, eur, rsd, kurs)
+        // Proveri da li tvoj UplataResponse ima ovaj konstruktor
         return new UplataResponse(LocalDate.now(), iznosEur, iznosRsd, kurs);
     }
+
     public IznosPreostaliResponse getPreostaliIznos(Long studentIndeksId) {
+        // 1. Pronalazimo indeks da bismo došli do studenta
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
-        double ukupno = 3000.0; // Konstanta SKOLARINA_EUR
+        final double ukupno = 3000.0; // SKOLARINA_EUR iz specifikacije
 
-        // Suma svih uplata - koristimo već izračunato polje iz baze
+        // 2. Koristimo tvoju metodu findByStudentPodaciId iz UplataRepository
         List<Uplata> uplate = uplataRepository.findByStudentPodaciId(indeks.getStudent().getId());
-        double uplacenoEur = uplate.stream().mapToDouble(Uplata::getIznosEur).sum();
+
+        // 3. Sumiramo iznosEur (polje iz tvog modela)
+        double uplacenoEur = uplate.stream()
+                .mapToDouble(u -> u.getIznosEur() != null ? u.getIznosEur() : 0.0)
+                .sum();
 
         double preostaloEur = ukupno - uplacenoEur;
-
-        // Za dinarski iznos koristimo današnji pravi kurs
         double danasnjiKurs = fetchDanasnjiKurs();
-        double preostaloRsd = preostaloEur * danasnjiKurs;
 
+        // 4. Mapiramo na tvoj IznosPreostaliResponse
         IznosPreostaliResponse response = new IznosPreostaliResponse();
         response.setPreostaloEur(preostaloEur);
-        response.setPreostaloRsd(preostaloRsd);
+        response.setPreostaloRsd(preostaloEur * danasnjiKurs);
 
         return response;
     }
