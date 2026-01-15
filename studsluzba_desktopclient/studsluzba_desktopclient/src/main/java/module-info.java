@@ -21,6 +21,7 @@ module studsluzba.desktopclient {
     requires jasperreports;
     requires org.jetbrains.annotations;
     requires org.reactivestreams;
+    requires java.net.http;
 
     // Glavni paket aplikacije
     opens org.raflab.studsluzbadesktopclient to spring.core, spring.beans, spring.context;

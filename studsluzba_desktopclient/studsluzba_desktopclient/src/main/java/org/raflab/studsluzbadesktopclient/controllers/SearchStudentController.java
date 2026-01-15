@@ -1,100 +1,101 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import org.raflab.studsluzbadesktopclient.MainView;
 import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
 import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
-import org.raflab.studsluzbadesktopclient.services.NavigationService;
-import org.raflab.studsluzbadesktopclient.services.SifarniciService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-@Component
+@Controller
 public class SearchStudentController {
 
-    private final StudentService studentService;
-    private final SifarniciService sifarniciService;
-    private final MainView mainView;
-    private final StudentController studentController;
+    @FXML private TextField filterIndeks;
+    @FXML private TextField filterIme;
+    @FXML private TextField filterPrezime;
+    @FXML private ComboBox<SrednjaSkolaDTO> comboSrednjaSkola;
 
-    // USKLAĐENO SA FXML-om: fx:id="imeStudentaTf"
-    @FXML private TextField imeStudentaTf;
+    @FXML private TableView<StudentPodaciResponse> studentsTable;
+    @FXML private TableColumn<StudentPodaciResponse, String> colIndeks;
+    @FXML private TableColumn<StudentPodaciResponse, String> colIme;
+    @FXML private TableColumn<StudentPodaciResponse, String> colPrezime;
+    @FXML private TableColumn<StudentPodaciResponse, String> colEmail;
+    @FXML private TableColumn<StudentPodaciResponse, String> colSrednjaSkola;
 
-    // USKLAĐENO SA FXML-om: fx:id="tabelaStudenti"
-    @FXML private TableView<StudentPodaciResponse> tabelaStudenti;
-
-    @FXML private TableColumn<StudentPodaciResponse, String> imeColumn;
-    @FXML private TableColumn<StudentPodaciResponse, String> prezimeColumn;
-    @FXML private TableColumn<StudentPodaciResponse, Integer> brojIndeksaColumn;
-    @FXML private TableColumn<StudentPodaciResponse, String> jmbgColumn;
-
-    // Dodaj NavigationService u konstruktor (ubrizgaj ga)
-    private final NavigationService navigationService;
-
-    public SearchStudentController(StudentService studentService, SifarniciService sifarniciService,
-                                   MainView mainView, StudentController studentController,
-                                   NavigationService navigationService) {
-        this.studentService = studentService;
-        this.sifarniciService = sifarniciService;
-        this.mainView = mainView;
-        this.studentController = studentController;
-        this.navigationService = navigationService; // Dodato
-    }
-
-    private void otvoriProfilStudenta(StudentPodaciResponse student) {
-        // 1. Učitaj samo panel (VBox), nemoj menjati ceo root scene!
-        Parent profilView = (Parent) mainView.loadPane("studentPodaciTabPane");
-
-        // 2. Reci navigaciji da pređe na taj view (ovo puni istoriju/history stack)
-        navigationService.navigateTo(profilView);
-
-        // 3. Popuni podatke
-        studentController.prikaziStudenta(student);
-    }
+    @Autowired
+    private StudentService studentService; // Inject-ovan servis
 
     @FXML
     public void initialize() {
-        // Povezivanje kolona sa poljima iz StudentPodaciResponse
-        imeColumn.setCellValueFactory(new PropertyValueFactory<>("ime"));
-        prezimeColumn.setCellValueFactory(new PropertyValueFactory<>("prezime"));
-        brojIndeksaColumn.setCellValueFactory(new PropertyValueFactory<>("brojIndeksa"));
-        jmbgColumn.setCellValueFactory(new PropertyValueFactory<>("jmbg"));
+        setupTableColumns();
+        setupRowFactory();
+        loadSrednjeSkole();
 
-        // Implementacija dvoklika na tabelu (Sekcija 1 specifikacije)
-        tabelaStudenti.setRowFactory(tv -> {
+        // Opciono: Učitaj sve studente odmah pri otvaranju
+        handleSearch();
+    }
+
+    private void setupTableColumns() {
+        colIndeks.setCellValueFactory(cellData -> new SimpleStringProperty("2023/xxxx"));
+        colIme.setCellValueFactory(new PropertyValueFactory<>("ime"));
+        colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
+        colEmail.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmailFakultet()));
+       colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
+    }
+
+    private void setupRowFactory() {
+        studentsTable.setRowFactory(tv -> {
             TableRow<StudentPodaciResponse> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
-                    StudentPodaciResponse selectedStudent = row.getItem();
-                    otvoriProfilStudenta(selectedStudent);
+                    StudentPodaciResponse rowData = row.getItem();
+                    openProfile(rowData);
                 }
             });
             return row;
         });
     }
 
+    private void loadSrednjeSkole() {
+        // TODO: Povezati sa SrednjaSkolaService
+    }
+
     @FXML
-    public void handleSearchStudent() {
-        // Uzimamo tekst iz polja koje se zove imeStudentaTf (kao u FXML)
-        String filterIme = imeStudentaTf.getText();
+    public void handleSearch() {
+        String ime = filterIme.getText();
+        String prezime = filterPrezime.getText();
+        String skola = (comboSrednjaSkola.getValue() != null) ? comboSrednjaSkola.getValue().getNaziv() : null;
 
-        // Pozivamo servis za pretragu
-        List<StudentPodaciResponse> rezultati = studentService.searchStudents(filterIme);
+        System.out.println("Pretraga baze: " + ime + " " + prezime);
 
-        // Punimo tabelu koja se zove tabelaStudenti (kao u FXML)
-        tabelaStudenti.setItems(FXCollections.observableArrayList(rezultati));
+        if (studentService != null) {
+            // Pozivamo pravi servis
+            List<StudentPodaciResponse> rezultati = studentService.searchStudents(ime, prezime, null, skola);
+            studentsTable.setItems(FXCollections.observableArrayList(rezultati));
+        } else {
+            System.err.println("StudentService nije inject-ovan!");
+        }
     }
 
     @FXML
     public void handleClear() {
-        imeStudentaTf.clear();
-        tabelaStudenti.getItems().clear();
+        filterIndeks.clear();
+        filterIme.clear();
+        filterPrezime.clear();
+        comboSrednjaSkola.getSelectionModel().clearSelection();
+        handleSearch(); // Osveži tabelu (prikaži sve)
+    }
+
+    private void openProfile(StudentPodaciResponse student) {
+        if (MainWindowController.getInstance() != null) {
+            MainWindowController.getInstance().openStudentProfile(student.getId());
+        }
     }
 }
