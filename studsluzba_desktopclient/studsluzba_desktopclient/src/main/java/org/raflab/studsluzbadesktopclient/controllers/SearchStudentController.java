@@ -28,7 +28,7 @@ public class SearchStudentController {
     @FXML private TableColumn<StudentPodaciResponse, String> colPrezime;
     @FXML private TableColumn<StudentPodaciResponse, String> colEmail;
     @FXML private TableColumn<StudentPodaciResponse, String> colSrednjaSkola;
-
+    @FXML private TableColumn<StudentPodaciResponse, String> colJmbg;
     @Autowired
     private StudentService studentService; // Inject-ovan servis
 
@@ -55,10 +55,13 @@ public class SearchStudentController {
         colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
 
         // 3. Email (sa zaštitom od null vrednosti)
-        colEmail.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getEmailFakultet() != null ? data.getValue().getEmailFakultet() : "")
-        );
-
+        colEmail.setCellValueFactory(cellData -> {
+            String email = cellData.getValue().getEmailFakultet();
+            // Ako je email null, prikazujemo prazno, inače prikazujemo vrednost
+            return new SimpleStringProperty(email != null ? email : "");
+        });
+        colJmbg.setCellValueFactory(cellData ->
+                        new SimpleStringProperty(cellData.getValue().getJmbg() != null ? cellData.getValue().getJmbg() : ""));
         // 4. Srednja škola
         colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
     }
@@ -80,38 +83,49 @@ public class SearchStudentController {
         // TODO: Povezati sa SrednjaSkolaService
     }
 
-    @FXML
     public void handleSearch() {
+        String indeksUnos = filterIndeks.getText();
         String ime = filterIme.getText();
         String prezime = filterPrezime.getText();
         String skola = (comboSrednjaSkola.getValue() != null) ? comboSrednjaSkola.getValue().getNaziv() : null;
-        String indeks = filterIndeks.getText();
 
-        if (studentService != null) {
-            // Moraš ažurirati metodu u servisu na klijentu da prima i indeks!
-            // Pretpostavka: tvoj klijentski servis sada ima parametar za indeks
-            List<StudentPodaciResponse> rezultati = studentService.searchStudents(ime, prezime, indeks, null);
+        if (studentService == null) {
+            System.err.println("StudentService nije inject-ovan!");
+            return;
+        }
+
+        // LOGIKA: Ako je unet indeks, on ima prioritet
+        if (indeksUnos != null && !indeksUnos.trim().isEmpty()) {
+            System.out.println("Vrsim pretragu iskljucivo po indeksu: " + indeksUnos);
+
+            // Pozivamo tvoju POSTOJEĆU metodu iz StudentService-a
+            // Šaljemo null za ime i prezime da bi server znao da filtrira samo po indeksu
+            List<StudentPodaciResponse> rezultati = studentService.searchStudents(null, null, indeksUnos, null);
+
+            // Ručno popravljamo prikaz godine na klijentu ako server vrati 0
+            if (indeksUnos.contains("/") && !rezultati.isEmpty()) {
+                try {
+                    int unesenaGodina = Integer.parseInt(indeksUnos.split("/")[1].trim());
+                    rezultati.get(0).setGodinaUpisa(unesenaGodina);
+                } catch (Exception e) { /* Ignorisemo format */ }
+            }
 
             studentsTable.setItems(FXCollections.observableArrayList(rezultati));
         }
-        System.out.println("Pretraga baze: " + ime + " " + prezime);
-
-        if (studentService != null) {
-            // Pozivamo pravi servis
+        // Inače, radi standardnu pretragu po imenu/školi
+        else {
+            System.out.println("Vrsim standardnu pretragu: " + ime + " " + prezime);
             List<StudentPodaciResponse> rezultati = studentService.searchStudents(ime, prezime, null, skola);
             studentsTable.setItems(FXCollections.observableArrayList(rezultati));
-        } else {
-            System.err.println("StudentService nije inject-ovan!");
         }
     }
-
     @FXML
     public void handleClear() {
         filterIndeks.clear();
         filterIme.clear();
         filterPrezime.clear();
-        comboSrednjaSkola.getSelectionModel().clearSelection();
-        handleSearch(); // Osveži tabelu (prikaži sve)
+        if (comboSrednjaSkola != null) comboSrednjaSkola.getSelectionModel().clearSelection();
+        studentsTable.setItems(FXCollections.emptyObservableList());
     }
 
     private void openProfile(StudentPodaciResponse student) {

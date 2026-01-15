@@ -539,7 +539,12 @@ public class StudentProfileService  {
             r.setIme(s.getIme());
             r.setPrezime(s.getPrezime());
             r.setBrojIndeksa(indeks.getBroj()); // Uzmi broj direktno iz pronađenog indeksa
-            r.setGodinaUpisa(indeks.getGodina()); // Uzmi godinu direktno
+            r.setGodinaUpisa(indeks.getGodina());
+            r.setEmailFakultet(s.getEmailFakultet());
+            r.setJmbg(s.getJmbg());
+            if (s.getSrednjaSkola() != null) {
+                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
+            }
             return r;
         });
 

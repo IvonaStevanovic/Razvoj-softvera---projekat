@@ -60,4 +60,8 @@ public class StudentPodaciResponse {
     public void setBrojIndeksa(int brojIndeksa) {
         this.brojIndeksa = brojIndeksa;
     }
+    public String getEmailFakultet() {
+        return emailFakultet;
+    }
+    public String getJmbg() { return jmbg; }
 }

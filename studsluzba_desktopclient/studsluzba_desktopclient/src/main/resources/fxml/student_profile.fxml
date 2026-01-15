@@ -1,87 +1,93 @@
-package org.raflab.studsluzbadesktopclient.controllers;
+<?xml version="1.0" encoding="UTF-8"?>
 
-        import javafx.fxml.FXML;
-        import javafx.fxml.FXMLLoader;
-        import javafx.scene.Node;
-        import javafx.scene.Parent;
-        import javafx.scene.layout.StackPane;
-        import org.raflab.studsluzbadesktopclient.ContextFXMLLoader;
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.Font?>
 
-        import java.io.IOException;
+<VBox fx:id="korenskiVBox" onKeyPressed="#handleKeyPressed" spacing="10" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.StudentController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
 
-        public class MainWindowController {
+    <HBox spacing="10">
+        <Button text="← Nazad na pretragu" onAction="#handleBack" style="-fx-font-weight: bold; -fx-cursor: hand;"/>
+    </HBox>
 
-        @FXML
-        private StackPane contentArea;
+    <TabPane fx:id="profilTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <tabs>
+            <Tab text="Osnovni podaci">
+                <content>
+                    <HBox alignment="CENTER" spacing="20">
+                        <GridPane alignment="CENTER" hgap="10" vgap="10">
+                            <Label text="Ime" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="imeTf" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-        private static MainWindowController instance;
+                            <Label text="Prezime" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="prezimeTf" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-        public MainWindowController() {
-        instance = this;
-        }
+                            <Label text="JMBG" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <TextField fx:id="jmbgTf" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-        public static MainWindowController getInstance() {
-        return instance;
-        }
+                            <Label text="Datum rođenja" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <DatePicker fx:id="datumRodjenjaDp" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        </GridPane>
+                    </HBox>
+                </content>
+            </Tab>
 
-        @FXML
-        public void initialize() {
-        // Na početku možemo učitati pretragu ili ostaviti prazno
-        openSearchStudent();
-        }
+            <Tab text="Indeks">
+                <content>
+                    <VBox alignment="CENTER" spacing="15">
+                        <GridPane alignment="CENTER" hgap="10" vgap="10">
+                            <Label text="Broj indeksa" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="brojIndeksaTf" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-        // --- Navigacija ---
+                            <Label text="Godina upisa" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="godinaUpisaTf" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        </GridPane>
+                    </VBox>
+                </content>
+            </Tab>
 
-        /**
-        * Glavna metoda za promenu ekrana.
-        * Kasnije ćemo ovde dodati HistoryManager.record() za KORAK 2.
-        */
-        public void setView(Node node) {
-        contentArea.getChildren().clear();
-        contentArea.getChildren().add(node);
-        }
+            <Tab text="Ispiti">
+                <content>
+                    <VBox spacing="10">
+                        <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                        <Label text="Položeni ispiti" style="-fx-font-weight: bold;"/>
+                        <TableView fx:id="polozeniTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="predmetPolozioCol" text="Predmet" prefWidth="200"/>
+                                <TableColumn fx:id="ocenaCol" text="Ocena" prefWidth="70"/>
+                                <TableColumn fx:id="datumPolaganjaCol" text="Datum" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                        <Separator/>
+                        <Label text="Nepoloženi ispiti" style="-fx-font-weight: bold;"/>
+                        <TableView fx:id="nepolozeniTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="predmetNepolozenCol" text="Predmet" prefWidth="200"/>
+                                <TableColumn fx:id="espbNepolozenCol" text="ESPB" prefWidth="70"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </content>
+            </Tab>
 
-        // --- Akcije iz Menija ---
-
-        @FXML
-        public void handleSearchStudent() {
-        openSearchStudent();
-        }
-
-        @FXML
-        public void handleNewStudent() {
-        // Implementacija za novi student view
-        System.out.println("Otvaranje forme za novog studenta...");
-        }
-
-        // --- Helperi za učitavanje ---
-
-        private void openSearchStudent() {
-        try {
-        // Učitavamo tvoj postojeći searchStudent.fxml (ili ćemo ga unaprediti kasnije)
-        FXMLLoader loader = ContextFXMLLoader.getLoader("searchStudent.fxml");
-        Parent view = loader.load();
-        setView(view);
-        } catch (IOException e) {
-        e.printStackTrace();
-        }
-        }
-
-        /**
-        * Metoda koju ćemo zvati kada kliknemo na studenta u pretrazi
-        */
-        public void openStudentProfile(Long studentId) {
-        try {
-        FXMLLoader loader = ContextFXMLLoader.getLoader("student_profile.fxml");
-        Parent view = loader.load();
-
-        StudentProfileController controller = loader.getController();
-        // Ovde ćemo kasnije pozvati servis da učita podatke
-        controller.loadStudentData(studentId);
-
-        setView(view);
-        } catch (IOException e) {
-        e.printStackTrace();
-        }
-        }
-        }
+            <Tab text="Finansije">
+                <content>
+                    <VBox spacing="10">
+                        <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                        <TableView fx:id="uplateTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="datumUplateCol" text="Datum" prefWidth="120"/>
+                                <TableColumn fx:id="iznosCol" text="Iznos (RSD)" prefWidth="100"/>
+                                <TableColumn fx:id="svrhaCol" text="Svrha" prefWidth="200"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </content>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

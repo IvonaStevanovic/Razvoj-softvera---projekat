@@ -1,90 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="15.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.SearchStudentController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-    </padding>
-    <children>
-        <Label text="Pretraga studenata">
-            <font>
-                <Font name="System Bold" size="24.0" />
-            </font>
-        </Label>
-
-        <!-- Filteri -->
-        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #f4f4f4; -fx-background-radius: 5; -fx-border-color: #dddddd; -fx-border-radius: 5;">
+<BorderPane fx:id="searchStudentPane" prefHeight="600" prefWidth="900" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.SearchStudentController">
+    <top>
+        <VBox>
+            <fx:include source="menuBar.fxml"/>
+            <Label text="Pretraga studenata" style="-fx-font-weight: bold;">
+                <font>
+                    <Font size="20.0" />
+                </font>
+                <VBox.margin>
+                    <Insets left="20.0" top="10.0" />
+                </VBox.margin>
+            </Label>
+        </VBox>
+    </top>
+    <center>
+        <VBox spacing="15">
             <padding>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
             </padding>
-            <children>
-                <VBox spacing="5.0">
-                    <children>
-                        <Label text="Broj indeksa (npr. 12/2023)" />
-                        <TextField fx:id="filterIndeks" promptText="Godina/Broj" />
-                    </children>
-                </VBox>
-                <VBox spacing="5.0">
-                    <children>
-                        <Label text="Ime" />
-                        <TextField fx:id="filterIme" promptText="Unesite ime" />
-                    </children>
-                </VBox>
-                <VBox spacing="5.0">
-                    <children>
-                        <Label text="Prezime" />
-                        <TextField fx:id="filterPrezime" promptText="Unesite prezime" />
-                    </children>
-                </VBox>
-                <VBox spacing="5.0">
-                    <children>
-                        <Label text="Srednja škola" />
-                        <ComboBox fx:id="comboSrednjaSkola" prefWidth="200.0" promptText="Izaberite školu" />
-                    </children>
-                </VBox>
-                <Button defaultButton="true" mnemonicParsing="false" onAction="#handleSearch" prefHeight="30.0" prefWidth="100.0" style="-fx-background-color: #007bff; -fx-text-fill: white;" text="Pretraži">
-                    <HBox.margin>
-                        <Insets top="20.0" />
-                    </HBox.margin>
-                    <font>
-                        <Font name="System Bold" size="12.0" />
-                    </font>
-                </Button>
-                <Button mnemonicParsing="false" onAction="#handleClear" prefHeight="30.0" text="Očisti">
-                    <HBox.margin>
-                        <Insets top="20.0" />
-                    </HBox.margin>
-                </Button>
-            </children>
-        </HBox>
 
-        <!-- Tabela rezultata -->
-        <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="colIndeks" prefWidth="100.0" text="Indeks" />
-                <TableColumn fx:id="colIme" prefWidth="150.0" text="Ime" />
-                <TableColumn fx:id="colPrezime" prefWidth="150.0" text="Prezime" />
-                <TableColumn fx:id="colEmail" prefWidth="200.0" text="Email" />
-                <TableColumn fx:id="colSrednjaSkola" prefWidth="200.0" text="Srednja škola" />
-            </columns>
-            <placeholder>
-                <Label text="Nema rezultata pretrage" />
-            </placeholder>
-        </TableView>
-        <Label text="* Dvoklik na red otvara profil studenta" textFill="#888888">
-            <font>
-                <Font name="System Italic" size="12.0" />
-            </font>
-        </Label>
-    </children>
-</VBox>
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f4f4f4; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #dddddd;">
+                <VBox spacing="2">
+                    <Label text="Broj indeksa"/>
+                    <TextField fx:id="filterIndeks" promptText="npr. 12/2023"/>
+                </VBox>
+                <VBox spacing="2">
+                    <Label text="Ime"/>
+                    <TextField fx:id="filterIme" />
+                </VBox>
+                <VBox spacing="2">
+                    <Label text="Prezime"/>
+                    <TextField fx:id="filterPrezime" />
+                </VBox>
+                <VBox spacing="2">
+                    <Label text="Srednja škola"/>
+                    <ComboBox fx:id="comboSrednjaSkola" prefWidth="180"/>
+                </VBox>
+
+                <Button onAction="#handleSearch" text="Pretraži" defaultButton="true" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold;">
+                    <HBox.margin><Insets top="18"/></HBox.margin>
+                </Button>
+
+                <Button onAction="#handleClear" text="Očisti">
+                    <HBox.margin><Insets top="18"/></HBox.margin>
+                </Button>
+            </HBox>
+
+            <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colIndeks" prefWidth="100" text="Indeks" />
+                    <TableColumn fx:id="colIme" prefWidth="130" text="Ime" />
+                    <TableColumn fx:id="colPrezime" prefWidth="130" text="Prezime" />
+                    <TableColumn fx:id="colJmbg" prefWidth="130" text="JMBG" />
+                    <TableColumn fx:id="colEmail" prefWidth="180" text="Email" />
+                    <TableColumn fx:id="colSrednjaSkola" prefWidth="150" text="Srednja škola" />
+                </columns>
+                <placeholder>
+                    <Label text="Nema studenata za prikaz." />
+                </placeholder>
+            </TableView>
+            <Label text="* Dvoklik na red otvara profil studenta" textFill="GRAY" style="-fx-font-style: italic;" />
+        </VBox>
+    </center>
+</BorderPane>
