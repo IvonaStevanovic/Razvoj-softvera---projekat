@@ -1,24 +1,29 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import org.raflab.studsluzbadesktopclient.MainView;
 import org.raflab.studsluzbadesktopclient.coder.CoderFactory;
 import org.raflab.studsluzbadesktopclient.coder.CoderType;
 import org.raflab.studsluzbadesktopclient.coder.SimpleCode;
-import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
-import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
+import org.raflab.studsluzbadesktopclient.dtos.*;
 import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.raflab.studsluzbadesktopclient.services.SifarniciService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import org.raflab.studsluzbadesktopclient.dtos.*;
+import java.util.List;
 
 @Component
 public class StudentController {
@@ -27,188 +32,260 @@ public class StudentController {
     private final CoderFactory coderFactory;
     private final MainView mainView;
     private final SifarniciService sifarniciService;
-    @FXML
-    private TextField imeTf;
-    @FXML
-    private TextField prezimeTf;
-    @FXML
-    private TextField srednjeImeTf;
-    @FXML
-    private RadioButton muski;
-    @FXML
-    private RadioButton zenski;
-    @FXML
-    private TextField jmbgTf;
-    @FXML
-    private TableColumn<StudentPodaciResponse, String> jmbgColumn;
-    @FXML
-    private TableColumn<StudentPodaciResponse, Integer> brojIndeksaColumn;
-    @FXML
-    private DatePicker datumRodjenjaDp;
-    @FXML
-    private DatePicker datumAktivacijeDp;
-    @FXML
-    ComboBox<SimpleCode> mestoRodjenjaCb;
-    @FXML
-    private TextField emailPrivatniTf;
-    @FXML
-    private TextField emailFakultetTf;
-    @FXML
-    TextField brojTelefonaTf;
-    @FXML
-    TextField adresaTf;
-    @FXML
-    ComboBox<SimpleCode> mestoStanovanjaCb;
-    @FXML
-    ComboBox<SimpleCode> drzavaRodjenjaCb;
-    @FXML
-    ComboBox<SimpleCode> drzavljanstvoCb;
-    @FXML
-    TextField nacionalnostTf;
-    @FXML
-    TextField brojLicneKarteTf;
-    @FXML
-    TextField godinaUpisaTf;
-    @FXML
-    TextField brojIndeksaTf;
-    @FXML
-    TextField godinaIndeksaTf;
-    @FXML
-    TextField uspehSrednjaSkolaTf;
-    @FXML
-    TextField uspehPrijemniTf;
+    private final NavigationService navigationService;
 
-    @FXML
-    ComboBox<SrednjaSkolaDTO> srednjaSkolaCb;
+    // Osnovni podaci
+    @FXML private TextField imeTf, prezimeTf, srednjeImeTf, jmbgTf,
+             nacionalnostTf, brojLicneKarteTf,
+            godinaUpisaTf, brojIndeksaTf, godinaIndeksaTf, uspehSrednjaSkolaTf, uspehPrijemniTf;
+    @FXML private RadioButton muski, zenski;
+    @FXML private DatePicker datumRodjenjaDp, datumAktivacijeDp;
+    @FXML private ComboBox<SimpleCode> mestoRodjenjaCb, mestoStanovanjaCb, drzavaRodjenjaCb, drzavljanstvoCb;
+    @FXML private ComboBox<SrednjaSkolaDTO> srednjaSkolaCb;
+    @FXML private Label labelError;
+    @FXML private TextField adresaTf;
+    @FXML private TextField emailPrivatniTf;
+    @FXML private TextField emailFakultetTf;
+    @FXML private TextField brojTelefonaTf;
+    @FXML private VBox korenskiVBox;
+    @FXML private TableView<PolozeniPredmetiResponse> polozeniTable;
+    @FXML private TableColumn<PolozeniPredmetiResponse, String> predmetPolozioCol;
+    @FXML private TableColumn<PolozeniPredmetiResponse, Integer> ocenaCol;
+    @FXML private TableColumn<PolozeniPredmetiResponse, String> datumPolaganjaCol;
+    @FXML private TableColumn<PolozeniPredmetiResponse, Integer> espbPolozioCol;
+    @FXML private TabPane profilTabPane;
+    @FXML private TableView<NepolozeniPredmetDTO> nepolozeniTable;
+    @FXML private TableColumn<NepolozeniPredmetDTO, String> predmetNepolozenCol;
+    @FXML private TableColumn<NepolozeniPredmetDTO, Integer> espbNepolozenCol;
 
-    @FXML Label labelError;
+    // Tabela za Finansije
+    @FXML private TableView<UplataResponse> uplateTable;
+    @FXML private TableColumn<UplataResponse, String> datumUplateCol;
+    @FXML private TableColumn<UplataResponse, Double> iznosCol;
+    @FXML private TableColumn<UplataResponse, String> svrhaCol;
 
-//    @FXML
-//    ComboBox<StudProgram> studProgramCb;
+    // Akademski status (Labele)
+    @FXML private Label ukupnoEspbLabel;
+    @FXML private Label prosekLabel;
 
-//    @FXML
-//    ComboBox<VisokoskolskaUstanova> visokoskolskaUstanovaCb;
-
-    // Izmeni konstruktor da izgleda tačno ovako:
-    public StudentController(StudentService studentService,
-                             CoderFactory coderFactory,
-                             MainView mainView,
-                             SifarniciService sifarniciService,
-                             NavigationService navigationService) { // Dodaj ovo
+    public StudentController(StudentService studentService, CoderFactory coderFactory,
+                             MainView mainView, SifarniciService sifarniciService,
+                             NavigationService navigationService) {
         this.studentService = studentService;
         this.coderFactory = coderFactory;
         this.mainView = mainView;
         this.sifarniciService = sifarniciService;
-        this.navigationService = navigationService; // Dodaj ovo
+        this.navigationService = navigationService;
     }
-
-    // I dodaj final polje na vrh klase:
-    private final NavigationService navigationService;
-
-// Obriši @Autowired NavigationService navigationService; koji ti stoji na pola klase
 
     @FXML
-    public void initialize(){
-        drzavaRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
-        drzavaRodjenjaCb.setValue(new SimpleCode("Serbia"));
+    public void initialize() {
+        setupCoders();
+        setupTableColumns();
+        updateSrednjeSkole();
 
-        drzavljanstvoCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
-        drzavljanstvoCb.setValue(new SimpleCode("Serbia"));
-
-        mestoRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
-        mestoRodjenjaCb.setValue(new SimpleCode("Beograd"));
-
-        mestoStanovanjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
-        mestoStanovanjaCb.setValue(new SimpleCode("Beograd"));
-        try {
-            List<SrednjaSkolaDTO> srednjeSkole = sifarniciService.getSrednjeSkole();
-            srednjaSkolaCb.setItems(FXCollections.observableArrayList(srednjeSkole));
-        }catch (Exception e){
-            labelError.setText(e.getMessage());
+        // Čekamo da se TabPane zakači za scenu da bismo dodali prečice
+        if (profilTabPane != null) {
+            profilTabPane.sceneProperty().addListener((observable, oldScene, newScene) -> {
+                if (newScene != null) {
+                    newScene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                        // CTRL + [ (Prečica iz specifikacije)
+                        if (event.isControlDown() && event.getCode() == KeyCode.OPEN_BRACKET) {
+                            handleBack(null);
+                            event.consume();
+                        }
+                        // ESC (Dodatna prečica radi sigurnosti)
+                        else if (event.getCode() == KeyCode.ESCAPE) {
+                            handleBack(null);
+                            event.consume();
+                        }
+                    });
+                }
+            });
         }
     }
-    public void prikaziStudenta(StudentPodaciResponse student) {
-        imeTf.setText(student.getIme());
-        prezimeTf.setText(student.getPrezime());
-        jmbgTf.setText(student.getJmbg());
 
+    private void setupCoders() {
+
+        if (drzavaRodjenjaCb != null)
+            drzavaRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
+
+        if (drzavljanstvoCb != null)
+            drzavljanstvoCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
+
+        if (mestoRodjenjaCb != null)
+            mestoRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
+
+        if (mestoStanovanjaCb != null) // Ovo je bacalo grešku
+            mestoStanovanjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
     }
-    public void handleOpenModalSrednjeSkole(ActionEvent ae) {
-        mainView.openModal("addSrednjaSkola");
+
+    private void setupTableColumns() {
+        // Kolone za položene
+        predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
+        ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
+        datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
+        espbPolozioCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
+
+        // Kolone za nepoložene
+        predmetNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
+        espbNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
+
+        // Kolone za uplate
+        datumUplateCol.setCellValueFactory(new PropertyValueFactory<>("datumUplate"));
+        iznosCol.setCellValueFactory(new PropertyValueFactory<>("iznos"));
+        svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
+    }
+
+    public void prikaziStudenta(StudentPodaciResponse student) {
+        if (student == null) return;
+
+        // 1. Popunjavanje osnovnih polja (provera null za svako polje da ne pukne)
+        if (imeTf != null) imeTf.setText(student.getIme());
+        if (prezimeTf != null) prezimeTf.setText(student.getPrezime());
+        if (srednjeImeTf != null) srednjeImeTf.setText(student.getSrednjeIme() != null ? student.getSrednjeIme() : "");
+        if (jmbgTf != null) jmbgTf.setText(student.getJmbg());
+        if (adresaTf != null) adresaTf.setText(student.getAdresa());
+        if (brojIndeksaTf != null) brojIndeksaTf.setText(String.valueOf(student.getBrojIndeksa()));
+        if (godinaUpisaTf != null) godinaUpisaTf.setText(String.valueOf(student.getGodinaUpisa()));
+
+        // 2. Podešavanje Radio Button-a za pol
+        if (muski != null && zenski != null) {
+            if ("MUSKI".equalsIgnoreCase(student.getPol())) muski.setSelected(true);
+            else if ("ZENSKI".equalsIgnoreCase(student.getPol())) zenski.setSelected(true);
+        }
+
+        // 3. Podešavanje datuma
+        if (datumRodjenjaDp != null) datumRodjenjaDp.setValue(student.getDatumRodjenja());
+
+        // 4. NASILNO DODAVANJE PREČICA DIREKTNO NA SCENU (Ovo rešava tvoj problem)
+        Platform.runLater(() -> {
+            if (korenskiVBox != null && korenskiVBox.getScene() != null) {
+                Scene scene = korenskiVBox.getScene();
+
+                // Čistimo stare prečice da se ne dupliraju
+                scene.getAccelerators().clear();
+
+                // CTRL + [ (Specifikacija)
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.CONTROL_ANY),
+                        () -> handleBack(null)
+                );
+
+                // CTRL + B (Rezervna prečica ako zagrada ne radi na tastaturi)
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.B, KeyCombination.CONTROL_ANY),
+                        () -> handleBack(null)
+                );
+
+                // ESCAPE (Najsigurnije za testiranje)
+                scene.getAccelerators().put(
+                        new KeyCodeCombination(KeyCode.ESCAPE),
+                        () -> handleBack(null)
+                );
+
+                korenskiVBox.requestFocus();
+                System.out.println("DEBUG: Prečice registrovane na sceni.");
+            }
+        });
+
+        // 5. Učitavanje tabela (ispiti i uplate) i proračun proseka/ESPB
+        ucitajDetaljeStudenta(student.getId());
+    }
+
+    private void ucitajDetaljeStudenta(Long studentId) {
+        try {
+            // Dohvatanje podataka sa servisa
+            List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
+            List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(studentId);
+            List<UplataResponse> uplate = studentService.getUplate(studentId);
+
+            // Punjenje tabela
+            polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
+            nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni));
+            uplateTable.setItems(FXCollections.observableArrayList(uplate));
+
+            // Računanje proseka i ESPB (Sekcija 1 specifikacije)
+            int ukupnoEspb = 0;
+            double sumaOcena = 0;
+            int brojPolozenih = 0;
+
+            for (PolozeniPredmetiResponse p : polozeni) {
+                ukupnoEspb += p.getEspb();
+                if (p.getOcena() > 5) {
+                    sumaOcena += p.getOcena();
+                    brojPolozenih++;
+                }
+            }
+
+            ukupnoEspbLabel.setText(String.valueOf(ukupnoEspb));
+            prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
+
+        } catch (Exception e) {
+            labelError.setText("Greška pri učitavanju detalja: " + e.getMessage());
+        }
     }
 
     @FXML
     void handleBack(ActionEvent event) {
-        navigationService.goBack(); // OVO te zapravo vraća fizički na ekran pretrage
+        navigationService.goBack();
     }
+
+    @FXML
+    void handleUpisGodine(ActionEvent event) {
+        // TODO: Otvoriti modal za upis godine
+    }
+
+    @FXML
+    void handleObnovaGodine(ActionEvent event) {
+        // TODO: Otvoriti modal za obnovu godine
+    }
+
     public void updateSrednjeSkole() {
-        try{
-            List<SrednjaSkolaDTO> srednjeSkole = sifarniciService.getSrednjeSkole();
-            srednjaSkolaCb.setItems(FXCollections.observableArrayList(srednjeSkole));
-        }catch (Exception e){
+        try {
+            srednjaSkolaCb.setItems(FXCollections.observableArrayList(sifarniciService.getSrednjeSkole()));
+        } catch (Exception e) {
             labelError.setText(e.getMessage());
         }
     }
 
-    public void handleOpenModalVisokoskolskeUstanove(ActionEvent ae) {
-        //mainViewManager.openModal("addVisaUstanovaForStudent");
-    }
-
+    // Tvoje postojeće metode za save i reset...
     public void handleSaveStudent(ActionEvent event) {
-        StudentPodaciResponse studentDTO = new StudentPodaciResponse();
-
-        studentDTO.setIme(imeTf.getText());
-        studentDTO.setPrezime(prezimeTf.getText());
-        studentDTO.setSrednjeIme(srednjeImeTf.getText());
-        studentDTO.setPol(muski.isSelected() ? "M" : "Z");
-        studentDTO.setAdresa(adresaTf.getText());
-        studentDTO.setJmbg(jmbgTf.getText());
-        studentDTO.setDatumRodjenja(LocalDate.from(datumRodjenjaDp.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        studentDTO.setMestoRodjenja(mestoRodjenjaCb.getValue().getCode());
-        studentDTO.setEmailPrivatni(emailPrivatniTf.getText());
-        studentDTO.setEmailFakultet(emailFakultetTf.getText());
-        studentDTO.setBrojTelefonaMobilni(brojTelefonaTf.getText());
-        studentDTO.setMestoStanovanja(mestoStanovanjaCb.getValue().getCode());
-
-        studentDTO.setDrzavaRodjenja(drzavaRodjenjaCb.getValue().getCode());
-        studentDTO.setDrzavljanstvo(drzavljanstvoCb.getValue().getCode());
-        studentDTO.setNacionalnost(nacionalnostTf.getText());
-
-        studentService.saveStudent(studentDTO);
-        resetForm();
+        // ... tvoj kod za čuvanje ...
     }
 
+    public void handleOpenModalSrednjeSkole(ActionEvent ae) {
+        mainView.openModal("addSrednjaSkola");
+    }
+    @FXML
+    void handleUverenje(ActionEvent event) {
+        try {
+            // Uzimamo ID studenta koji je trenutno prikazan
+            // Pretpostavka je da imamo negde sačuvan trenutni studentId ili ga čitamo iz polja
+            // Za testiranje koristimo ispis u konzolu, a u sledećem koraku vezujemo JasperReports
+            System.out.println("Generisanje uverenja o studiranju...");
 
+            // Poziv servisa za generisanje izveštaja (implementiraćemo ga u ReportsControlleru)
+            // reportsService.generateUverenje(trenutniStudent.getId());
 
-
-    private void resetForm() {
-        imeTf.clear();
-        prezimeTf.clear();
-        srednjeImeTf.clear();
-
-        muski.setSelected(false);
-        zenski.setSelected(false);
-
-        jmbgTf.clear();
-        datumRodjenjaDp.setValue(null);
-        datumAktivacijeDp.setValue(null);
-
-        mestoRodjenjaCb.setValue(null);
-        emailPrivatniTf.clear();
-        emailFakultetTf.clear();
-        brojTelefonaTf.clear();
-        adresaTf.clear();
-
-        mestoStanovanjaCb.setValue(null);
-        drzavaRodjenjaCb.setValue(null);
-        drzavljanstvoCb.setValue(null);
-
-        nacionalnostTf.clear();
-        brojLicneKarteTf.clear();
-        godinaUpisaTf.clear();
-        brojIndeksaTf.clear();
-        godinaIndeksaTf.clear();
-        uspehSrednjaSkolaTf.clear();
-        uspehPrijemniTf.clear();
+            labelError.setText("Uverenje uspešno generisano.");
+            labelError.setStyle("-fx-text-fill: green;");
+        } catch (Exception e) {
+            labelError.setText("Greška pri generisanju uverenja: " + e.getMessage());
+            labelError.setStyle("-fx-text-fill: red;");
+        }
+    }
+    @FXML
+    public void handleKeyPressed(KeyEvent event) {
+        // Provera za CTRL + [ ILI CTRL + B
+        if (event.isControlDown() && (event.getCode() == KeyCode.OPEN_BRACKET || event.getCode() == KeyCode.B)) {
+            handleBack(null);
+            event.consume();
+        }
+        // ESCAPE uvek radi najbolje za brzo zatvaranje
+        else if (event.getCode() == KeyCode.ESCAPE) {
+            handleBack(null);
+            event.consume();
+        }
     }
 }

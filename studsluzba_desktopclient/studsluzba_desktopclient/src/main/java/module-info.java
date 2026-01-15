@@ -10,7 +10,7 @@ module studsluzba.desktopclient {
     requires spring.core;
     requires spring.web;
     requires spring.webflux;
-
+    requires spring.data.commons;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
 

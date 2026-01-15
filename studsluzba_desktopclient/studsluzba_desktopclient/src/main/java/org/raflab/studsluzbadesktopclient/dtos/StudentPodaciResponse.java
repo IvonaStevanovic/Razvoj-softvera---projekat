@@ -29,7 +29,7 @@ public class StudentPodaciResponse {
     private String licnuKartuIzdao;
     private String mestoStanovanja;
     private String adresaStanovanja;
-
+    private Integer godinaUpisa;
     private Integer brojIndeksa; // Ključno za specifikaciju
     private String srednjaSkola; // Naziv škole iz šifarnika
     public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
