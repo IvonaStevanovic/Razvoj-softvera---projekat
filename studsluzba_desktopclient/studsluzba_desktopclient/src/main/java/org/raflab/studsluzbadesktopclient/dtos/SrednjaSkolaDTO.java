@@ -15,7 +15,7 @@ public class SrednjaSkolaDTO {
     private String naziv;
     private String mesto;
     private String vrstaSkole;
-    private List<StudentDTO> bivsiUcenici;
+    private List<StudentPodaciResponse> bivsiUcenici;
 
     @Override
     public String toString() {

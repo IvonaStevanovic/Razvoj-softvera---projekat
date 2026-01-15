@@ -35,19 +35,27 @@
                 </padding>
                 <TableView fx:id="tabelaStudenti" minHeight="300" prefWidth="700">
                     <columns>
-                        <TableColumn fx:id="imeColumn" maxWidth="200.0" prefWidth="150" text="Ime">
+                        <TableColumn fx:id="brojIndeksaColumn" prefWidth="100" text="Indeks">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="brojIndeksa" />
+                            </cellValueFactory>
+                        </TableColumn>
+
+                        <TableColumn fx:id="imeColumn" prefWidth="150" text="Ime">
                             <cellValueFactory>
                                 <PropertyValueFactory property="ime" />
                             </cellValueFactory>
                         </TableColumn>
+
                         <TableColumn fx:id="prezimeColumn" prefWidth="150" text="Prezime">
                             <cellValueFactory>
                                 <PropertyValueFactory property="prezime" />
                             </cellValueFactory>
                         </TableColumn>
-                        <TableColumn fx:id="godinaUpisaColumn" prefWidth="100" text="Godina upisa">
+
+                        <TableColumn fx:id="jmbgColumn" prefWidth="150" text="JMBG">
                             <cellValueFactory>
-                                <PropertyValueFactory property="godinaUpisa" />
+                                <PropertyValueFactory property="jmbg" />
                             </cellValueFactory>
                         </TableColumn>
                     </columns>

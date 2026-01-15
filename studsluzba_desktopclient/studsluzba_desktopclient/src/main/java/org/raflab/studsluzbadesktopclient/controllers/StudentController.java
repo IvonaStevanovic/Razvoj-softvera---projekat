@@ -4,20 +4,19 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.raflab.studsluzbadesktopclient.MainView;
 import org.raflab.studsluzbadesktopclient.coder.CoderFactory;
 import org.raflab.studsluzbadesktopclient.coder.CoderType;
 import org.raflab.studsluzbadesktopclient.coder.SimpleCode;
 import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
-import org.raflab.studsluzbadesktopclient.dtos.StudentDTO;
+import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
+import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.raflab.studsluzbadesktopclient.services.SifarniciService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -40,6 +39,10 @@ public class StudentController {
     private RadioButton zenski;
     @FXML
     private TextField jmbgTf;
+    @FXML
+    private TableColumn<StudentPodaciResponse, String> jmbgColumn;
+    @FXML
+    private TableColumn<StudentPodaciResponse, Integer> brojIndeksaColumn;
     @FXML
     private DatePicker datumRodjenjaDp;
     @FXML
@@ -86,12 +89,23 @@ public class StudentController {
 //    @FXML
 //    ComboBox<VisokoskolskaUstanova> visokoskolskaUstanovaCb;
 
-    public StudentController(StudentService studentService, CoderFactory coderFactory, MainView mainView, SifarniciService sifarniciService) {
+    // Izmeni konstruktor da izgleda tačno ovako:
+    public StudentController(StudentService studentService,
+                             CoderFactory coderFactory,
+                             MainView mainView,
+                             SifarniciService sifarniciService,
+                             NavigationService navigationService) { // Dodaj ovo
         this.studentService = studentService;
         this.coderFactory = coderFactory;
         this.mainView = mainView;
         this.sifarniciService = sifarniciService;
+        this.navigationService = navigationService; // Dodaj ovo
     }
+
+    // I dodaj final polje na vrh klase:
+    private final NavigationService navigationService;
+
+// Obriši @Autowired NavigationService navigationService; koji ti stoji na pola klase
 
     @FXML
     public void initialize(){
@@ -113,11 +127,20 @@ public class StudentController {
             labelError.setText(e.getMessage());
         }
     }
+    public void prikaziStudenta(StudentPodaciResponse student) {
+        imeTf.setText(student.getIme());
+        prezimeTf.setText(student.getPrezime());
+        jmbgTf.setText(student.getJmbg());
 
+    }
     public void handleOpenModalSrednjeSkole(ActionEvent ae) {
         mainView.openModal("addSrednjaSkola");
     }
 
+    @FXML
+    void handleBack(ActionEvent event) {
+        navigationService.goBack(); // OVO te zapravo vraća fizički na ekran pretrage
+    }
     public void updateSrednjeSkole() {
         try{
             List<SrednjaSkolaDTO> srednjeSkole = sifarniciService.getSrednjeSkole();
@@ -132,21 +155,19 @@ public class StudentController {
     }
 
     public void handleSaveStudent(ActionEvent event) {
-        StudentDTO studentDTO = new StudentDTO();
+        StudentPodaciResponse studentDTO = new StudentPodaciResponse();
 
         studentDTO.setIme(imeTf.getText());
         studentDTO.setPrezime(prezimeTf.getText());
         studentDTO.setSrednjeIme(srednjeImeTf.getText());
         studentDTO.setPol(muski.isSelected() ? "M" : "Z");
-        studentDTO.setGodinaUpisa(Integer.parseInt(godinaUpisaTf.getText()));
         studentDTO.setAdresa(adresaTf.getText());
         studentDTO.setJmbg(jmbgTf.getText());
-        studentDTO.setDatumRodjenja(
-                Date.from(datumRodjenjaDp.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        studentDTO.setDatumRodjenja(LocalDate.from(datumRodjenjaDp.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
         studentDTO.setMestoRodjenja(mestoRodjenjaCb.getValue().getCode());
         studentDTO.setEmailPrivatni(emailPrivatniTf.getText());
         studentDTO.setEmailFakultet(emailFakultetTf.getText());
-        studentDTO.setBrojTelefona(brojTelefonaTf.getText());
+        studentDTO.setBrojTelefonaMobilni(brojTelefonaTf.getText());
         studentDTO.setMestoStanovanja(mestoStanovanjaCb.getValue().getCode());
 
         studentDTO.setDrzavaRodjenja(drzavaRodjenjaCb.getValue().getCode());

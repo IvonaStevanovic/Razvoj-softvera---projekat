@@ -3,22 +3,26 @@ package org.raflab.studsluzbadesktopclient.controllers;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.shape.Circle;
-import org.raflab.studsluzbadesktopclient.dtos.StudentDTO;
+import javafx.scene.control.cell.PropertyValueFactory;
+import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
+import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.control.TableRow;
+import javafx.scene.layout.BorderPane;
+import org.springframework.context.ApplicationContext;
+import java.io.IOException;
 
 import java.util.List;
 
 @Component
-public class SearchStudentController {
+public class SearchStudentController{
 
     private final StudentService studentService;
 
@@ -26,30 +30,73 @@ public class SearchStudentController {
     private TextField imeStudentaTf;
 
     @FXML
-    private TableView<StudentDTO> tabelaStudenti;
+    private TableView<StudentPodaciResponse> tabelaStudenti;
 
-    public SearchStudentController(StudentService studentService) {
+    public SearchStudentController(StudentService studentService, ApplicationContext applicationContext) {
         this.studentService = studentService;
+        this.applicationContext = applicationContext;
+    }
+    private final ApplicationContext applicationContext; // Dodaj ovo
+
+    @FXML
+    void handleSearchStudent(ActionEvent event) {
+        String ime = imeStudentaTf.getText();
+        System.out.println("DEBUG: Pokrećem pretragu za ime: " + ime);
+
+        List<StudentPodaciResponse> studenti = studentService.searchStudents(ime);
+
+        if (studenti.isEmpty()) {
+            System.out.println("DEBUG: Lista studenata je PRAZNA.");
+        } else {
+            System.out.println("DEBUG: Prvi student u listi JMBG: " + studenti.get(0).getJmbg());
+            tabelaStudenti.setItems(FXCollections.observableArrayList(studenti));
+            tabelaStudenti.refresh(); // Ponekad JavaFX zahteva refresh da bi prikazao nove kolone
+        }
+    }
+    @Autowired
+    private NavigationService navigationService;
+
+    @FXML
+    public void initialize() {
+        // 1. Kolone
+        TableColumn<StudentPodaciResponse, String> colIme = new TableColumn<>("Ime");
+        colIme.setCellValueFactory(new PropertyValueFactory<>("ime"));
+        TableColumn<StudentPodaciResponse, String> colPrezime = new TableColumn<>("Prezime");
+        colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
+        tabelaStudenti.getColumns().setAll(colIme, colPrezime);
+
+        // 2. DVOKLIK (Mora biti ovde!)
+        tabelaStudenti.setRowFactory(tv -> {
+            TableRow<StudentPodaciResponse> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    otvoriProfilStudenta(row.getItem());
+                }
+            });
+            return row;
+        });
     }
 
-    public void handleSearchStudent(ActionEvent actionEvent) {
-        if(imeStudentaTf.getText().isEmpty())
-            tabelaStudenti.setItems(FXCollections.observableArrayList(studentService.sviStudenti()));
-        else{
-            Flux<StudentDTO> flux = studentService.searchStudentsAsync(imeStudentaTf.getText());
-            //Mono predstavlja 0 ili 1 element.
-            flux.collectList() // pretvara Flux u Mono<List<StudentDTO>>
-                    .subscribe(
-                            list -> {
-                                // Ovo se izvršava kada stigne rezultat
-                                tabelaStudenti.setItems(FXCollections.observableArrayList(list));
-                                System.out.println("Rezultat je stigao.");
-                            },
-                            error -> {
-                                System.out.println(error.getMessage());
-                            }
-                    );
-            System.out.println("Nakon search operacije.");
+    private void otvoriProfilStudenta(StudentPodaciResponse student) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/studentPodaciTabPane.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent profilView = loader.load();
+
+            StudentController controller = loader.getController();
+            controller.prikaziStudenta(student);
+
+            // Uzimamo glavni BorderPane aplikacije
+            BorderPane root = (BorderPane) tabelaStudenti.getScene().getRoot();
+            navigationService.setMainRoot(root);
+            navigationService.navigateTo(profilView);
+
+            // Prečice aktiviramo na novoj sceni
+            navigationService.setupShortcuts(profilView.getScene());
+
+        } catch (Exception e) {
+            System.err.println("GRESKA: Neuspešno učitavanje profila!");
+            e.printStackTrace();
         }
     }
 }
