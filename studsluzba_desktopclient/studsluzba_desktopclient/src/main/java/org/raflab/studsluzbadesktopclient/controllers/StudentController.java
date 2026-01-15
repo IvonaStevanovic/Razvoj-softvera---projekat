@@ -227,8 +227,11 @@ public class StudentController {
     }
 
     @FXML
-    void handleBack(ActionEvent event) {
-        navigationService.goBack();
+    public void handleBack(ActionEvent event) {
+        // Pozivamo MainWindow da nas vrati nazad kroz istoriju
+        if (MainWindowController.getInstance() != null) {
+            MainWindowController.getInstance().goBack();
+        }
     }
 
     @FXML
@@ -277,15 +280,47 @@ public class StudentController {
     }
     @FXML
     public void handleKeyPressed(KeyEvent event) {
-        // Provera za CTRL + [ ILI CTRL + B
-        if (event.isControlDown() && (event.getCode() == KeyCode.OPEN_BRACKET || event.getCode() == KeyCode.B)) {
+        // Prečica Ctrl + [
+        if (event.isControlDown() && event.getCode() == KeyCode.OPEN_BRACKET) {
             handleBack(null);
             event.consume();
         }
-        // ESCAPE uvek radi najbolje za brzo zatvaranje
+        // Prečica ESC (za svaki slučaj)
         else if (event.getCode() == KeyCode.ESCAPE) {
             handleBack(null);
             event.consume();
+        }
+    }
+    public void loadStudentData(Long studentId) {
+        try {
+            // Pokušavamo da nađemo studenta preko servisa
+            // (Pretpostavljam da imaš metodu findById, ako ne, koristi search kao fallback)
+            StudentPodaciResponse student = null;
+
+            // OPCIJA A: Ako imaš findById (Idealno)
+            // student = studentService.findById(studentId);
+
+            // OPCIJA B: Privremeni trik ako nemaš findById (koristi pretragu da nađeš jednog)
+            if (studentService != null) {
+                // Ovo je samo primer, prilagodi svom servisu
+                List<StudentPodaciResponse> svi = studentService.searchStudents(null, null, null, null);
+                student = svi.stream().filter(s -> s.getId().equals(studentId)).findFirst().orElse(null);
+            }
+
+            if (student != null) {
+                // Popunjavamo tekstualna polja (Ime, Prezime, Indeks...)
+                prikaziStudenta(student);
+
+                // Učitavamo tabele (Ispiti, Uplate...)
+                ucitajDetaljeStudenta(studentId);
+
+                // Fokusiramo ekran da bi radile prečice sa tastature
+                Platform.runLater(() -> {
+                    if (korenskiVBox != null) korenskiVBox.requestFocus();
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

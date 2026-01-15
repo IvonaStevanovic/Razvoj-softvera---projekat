@@ -32,7 +32,7 @@ public class StudentPodaciResponse {
     private Integer godinaUpisa;
     private Integer brojIndeksa; // Ključno za specifikaciju
     private String srednjaSkola; // Naziv škole iz šifarnika
-    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
+    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa,Integer godinaUpisa) {
         this.id = id;
         this.ime = ime;
         this.prezime = prezime;
@@ -43,5 +43,21 @@ public class StudentPodaciResponse {
         if (pol != null && (pol.equalsIgnoreCase("M") || pol.equalsIgnoreCase("Ž"))) {
             this.pol = pol.toUpperCase();
         }
+    }
+
+    public int getGodinaUpisa() {
+        return godinaUpisa;
+    }
+
+    public void setGodinaUpisa(int godinaUpisa) {
+        this.godinaUpisa = godinaUpisa;
+    }
+
+    public int getBrojIndeksa() {
+        return brojIndeksa;
+    }
+
+    public void setBrojIndeksa(int brojIndeksa) {
+        this.brojIndeksa = brojIndeksa;
     }
 }

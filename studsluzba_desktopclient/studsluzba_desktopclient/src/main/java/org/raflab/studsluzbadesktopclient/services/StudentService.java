@@ -41,23 +41,34 @@ public class StudentService {
     // ali dodaje filtriranje za prezime i školu na klijentu da bi ispunili KT2 specifikaciju
 
     public List<StudentPodaciResponse> searchStudents(String ime, String prezime, String indeks, String skola) {
+        // Pravimo URL i dodajemo osnovne parametre za paginaciju (da bi se slagalo sa Page odgovorom)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + STUDENT_URL_PATH + "/search")
+                .queryParam("page", 0)
+                .queryParam("size", 100); // Uzmi prvih 100 rezultata
+
+        // Dodajemo parametre samo ako nisu prazni
+        if (ime != null && !ime.trim().isEmpty()) builder.queryParam("ime", ime);
+        if (prezime != null && !prezime.trim().isEmpty()) builder.queryParam("prezime", prezime);
+        if (indeks != null && !indeks.trim().isEmpty()) builder.queryParam("indeks", indeks);
+
         try {
-            // 1. Pozivamo server koristeći tvoj stari endpoint koji radi
-            // Ako je ime null, šaljemo prazan string da dobijemo sve studente
-            String searchIme = (ime != null) ? ime : "";
+            // Pošto server vraća Page<StudentPodaciResponse>, moramo to ispravno pročitati
+            // Ako tvoj RestTemplate nije podešen za Page, najsigurnije je ovako:
+            ResponseEntity<Map> response = restTemplate.getForEntity(builder.toUriString(), Map.class);
 
-            List<StudentPodaciResponse> studentiSaServera = searchStudentsInternal(searchIme);
+            // Izvlačimo listu iz "content" polja Page objekta
+            List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
 
-            // 2. Dodatno filtriramo rezultate na klijentu za polja koja server možda još ne podržava (Prezime, Škola)
-            return studentiSaServera.stream()
-                    .filter(s -> matches(s.getPrezime(), prezime))
-                    .filter(s -> matches(s.getSrednjaSkola(), skola))
-                    // .filter(s -> matches(s.getBrojIndeksa(), indeks)) // Otkomentariši ako treba
+            // Pretvaramo mapu nazad u listu tvojih objekata
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule()); // Zbog LocalDate
+            return content.stream()
+                    .map(map -> mapper.convertValue(map, StudentPodaciResponse.class))
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
     }
 

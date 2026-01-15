@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import org.raflab.studsluzbadesktopclient.ContextFXMLLoader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class MainWindowController {
     private ContextFXMLLoader contextLoader;
 
     private static MainWindowController instance;
-
+    private java.util.Stack<Node> backStack = new java.util.Stack<>();
     public MainWindowController() {
         instance = this;
     }
@@ -34,15 +35,31 @@ public class MainWindowController {
     public void initialize() {
         // Na početku možemo učitati pretragu ili ostaviti prazno
         openSearchStudent();
+        contentArea.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.setOnKeyPressed(event -> {
+                    // Prečica: Ctrl + [
+                    if (event.isControlDown() && event.getCode() == KeyCode.OPEN_BRACKET) {
+                        goBack();
+                    }
+                });
+            }
+        });
     }
 
     // --- Navigacija ---
 
+    public void goBack() {
+        if (!backStack.isEmpty()) {
+            javafx.scene.Node previousView = backStack.pop();
+            setView(previousView);
+        }
+    }
     /**
      * Glavna metoda za promenu ekrana.
      * Kasnije ćemo ovde dodati HistoryManager.record() za KORAK 2.
      */
-    public void setView(Node node) {
+    public void setView(javafx.scene.Node node) {
         contentArea.getChildren().clear();
         contentArea.getChildren().add(node);
     }
@@ -83,13 +100,27 @@ public class MainWindowController {
     public void openStudentProfile(Long studentId) {
         try {
             if (contextLoader != null) {
-                // FIX: Dodata puna putanja /fxml/ ispred imena fajla
-                FXMLLoader loader = contextLoader.getLoader("/fxml/student_profile.fxml");
+                // A) PAMTITMO ISTORIJU (Back funkcionalnost)
+                if (!contentArea.getChildren().isEmpty()) {
+                    backStack.push(contentArea.getChildren().get(0));
+                }
+
+                // B) UČITAVAMO FXML KOJI SI POSLALA
+                FXMLLoader loader = contextLoader.getLoader("/fxml/studentPodaciTabPane.fxml");
                 Parent view = loader.load();
 
-                StudentProfileController controller = loader.getController();
-                controller.loadStudentData(studentId);
+                // C) PROSLEĐUJEMO PODATKE KONTROLERU
+                Object controller = loader.getController();
 
+                // *** OVDE JE BILA GREŠKA - SADA JE ISPRAVLJENO ***
+                // Tvoj FXML kaže da je kontroler 'StudentController', pa to i koristimo.
+                if (controller instanceof StudentController) {
+                    ((StudentController) controller).loadStudentData(studentId);
+                } else {
+                    System.err.println("Greska: Ocekivan StudentController, dobijen: " + controller.getClass().getName());
+                }
+
+                // D) PRIKAZUJEMO NOVI EKRAN
                 setView(view);
             }
         } catch (IOException e) {

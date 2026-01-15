@@ -12,6 +12,7 @@ import org.raflab.studsluzba.model.dtos.StudentProfileDTO;
 import org.raflab.studsluzba.model.dtos.StudentWebProfileDTO;
 import org.raflab.studsluzba.model.dtos.UpisanaGodinaDTO;
 import org.raflab.studsluzba.repositories.*;
+import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
@@ -83,6 +84,7 @@ public class StudentProfileService  {
         r.setDrzavaRodjenja(s.getDrzavaRodjenja());
         r.setDrzavljanstvo(s.getDrzavljanstvo());
         r.setNacionalnost(s.getNacionalnost());
+        r.setGodinaUpisa(indeks.getGodina());
         r.setPol(s.getPol());
         r.setAdresa(s.getAdresa());
         r.setBrojTelefonaMobilni(s.getBrojTelefonaMobilni());
@@ -486,11 +488,38 @@ public class StudentProfileService  {
         }
         return 117.5;
     }
-    public Page<StudentPodaciResponse> searchStudente(String ime, String prezime, int page, int size) {
+    // Dodaj String indeksParam u argumente metode
+    public Page<StudentPodaciResponse> searchStudente(String ime, String prezime, String indeksParam, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("student.ime").ascending());
         Page<StudentIndeks> studenti;
 
-        if (ime != null && !ime.isEmpty() && prezime != null && !prezime.isEmpty()) {
+        // 1. LOGIKA ZA PRETRAGU PO INDEKSU (Najviši prioritet)
+        if (indeksParam != null && !indeksParam.trim().isEmpty()) {
+            String cleanIndeks = indeksParam.trim();
+
+            if (cleanIndeks.contains("/")) {
+                // Slučaj: 12/2023
+                try {
+                    String[] parts = cleanIndeks.split("/");
+                    int broj = Integer.parseInt(parts[0]);
+                    int godina = Integer.parseInt(parts[1]);
+                    studenti = studentIndeksRepository.findByBrojAndGodina(broj, godina, pageable);
+                } catch (NumberFormatException e) {
+                    // Ako format nije dobar, vrati prazno ili sve
+                    studenti = Page.empty();
+                }
+            } else {
+                // Slučaj: samo 12
+                try {
+                    int broj = Integer.parseInt(cleanIndeks);
+                    studenti = studentIndeksRepository.findByBroj(broj, pageable);
+                } catch (NumberFormatException e) {
+                    studenti = Page.empty();
+                }
+            }
+        }
+        // 2. LOGIKA ZA IME I PREZIME (Ako nije unet indeks)
+        else if (ime != null && !ime.isEmpty() && prezime != null && !prezime.isEmpty()) {
             studenti = studentIndeksRepository
                     .findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(ime, prezime, pageable);
         } else if (ime != null && !ime.isEmpty()) {
@@ -498,18 +527,22 @@ public class StudentProfileService  {
         } else if (prezime != null && !prezime.isEmpty()) {
             studenti = studentIndeksRepository.findByStudent_PrezimeContainingIgnoreCase(prezime, pageable);
         } else {
+            // Ako ništa nije uneto, vrati sve
             studenti = studentIndeksRepository.findAll(pageable);
         }
 
+        // Mapiranje rezultata
         return studenti.map(indeks -> {
             StudentPodaci s = indeks.getStudent();
             StudentPodaciResponse r = new StudentPodaciResponse();
             r.setId(s.getId());
             r.setIme(s.getIme());
             r.setPrezime(s.getPrezime());
-            r.setBrojIndeksa(indeks.getBroj()); // polje broj iz StudentIndeks
+            r.setBrojIndeksa(indeks.getBroj()); // Uzmi broj direktno iz pronađenog indeksa
+            r.setGodinaUpisa(indeks.getGodina()); // Uzmi godinu direktno
             return r;
         });
+
     }
 
 

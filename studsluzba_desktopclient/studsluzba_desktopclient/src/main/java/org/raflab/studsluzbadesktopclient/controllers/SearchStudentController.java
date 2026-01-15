@@ -37,17 +37,30 @@ public class SearchStudentController {
         setupTableColumns();
         setupRowFactory();
         loadSrednjeSkole();
-
-        // Opciono: Učitaj sve studente odmah pri otvaranju
-        handleSearch();
     }
 
     private void setupTableColumns() {
-        colIndeks.setCellValueFactory(cellData -> new SimpleStringProperty("2023/xxxx"));
+        // 1. Kolona za INDEKS (Format: Broj / Godina)
+        colIndeks.setCellValueFactory(cellData -> {
+            StudentPodaciResponse s = cellData.getValue();
+
+            // IZMENA: Proveravamo da li je != 0 umesto != null
+            if (s.getBrojIndeksa() != 0 && s.getGodinaUpisa() != 0) {
+                return new SimpleStringProperty(s.getBrojIndeksa() + "/" + s.getGodinaUpisa());
+            }
+            return new SimpleStringProperty("");
+        });
+        // 2. Standardne kolone
         colIme.setCellValueFactory(new PropertyValueFactory<>("ime"));
         colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
-        colEmail.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmailFakultet()));
-       colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
+
+        // 3. Email (sa zaštitom od null vrednosti)
+        colEmail.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getEmailFakultet() != null ? data.getValue().getEmailFakultet() : "")
+        );
+
+        // 4. Srednja škola
+        colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
     }
 
     private void setupRowFactory() {
@@ -72,7 +85,15 @@ public class SearchStudentController {
         String ime = filterIme.getText();
         String prezime = filterPrezime.getText();
         String skola = (comboSrednjaSkola.getValue() != null) ? comboSrednjaSkola.getValue().getNaziv() : null;
+        String indeks = filterIndeks.getText();
 
+        if (studentService != null) {
+            // Moraš ažurirati metodu u servisu na klijentu da prima i indeks!
+            // Pretpostavka: tvoj klijentski servis sada ima parametar za indeks
+            List<StudentPodaciResponse> rezultati = studentService.searchStudents(ime, prezime, indeks, null);
+
+            studentsTable.setItems(FXCollections.observableArrayList(rezultati));
+        }
         System.out.println("Pretraga baze: " + ime + " " + prezime);
 
         if (studentService != null) {

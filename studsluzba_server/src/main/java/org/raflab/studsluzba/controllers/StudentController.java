@@ -120,12 +120,13 @@ public class StudentController {
     public Page<StudentPodaciResponse> searchStudente(
             @RequestParam(required = false) String ime,
             @RequestParam(required = false) String prezime,
+            @RequestParam(required = false) String indeks, // <--- NOVO: Dodat parametar
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return studentProfileService.searchStudente(ime, prezime, page, size);
+        // Prosleđujemo 'indeks' (koji može biti null, "12" ili "12/2023") u servis
+        return studentProfileService.searchStudente(ime, prezime, indeks, page, size);
     }
-
     @GetMapping("/srednja-skola")
     public List<StudentPodaciResponse> getStudentiPoSrednjojSkoli(
             @RequestParam String srednjaSkola

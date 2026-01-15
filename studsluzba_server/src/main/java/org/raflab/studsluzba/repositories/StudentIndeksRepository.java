@@ -38,7 +38,10 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
     List<StudentIndeks> findByStudent(StudentPodaci student);
 
     boolean existsByBroj(Integer broj);
+    Page<StudentIndeks> findByBroj(Integer broj, Pageable pageable);
 
+    // 2. Kada korisnik ukuca broj/godina (npr. "12/2023")
+    Page<StudentIndeks> findByBrojAndGodina(Integer broj, Integer godina, Pageable pageable);
 
 
 

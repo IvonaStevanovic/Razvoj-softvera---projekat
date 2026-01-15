@@ -81,7 +81,34 @@ public class EntityMappers {
         response.setBrojLicneKarte(sp.getBrojLicneKarte());
         response.setLicnuKartuIzdao(sp.getLicnuKartuIzdao());
         response.setAdresaStanovanja(sp.getAdresaStanovanja());
+        System.out.println("---- Mapiranje studenta: " + sp.getIme() + " ----");
+        if (sp.getIndeksi() == null) {
+            System.out.println("GREŠKA: Lista indeksa je NULL!");
+        } else {
+            System.out.println("Veličina liste indeksa: " + sp.getIndeksi().size());
+            // Ispisujemo svaki indeks koji nađemo
+            sp.getIndeksi().forEach(ind ->
+                    System.out.println(" -> Indeks: " + ind.getBroj() + ", Godina: " + ind.getGodina() + ", Aktivan: " + ind.isAktivan())
+            );
+        }
+        if (sp.getIndeksi() != null && !sp.getIndeksi().isEmpty()) {
+            StudentIndeks odabraniIndeks = sp.getIndeksi().stream()
+                    .filter(indeks -> indeks.isAktivan())
+                    .findFirst()
+                    .orElse(null);
 
+            if (odabraniIndeks == null) {
+                System.out.println("Nema aktivnog indeksa, uzimam prvi nasumični.");
+                odabraniIndeks = sp.getIndeksi().iterator().next();
+            }
+
+            response.setBrojIndeksa(odabraniIndeks.getBroj());
+            response.setGodinaUpisa(odabraniIndeks.getGodina());
+        } else {
+            System.out.println("Lista indeksa je PRAZNA, setujem 0.");
+            response.setBrojIndeksa(0);
+            response.setGodinaUpisa(0);
+        }
         return response;
     }
 }
