@@ -13,66 +13,50 @@
 <?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="searchStudentPane" prefHeight="600" prefWidth="900" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.SearchStudentController">
-    <top>
-        <VBox>
-            <fx:include source="menuBar.fxml"/>
+    <!-- OBRISAN <top> SEKCIJA SA MENU BAROM DA NE BI BILO DUPLIRANJA -->
+    <center>
+        <VBox spacing="15">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
             <Label text="Pretraga studenata" style="-fx-font-weight: bold;">
                 <font>
                     <Font size="20.0" />
                 </font>
-                <VBox.margin>
-                    <Insets left="20.0" top="10.0" />
-                </VBox.margin>
             </Label>
-        </VBox>
-    </top>
-    <center>
-        <VBox spacing="15">
-            <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
-            </padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f4f4f4; -fx-padding: 15; -fx-background-radius: 5; -fx-border-color: #dddddd;">
-                <VBox spacing="2">
-                    <Label text="Broj indeksa"/>
-                    <TextField fx:id="filterIndeks" promptText="npr. 12/2023"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <VBox>
+                    <Label text="Indeks"/>
+                    <TextField fx:id="filterIndeks" prefWidth="100"/>
                 </VBox>
-                <VBox spacing="2">
+                <VBox>
                     <Label text="Ime"/>
-                    <TextField fx:id="filterIme" />
+                    <TextField fx:id="filterIme" prefWidth="150"/>
                 </VBox>
-                <VBox spacing="2">
+                <VBox>
                     <Label text="Prezime"/>
-                    <TextField fx:id="filterPrezime" />
+                    <TextField fx:id="filterPrezime" prefWidth="150"/>
                 </VBox>
-                <VBox spacing="2">
+                <VBox>
                     <Label text="Srednja škola"/>
                     <ComboBox fx:id="comboSrednjaSkola" prefWidth="180"/>
                 </VBox>
-
-                <Button onAction="#handleSearch" text="Pretraži" defaultButton="true" style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold;">
-                    <HBox.margin><Insets top="18"/></HBox.margin>
-                </Button>
-
-                <Button onAction="#handleClear" text="Očisti">
-                    <HBox.margin><Insets top="18"/></HBox.margin>
-                </Button>
+                <Button onAction="#handleSearch" text="Pretraži" defaultButton="true" style="-fx-background-color: #007bff; -fx-text-fill: white;" />
+                <Button onAction="#handleClear" text="Očisti" />
             </HBox>
 
             <TableView fx:id="studentsTable" VBox.vgrow="ALWAYS">
                 <columns>
+                    <!-- SVE KOLONE VRAĆENE DA BI SE IZBEGAO NULLPOINTEREXCEPTION -->
                     <TableColumn fx:id="colIndeks" prefWidth="100" text="Indeks" />
                     <TableColumn fx:id="colIme" prefWidth="130" text="Ime" />
                     <TableColumn fx:id="colPrezime" prefWidth="130" text="Prezime" />
                     <TableColumn fx:id="colJmbg" prefWidth="130" text="JMBG" />
-                    <TableColumn fx:id="colEmail" prefWidth="180" text="Email" />
+                    <TableColumn fx:id="colEmail" prefWidth="150" text="Email" />
                     <TableColumn fx:id="colSrednjaSkola" prefWidth="150" text="Srednja škola" />
                 </columns>
-                <placeholder>
-                    <Label text="Nema studenata za prikaz." />
-                </placeholder>
             </TableView>
-            <Label text="* Dvoklik na red otvara profil studenta" textFill="GRAY" style="-fx-font-style: italic;" />
         </VBox>
     </center>
 </BorderPane>
