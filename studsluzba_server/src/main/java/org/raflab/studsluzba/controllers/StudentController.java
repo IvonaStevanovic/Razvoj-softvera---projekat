@@ -133,7 +133,12 @@ public class StudentController {
     ) {
         return studentProfileService.getStudentiPoSrednjojSkoli(srednjaSkola);
     }
-
+    @GetMapping("/srednja-skola/all")
+    public List<SrednjaSkolaResponse> getAllSkole() {
+        // Pozivamo metodu iz servisa koju smo ranije videli
+        // studentProfileService bi trebalo da ima pristup SrednjaSkolaRepository-u
+        return studentProfileService.getAllSrednjeSkole();
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> obrisiStudenta(@PathVariable Long id) {
         studentProfileService.obrisiStudenta(id);

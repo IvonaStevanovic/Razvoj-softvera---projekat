@@ -581,17 +581,41 @@ public class StudentProfileService  {
         for (StudentIndeks indeks : studenti) {
             StudentPodaci s = indeks.getStudent();
             StudentPodaciResponse r = new StudentPodaciResponse();
+
+            // Osnovni podaci
             r.setId(s.getId());
             r.setIme(s.getIme());
             r.setPrezime(s.getPrezime());
+
+            // Podaci o indeksu (OVO JE FALILO)
             r.setBrojIndeksa(indeks.getBroj());
+            r.setGodinaUpisa(indeks.getGodina()); // Dodaj ovo da bi se video format 12/2023
+
+            // Dodatni podaci (OVO JE FALILO)
+            r.setJmbg(s.getJmbg()); // Setuješ JMBG iz entiteta StudentPodaci
+            r.setEmailFakultet(s.getEmailFakultet()); // Setuješ email (pazi na naziv polja u entitetu)
+
+            // Srednja škola
             if (s.getSrednjaSkola() != null) {
-                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv()); // ili .getIme() zavisi od imena polja u entitetu
+                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
 
             responses.add(r);
         }
         return responses;
+    }
+    public List<SrednjaSkolaResponse> getAllSrednjeSkole() {
+        // 1. Povuci sve škole iz baze preko repozitorijuma
+        List<SrednjaSkola> skole = srednjaSkolaRepository.findAll();
+
+        // 2. Mapiraj entitete u Response objekte
+        return skole.stream().map(skola -> {
+            SrednjaSkolaResponse res = new SrednjaSkolaResponse();
+            res.setId(skola.getId());
+            res.setNaziv(skola.getNaziv());
+            // Dodaj i ostala polja ako tvoj Response objekat to zahteva (npr. mesto)
+            return res;
+        }).collect(Collectors.toList());
     }
     @Transactional
     public void obrisiStudenta(Long studentId) {

@@ -9,8 +9,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.raflab.studsluzbadesktopclient.MainView;
 import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
+import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaResponse;
 import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
 import org.raflab.studsluzbadesktopclient.services.NavigationService;
+import org.raflab.studsluzbadesktopclient.services.SifarniciService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,7 +25,6 @@ public class SearchStudentController {
     @FXML private TextField filterIndeks;
     @FXML private TextField filterIme;
     @FXML private TextField filterPrezime;
-    @FXML private ComboBox<SrednjaSkolaDTO> comboSrednjaSkola;
 
     @FXML private TableView<StudentPodaciResponse> studentsTable;
     @FXML private TableColumn<StudentPodaciResponse, String> colIndeks;
@@ -32,11 +33,13 @@ public class SearchStudentController {
     @FXML private TableColumn<StudentPodaciResponse, String> colEmail;
     @FXML private TableColumn<StudentPodaciResponse, String> colSrednjaSkola;
     @FXML private TableColumn<StudentPodaciResponse, String> colJmbg;
+    @FXML private ComboBox<SrednjaSkolaResponse> comboSrednjaSkola;
     @Autowired
     private StudentService studentService; // Inject-ovan servis
     @Autowired
     private NavigationService navigationService; // Dodato za istoriju
-
+    @Autowired
+    private SifarniciService sifarniciService;
     @Autowired
     private MainView mainView;
     @FXML
@@ -50,26 +53,33 @@ public class SearchStudentController {
         // 1. Kolona za INDEKS (Format: Broj / Godina)
         colIndeks.setCellValueFactory(cellData -> {
             StudentPodaciResponse s = cellData.getValue();
-
-            // IZMENA: Proveravamo da li je != 0 umesto != null
+            // Provera na null je OBAVEZNA pre poređenja sa nulom (0)
             if (s.getBrojIndeksa() != 0 && s.getGodinaUpisa() != 0) {
                 return new SimpleStringProperty(s.getBrojIndeksa() + "/" + s.getGodinaUpisa());
             }
             return new SimpleStringProperty("");
         });
-        // 2. Standardne kolone
+
+        // 2. Standardne kolone (Property imena moraju biti IDENTIČNA poljima u StudentPodaciResponse)
         colIme.setCellValueFactory(new PropertyValueFactory<>("ime"));
         colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
 
-        // 3. Email (sa zaštitom od null vrednosti)
+        // 3. Email (Sigurna provera bez obzira na vrstu pretrage)
         colEmail.setCellValueFactory(cellData -> {
-            String email = cellData.getValue().getEmailFakultet();
-            // Ako je email null, prikazujemo prazno, inače prikazujemo vrednost
+            StudentPodaciResponse s = cellData.getValue();
+            // Proveri da li se getter na tvom Response-u zove tačno getEmailFakultet()
+            String email = (s != null) ? s.getEmailFakultet() : "";
             return new SimpleStringProperty(email != null ? email : "");
         });
-        colJmbg.setCellValueFactory(cellData ->
-                        new SimpleStringProperty(cellData.getValue().getJmbg() != null ? cellData.getValue().getJmbg() : ""));
-        // 4. Srednja škola
+
+        // 4. JMBG
+        colJmbg.setCellValueFactory(cellData -> {
+            StudentPodaciResponse s = cellData.getValue();
+            String jmbg = (s != null) ? s.getJmbg() : "";
+            return new SimpleStringProperty(jmbg != null ? jmbg : "");
+        });
+
+        // 5. Srednja škola (Ovo je važno za tvoju novu pretragu)
         colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
     }
 
@@ -87,50 +97,74 @@ public class SearchStudentController {
     }
 
     private void loadSrednjeSkole() {
-        // TODO: Povezati sa SrednjaSkolaService
+        try {
+            List<SrednjaSkolaResponse> škole = sifarniciService.getSrednjeSkole();
+            comboSrednjaSkola.setItems(FXCollections.observableArrayList(škole));
+
+            // Podesi da se u padajućem meniju vidi naziv
+            comboSrednjaSkola.setCellFactory(lv -> new ListCell<SrednjaSkolaResponse>() {
+                @Override
+                protected void updateItem(SrednjaSkolaResponse item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? "" : item.getNaziv());
+                }
+            });
+            comboSrednjaSkola.setButtonCell(comboSrednjaSkola.getCellFactory().call(null));
+
+        } catch (Exception e) {
+            System.err.println("Greška: " + e.getMessage());
+        }
     }
 
     public void handleSearch() {
         String indeksUnos = filterIndeks.getText();
         String ime = filterIme.getText();
         String prezime = filterPrezime.getText();
-        String skola = (comboSrednjaSkola.getValue() != null) ? comboSrednjaSkola.getValue().getNaziv() : null;
+
+        // Uzimamo selektovanu vrednost
+        SrednjaSkolaResponse selektovana = comboSrednjaSkola.getValue();
+        String skolaNaziv = (selektovana != null) ? selektovana.getNaziv() : null;
 
         if (studentService == null) {
             System.err.println("StudentService nije inject-ovan!");
             return;
         }
 
-        // LOGIKA: Ako je unet indeks, on ima prioritet
+        List<StudentPodaciResponse> rezultati;
+
+        // 1. PRIORITET: Pretraga po indeksu (ako je unet)
         if (indeksUnos != null && !indeksUnos.trim().isEmpty()) {
-            System.out.println("Vrsim pretragu iskljucivo po indeksu: " + indeksUnos);
+            System.out.println("Vrsim pretragu po indeksu: " + indeksUnos);
+            rezultati = studentService.searchStudents(null, null, indeksUnos, null);
 
-            // Pozivamo tvoju POSTOJEĆU metodu iz StudentService-a
-            // Šaljemo null za ime i prezime da bi server znao da filtrira samo po indeksu
-            List<StudentPodaciResponse> rezultati = studentService.searchStudents(null, null, indeksUnos, null);
-
-            // Ručno popravljamo prikaz godine na klijentu ako server vrati 0
+            // Fix za prikaz godine ako je format Broj/Godina
             if (indeksUnos.contains("/") && !rezultati.isEmpty()) {
                 try {
                     int unesenaGodina = Integer.parseInt(indeksUnos.split("/")[1].trim());
                     rezultati.get(0).setGodinaUpisa(unesenaGodina);
-                } catch (Exception e) { /* Ignorisemo format */ }
+                } catch (Exception e) { }
             }
-
-            studentsTable.setItems(FXCollections.observableArrayList(rezultati));
         }
-        // Inače, radi standardnu pretragu po imenu/školi
+        // 2. NOVO: Pretraga po srednjoj školi (ako je izabrana, a indeks nije unet)
+        else if (skolaNaziv != null) {
+            System.out.println("Vrsim pretragu po srednjoj skoli: " + skolaNaziv);
+            // Koristimo namenski endpoint sa servera
+            rezultati = studentService.getStudentiPoSrednjojSkoli(skolaNaziv);
+        }
+        // 3. Standardna pretraga po imenu i prezimenu
         else {
             System.out.println("Vrsim standardnu pretragu: " + ime + " " + prezime);
-            List<StudentPodaciResponse> rezultati = studentService.searchStudents(ime, prezime, null, skola);
-            studentsTable.setItems(FXCollections.observableArrayList(rezultati));
+            rezultati = studentService.searchStudents(ime, prezime, null, null);
         }
+
+        studentsTable.setItems(FXCollections.observableArrayList(rezultati));
     }
     @FXML
     public void handleClear() {
         filterIndeks.clear();
         filterIme.clear();
         filterPrezime.clear();
+        comboSrednjaSkola.getSelectionModel().clearSelection();
         if (comboSrednjaSkola != null) comboSrednjaSkola.getSelectionModel().clearSelection();
         studentsTable.setItems(FXCollections.emptyObservableList());
     }

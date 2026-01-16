@@ -41,7 +41,7 @@ public class StudentController {
     @FXML private RadioButton muski, zenski;
     @FXML private DatePicker datumRodjenjaDp, datumAktivacijeDp;
     @FXML private ComboBox<SimpleCode> mestoRodjenjaCb, mestoStanovanjaCb, drzavaRodjenjaCb, drzavljanstvoCb;
-    @FXML private ComboBox<SrednjaSkolaDTO> srednjaSkolaCb;
+    @FXML private ComboBox<SrednjaSkolaResponse> srednjaSkolaCb;
     @FXML private Label labelError, ukupnoEspbLabel, prosekLabel;
     @FXML private VBox korenskiVBox;
     @FXML private TabPane profilTabPane;

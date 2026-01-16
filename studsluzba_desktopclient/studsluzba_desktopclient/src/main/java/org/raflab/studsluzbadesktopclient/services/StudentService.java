@@ -207,7 +207,17 @@ public class StudentService {
     public List<StudentPodaciResponse> searchStudentsByStudProg(String studProg) {
         return sviStudenti();
     }
-
+    public List<StudentPodaciResponse> getStudentiPoSrednjojSkoli(String nazivSkole) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/student/srednja-skola") // Putanja do tvog @GetMapping na serveru
+                        .queryParam("srednjaSkola", nazivSkole)
+                        .build())
+                .retrieve()
+                .bodyToFlux(StudentPodaciResponse.class)
+                .collectList()
+                .block();
+    }
     public StudentPodaciResponse getStudentById(Long id) {
         try {
             // Koristimo direktan poziv ka serveru po ID-ju studenta
