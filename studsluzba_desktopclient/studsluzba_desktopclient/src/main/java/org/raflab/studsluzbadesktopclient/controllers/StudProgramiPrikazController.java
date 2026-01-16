@@ -95,7 +95,39 @@ public class StudProgramiPrikazController {
             navigationService.recordTabChange(null, null);
         });
     }
+    @FXML
+    private void handleOpenAddPredmetPopUp() {
+        StudijskiProgramResponse selected = listProgrami.getSelectionModel().getSelectedItem();
 
+        if (selected == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo izaberite program sa leve strane!").show();
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/addPredmet.fxml"));
+            // Povezujemo Spring context
+            loader.setControllerFactory(ClientAppConfig.getContext()::getBean);
+
+            Parent root = loader.load();
+            AddPredmetController controller = loader.getController();
+
+            // Prosleđujemo selektovani program u pop-up
+            controller.setInitialProgram(selected);
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Novi predmet za: " + selected.getNaziv());
+            stage.initModality(Modality.APPLICATION_MODAL); // Blokira glavni prozor
+            stage.showAndWait();
+
+            // Čim se pop-up zatvori, osvežavamo tabelu
+            prikaziPredmeteZaProgram(selected);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @FXML
     private void handleOpenAddPredmetForm() {
         try {

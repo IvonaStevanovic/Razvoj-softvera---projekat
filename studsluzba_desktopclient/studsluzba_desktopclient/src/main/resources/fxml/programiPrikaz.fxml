@@ -21,7 +21,7 @@
                         <TableColumn fx:id="colEspb" text="ESPB" prefWidth="80"/>
                     </columns>
                 </TableView>
-                <Button text="Dodaj novi predmet" onAction="#handleOpenAddPredmetForm" />
+                <Button text="Dodaj novi predmet"  onAction="#handleOpenAddPredmetPopUp" styleClass="primary-button" />
             </VBox>
         </items>
     </SplitPane>
