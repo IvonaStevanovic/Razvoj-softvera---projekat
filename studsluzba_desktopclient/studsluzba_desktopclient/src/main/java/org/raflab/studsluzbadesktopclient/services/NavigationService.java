@@ -4,91 +4,160 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Stack;
 
+
 @Service
 public class NavigationService {
 
-    private final Stack<Parent> history = new Stack<>();
-    private final Stack<Parent> forwardStack = new Stack<>();
+    private final Stack<Object> history = new Stack<>();
+    private final Stack<Object> forwardStack = new Stack<>();
     private BorderPane mainRoot;
 
-    /**
-     * Postavlja glavni BorderPane iz main.fxml.
-     * Ovo mora da pozove MainView u createScene metodi.
-     */
+    private boolean isNavigating = false;
+
+    @Value("${navigation.max-history:10}")
+    private int maxHistorySize;
+
     public void setMainRoot(BorderPane root) {
         this.mainRoot = root;
     }
 
-    public void navigateTo(Parent view) {
-        if (mainRoot != null) {
-            Node current = mainRoot.getCenter();
-            if (current instanceof Parent) {
-                history.push((Parent) current);
-                forwardStack.clear(); // Brišemo forward istoriju kod nove navigacije
-            }
-            mainRoot.setCenter(view);
+    public void recordTabChange(TabPane tabPane, Tab oldTab) {
+        if (!isNavigating && oldTab != null) {
+            addToHistory(new TabNavigationAction(tabPane, oldTab));
+            forwardStack.clear();
+        }
+    }
 
-            // Moramo zahtevati fokus da bi prečice radile na novom ekranu
-            Platform.runLater(view::requestFocus);
+    public void navigateTo(Parent view) {
+        if (view == null || mainRoot == null) return;
+
+        Node current = mainRoot.getCenter();
+        if (current instanceof Parent) {
+            addToHistory(current);
+            forwardStack.clear();
+        }
+
+        mainRoot.setCenter(view);
+        Platform.runLater(view::requestFocus);
+    }
+
+    private void addToHistory(Object state) {
+        history.push(state);
+        if (history.size() > maxHistorySize) {
+            history.remove(0);
         }
     }
 
     public void goBack() {
-        if (mainRoot != null && !history.isEmpty()) {
-            Parent previous = history.pop();
-            forwardStack.push((Parent) mainRoot.getCenter());
-            mainRoot.setCenter(previous);
+        if (mainRoot == null || history.isEmpty()) {
+            System.out.println("Navigacija: Istorija je prazna.");
+            return;
+        }
 
-            // Vraćamo fokus na prethodni ekran
-            Platform.runLater(previous::requestFocus);
-            System.out.println("Navigacija: Povratak nazad uspešan.");
-        } else {
-            System.out.println("Navigacija: Nema istorije za povratak.");
+        isNavigating = true;
+        try {
+            Object previousState = history.pop();
+
+            Object currentState = getCurrentState();
+            if (currentState != null) forwardStack.push(currentState);
+
+            if (previousState instanceof TabNavigationAction) {
+                ((TabNavigationAction) previousState).restore();
+            } else if (previousState instanceof Parent) {
+                mainRoot.setCenter((Parent) previousState);
+                ((Parent) previousState).requestFocus();
+            }
+        } finally {
+            isNavigating = false;
         }
     }
 
     public void goForward() {
-        if (mainRoot != null && !forwardStack.isEmpty()) {
-            Parent next = forwardStack.pop();
-            history.push((Parent) mainRoot.getCenter());
-            mainRoot.setCenter(next);
+        if (mainRoot == null || forwardStack.isEmpty()) {
+            System.out.println("Navigacija: Nema forward istorije.");
+            return;
+        }
 
-            Platform.runLater(next::requestFocus);
+        isNavigating = true;
+        try {
+            Object nextState = forwardStack.pop();
+
+            Object currentState = getCurrentState();
+            if (currentState != null) history.push(currentState);
+
+            if (nextState instanceof TabNavigationAction) {
+                ((TabNavigationAction) nextState).restore();
+            } else if (nextState instanceof Parent) {
+                mainRoot.setCenter((Parent) nextState);
+                ((Parent) nextState).requestFocus();
+            }
+        } finally {
+            isNavigating = false;
         }
     }
 
+    private Object getCurrentState() {
+        Node center = mainRoot.getCenter();
+        if (center instanceof Parent) {
+            TabPane tp = findTabPane((Parent) center);
+            if (tp != null) {
+                return new TabNavigationAction(tp, tp.getSelectionModel().getSelectedItem());
+            }
+            return center;
+        }
+        return null;
+    }
+
+    private TabPane findTabPane(Parent root) {
+        if (root instanceof TabPane) return (TabPane) root;
+        for (Node node : root.getChildrenUnmodifiable()) {
+            if (node instanceof TabPane) return (TabPane) node;
+            if (node instanceof Parent) {
+                TabPane found = findTabPane((Parent) node);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
     /**
-     * Registruje prečice na nivou cele scene.
-     * Koristimo Accelerators jer su pouzdaniji od EventFilter-a.
+     * Registracija svih prečica (Tastatura + Miš)
      */
     public void setupShortcuts(Scene scene) {
         if (scene == null) return;
 
-        // Ctrl + [ (Back)
-        scene.getAccelerators().put(
-                new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.CONTROL_ANY),
-                this::goBack
-        );
+        // 1. TASTATURA (Ctrl + [ i Ctrl + ])
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.OPEN_BRACKET) {
+                goBack();
+                event.consume();
+            } else if (event.isControlDown() && event.getCode() == KeyCode.CLOSE_BRACKET) {
+                goForward();
+                event.consume();
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                goBack();
+                event.consume();
+            }
+        });
 
-        // Ctrl + ] (Forward)
-        scene.getAccelerators().put(
-                new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.CONTROL_ANY),
-                this::goForward
-        );
-
-        // ESCAPE (Kao dodatni Back za lakši rad)
-        scene.getAccelerators().put(
-                new KeyCodeCombination(KeyCode.ESCAPE),
-                this::goBack
-        );
+        // 2. MIŠ (Button 4 i Button 5)
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() == MouseButton.BACK) {
+                goBack();
+                event.consume();
+            } else if (event.getButton() == MouseButton.FORWARD) {
+                goForward();
+                event.consume();
+            }
+        });
     }
 }

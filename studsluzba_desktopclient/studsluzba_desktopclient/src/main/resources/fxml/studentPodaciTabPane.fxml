@@ -9,9 +9,11 @@
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
 
-    <HBox spacing="10">
-        <Button text="← Nazad" onAction="#handleBack"
-                style="-fx-font-weight: bold; -fx-cursor: hand;"/>
+    <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10;">
+        <Button text="←" onAction="#handleBack" style="-fx-font-weight: bold;"/>
+        <Button text="→" onAction="#handleForward" style="-fx-font-weight: bold;"/>
+        <Separator orientation="VERTICAL" />
+        <Label text="Profil studenta" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
     </HBox>
 
     <TabPane fx:id="profilTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">

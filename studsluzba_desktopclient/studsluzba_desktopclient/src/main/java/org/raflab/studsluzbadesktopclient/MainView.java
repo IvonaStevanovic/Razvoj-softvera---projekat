@@ -21,6 +21,7 @@ public class MainView {
 	private final ContextFXMLLoader appFXMLLoader;
 	private Scene scene;
     private final NavigationService navigationService;
+    private FXMLLoader lastLoader;
     public MainView(ContextFXMLLoader appFXMLLoader, NavigationService navigationService) {
         this.appFXMLLoader = appFXMLLoader;
         this.navigationService = navigationService;
@@ -53,15 +54,17 @@ public class MainView {
     }
 
     public Parent loadPane(String fxml) {
-        FXMLLoader loader = appFXMLLoader.getLoader(MainView.class.getResource("/fxml/" + fxml + ".fxml"));
+        this.lastLoader = appFXMLLoader.getLoader(MainView.class.getResource("/fxml/" + fxml + ".fxml"));
         try {
-            return loader.load();
+            return lastLoader.load();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
-	
+    public Object getController() {
+        return (lastLoader != null) ? lastLoader.getController() : null;
+    }
 	public void openModal(String fxml) {
 		FXMLLoader loader = appFXMLLoader.getLoader(MainView.class.getResource("/fxml/"+fxml+".fxml"));
 		try {

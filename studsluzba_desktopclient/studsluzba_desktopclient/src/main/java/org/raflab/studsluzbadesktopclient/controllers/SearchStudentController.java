@@ -4,10 +4,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import org.raflab.studsluzbadesktopclient.MainView;
 import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
 import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
+import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.raflab.studsluzbadesktopclient.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,7 +34,11 @@ public class SearchStudentController {
     @FXML private TableColumn<StudentPodaciResponse, String> colJmbg;
     @Autowired
     private StudentService studentService; // Inject-ovan servis
+    @Autowired
+    private NavigationService navigationService; // Dodato za istoriju
 
+    @Autowired
+    private MainView mainView;
     @FXML
     public void initialize() {
         setupTableColumns();
@@ -129,8 +136,24 @@ public class SearchStudentController {
     }
 
     private void openProfile(StudentPodaciResponse student) {
-        if (MainWindowController.getInstance() != null) {
-            MainWindowController.getInstance().openStudentProfile(student.getId());
+        try {
+            // 1. Učitaj vizuelni dio
+            Parent profilView = mainView.loadPane("studentPodaciTabPane");
+
+            // 2. Uzmi kontroler preko nove metode iz MainView
+            StudentController controller = (StudentController) mainView.getController();
+
+            // 3. Napuni ga podacima
+            if (controller != null) {
+                controller.loadStudentData(student.getId());
+            }
+
+            // 4. OVO SPASAVA ISTORIJU: navigateTo gura trenutnu pretragu u Stack
+            navigationService.navigateTo(profilView);
+
+        } catch (Exception e) {
+            System.err.println("Greska pri otvaranju profila: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
