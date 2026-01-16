@@ -26,6 +26,7 @@ public class StudsluzbaFxClientApp extends Application {
     @Override
     public void init() throws Exception {	   
 	    springContext = SpringApplication.run(StudsluzbaFxClientApp.class);
+        ClientAppConfig.setContext(springContext);
 	}   
 
     @Override

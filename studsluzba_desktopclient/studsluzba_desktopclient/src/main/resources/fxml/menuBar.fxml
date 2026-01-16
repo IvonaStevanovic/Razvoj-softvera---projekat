@@ -18,6 +18,11 @@
                     <MenuItem onAction="#openNewStudent" text="Novi" />
                 </items>
             </Menu>
+            <Menu text="Studijski programi">
+                <items>
+                    <MenuItem text="Pregled programa i predmeta" onAction="#otvoriStudijskePrograme" />
+                </items>
+            </Menu>
             <Menu text="Izveštaji">
                 <items>
                     <MenuItem onAction="#openReportsPage" text="Student reports" />
