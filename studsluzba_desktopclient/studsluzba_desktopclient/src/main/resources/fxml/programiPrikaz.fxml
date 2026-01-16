@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.raflab.studsluzbadesktopclient.controllers.StudProgramiPrikazController">
+    <SplitPane dividerPositions="0.3" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+               AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <items>
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Studijski programi" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="listProgrami" VBox.vgrow="ALWAYS" />
+            </VBox>
+
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Predmeti na programu" style="-fx-font-weight: bold;"/>
+                <TableView fx:id="tablePredmeti" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colSifra" text="Šifra" prefWidth="100"/>
+                        <TableColumn fx:id="colNaziv" text="Naziv predmeta" prefWidth="300"/>
+                        <TableColumn fx:id="colEspb" text="ESPB" prefWidth="80"/>
+                    </columns>
+                </TableView>
+                <Button text="Dodaj novi predmet" onAction="#handleOpenAddPredmetForm" />
+            </VBox>
+        </items>
+    </SplitPane>
+</AnchorPane>
