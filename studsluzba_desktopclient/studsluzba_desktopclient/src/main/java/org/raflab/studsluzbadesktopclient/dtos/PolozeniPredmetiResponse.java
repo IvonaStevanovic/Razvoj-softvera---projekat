@@ -3,19 +3,26 @@ package org.raflab.studsluzbadesktopclient.dtos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class PolozeniPredmetiResponse {
     private Long id;
 
-    @JsonProperty("predmetNaziv") // Mapira serversko polje na tvoje
+    // Server šalje "predmetNaziv", Jackson to stavlja u varijablu "nazivPredmeta"
+    @JsonProperty("predmetNaziv")
     private String nazivPredmeta;
 
     private Integer ocena;
 
-    // Server ne šalje ESPB u ovom DTO-u, pa ćemo ga za sad
-    // tretirati kao 0 ili ga moraš dodati na serveru.
-    private Integer espb = 0;
+    // Polja koja server šalje, a koja Jackson mora da prepozna
+    private Long studentIndeksId;
+    private String studentImePrezime;
+    private Long predmetId;
+    private boolean priznat;
+    private Long izlazakNaIspitId;
 
-    // Ako server šalje datum kroz izlazakNaIspit ili slično, dodaj ovde
-    private String datumPolaganja = "-";
+    // Polja koja koristiš na klijentu za UI
+    private Integer espb ;
+    private LocalDate datumPolaganja;
 }

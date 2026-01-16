@@ -119,28 +119,58 @@ public class StudentService {
 
     public List<PolozeniPredmetiResponse> getPolozeniIspiti(Long studentId) {
         try {
-            return webClient.get()
-                    .uri(baseUrl + "/api/polozeni/student/" + studentId)
-                    .retrieve()
-                    .bodyToFlux(PolozeniPredmetiResponse.class)
-                    .collectList()
-                    .block();
+            String url = baseUrl + "/api/student/" + studentId + "/polozeni-predmeti?page=0&size=100";
+
+            // Uzimamo sirov odgovor kao Map
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("content")) {
+                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+
+                ObjectMapper mapper = new ObjectMapper();
+                // Isključujemo strogu proveru polja direktno u mapperu
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                mapper.registerModule(new JavaTimeModule());
+
+                List<PolozeniPredmetiResponse> rezultati = new ArrayList<>();
+                for (Map<String, Object> obj : content) {
+                    // Ručno mapiramo najbitnije polje ako automatika zakaže
+                    PolozeniPredmetiResponse dto = mapper.convertValue(obj, PolozeniPredmetiResponse.class);
+                    if (dto.getNazivPredmeta() == null && obj.containsKey("predmetNaziv")) {
+                        dto.setNazivPredmeta((String) obj.get("predmetNaziv"));
+                    }
+                    rezultati.add(dto);
+                }
+
+                System.out.println("DEBUG: Uspešno mapirano " + rezultati.size() + " ispita.");
+                return rezultati;
+            }
         } catch (Exception e) {
-            return new ArrayList<>();
+            System.err.println("GRESKA u servisu: " + e.getMessage());
         }
+        return new ArrayList<>();
     }
 
-    public List<NepolozeniPredmetDTO> getNepolozeniIspiti(Long studentId) {
+    public List<NepolozeniPredmetDTO> getNepolozeniIspiti(Integer brojIndeksa) {
         try {
-            return webClient.get()
-                    .uri(baseUrl + "/api/ispiti/nepolozeni/" + studentId)
-                    .retrieve()
-                    .bodyToFlux(NepolozeniPredmetDTO.class)
-                    .collectList()
-                    .block();
+            // 1. ISPRAVLJEN URL: mora se poklapati sa @GetMapping na serveru
+            // Koristimo RestTemplate jer smo ga već podesili za položene ispite
+            String url = baseUrl + "/api/student/" + brojIndeksa + "/nepolozeni?page=0&size=10";
+
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("content")) {
+                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+
+                ObjectMapper mapper = new ObjectMapper();
+                return content.stream()
+                        .map(map -> mapper.convertValue(map, NepolozeniPredmetDTO.class))
+                        .collect(Collectors.toList());
+            }
         } catch (Exception e) {
-            return new ArrayList<>();
+            System.err.println("GRESKA pri dobavljanju nepoloženih: " + e.getMessage());
         }
+        return new ArrayList<>();
     }
 
     public List<UplataResponse> getUplate(Long studentId) {

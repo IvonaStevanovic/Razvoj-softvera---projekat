@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.raflab.studsluzbadesktopclient.dtos.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -121,27 +123,24 @@ public class StudentController {
     }
 
     private void setupTableColumns() {
-        // Kolone za položene
-        predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
-        ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
-        datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
-        espbPolozioCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
-
-        // Kolone za nepoložene
-        predmetNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
-        espbNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
-
-        // Kolone za uplate
-        datumUplateCol.setCellValueFactory(new PropertyValueFactory<>("datumUplate"));
-        iznosCol.setCellValueFactory(new PropertyValueFactory<>("iznos"));
-        svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
-        if (predmetPolozioCol != null) predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
-        if (ocenaCol != null) ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
-        if (datumPolaganjaCol != null) datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
-
-        // Ova provera sprečava NullPointerException koji trenutno imaš
+        if (predmetPolozioCol != null) {
+            // Mora biti "nazivPredmeta" jer se tako zove varijabla u klijentskom DTO-u
+            predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
+        }
+        if (ocenaCol != null) {
+            ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
+        }
+        if (datumPolaganjaCol != null) {
+            datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
+        }
         if (espbPolozioCol != null) {
             espbPolozioCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
+        }
+        if (predmetNepolozenCol != null) {
+            predmetNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
+        }
+        if (espbNepolozenCol != null) {
+            espbNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
         }
     }
     public void prikaziStudenta(StudentPodaciResponse student) {
@@ -224,7 +223,7 @@ public class StudentController {
     private void ucitajDetaljeStudenta(Long studentId) {
         try {
             List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
-            List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(studentId);
+            List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(Math.toIntExact(studentId));
             List<UplataResponse> uplate = studentService.getUplate(studentId);
 
             polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
@@ -379,29 +378,70 @@ public class StudentController {
     }
     public void loadStudentData(Long studentId) {
         try {
-            // 1. Poziv servisu da povuče podatke iz baze
+            // 1. Preuzimanje osnovnih podataka o studentu
             StudentPodaciResponse student = studentService.getStudentById(studentId);
 
-            if (student != null) {
-                // 2. Popunjavanje tekstualnih polja i zaključavanje (ona metoda koju smo sredili)
-                popuniFormuIzBaze(student);
-
-                // 3. Popunjavanje tabela za ispite i uplate
-                // Proveri da li se ove metode u StudentService zovu baš ovako
-                List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
-                List<UplataResponse> uplate = studentService.getUplate(studentId);
-
-                if (polozeniTable != null) polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
-                if (uplateTable != null) uplateTable.setItems(FXCollections.observableArrayList(uplate));
-
-                // 4. Izračunaj prosek i ESPB (KT1 zahtev)
-                obracunajAkademskiStatus(polozeni);
-
-            } else {
-                System.err.println("Student sa ID " + studentId + " nije pronađen u bazi.");
+            // 2. Provera da li je student pronađen pre daljeg rada
+            if (student == null) {
+                System.err.println("Student sa ID " + studentId + " nije pronađen!");
+                return;
             }
+
+            // Popunjavanje forme osnovnim podacima
+            popuniFormuIzBaze(student);
+
+            // 3. Preuzimanje podataka koji se vežu za interni ID (položeni i uplate)
+            List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
+            List<UplataResponse> uplate = studentService.getUplate(studentId);
+
+            // 4. RAD SA POLOŽENIM ISPITIMA
+            if (polozeniTable != null) {
+                if (polozeni != null && !polozeni.isEmpty()) {
+                    // Postavljamo listu i odmah računamo prosek i ESPB
+                    polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
+                    obracunajAkademskiStatus(polozeni);
+                } else {
+                    polozeniTable.setItems(FXCollections.emptyObservableList());
+                    if (ukupnoEspbLabel != null) ukupnoEspbLabel.setText("0");
+                    if (prosekLabel != null) prosekLabel.setText("0.00");
+                }
+            }
+
+            // 5. RAD SA NEPOLOŽENIM PREDMETIMA (Ispravljena logika)
+            // Koristimo brojIndeksa jer server to traži na @GetMapping("/{brojIndeksa}/nepolozeni")
+            if (nepolozeniTable != null) {
+                if (student.getBrojIndeksa() > 0) {
+                    List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(student.getBrojIndeksa());
+
+                    if (nepolozeni != null && !nepolozeni.isEmpty()) {
+                        // Postavljamo listu nepoloženih
+                        nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni));
+                    } else {
+                        nepolozeniTable.setItems(FXCollections.emptyObservableList());
+                    }
+                } else {
+                    nepolozeniTable.setItems(FXCollections.emptyObservableList());
+                }
+            }
+
+            // 6. RAD SA UPLATAMA
+            if (uplateTable != null) {
+                if (uplate != null && !uplate.isEmpty()) {
+                    uplateTable.setItems(FXCollections.observableArrayList(uplate));
+                } else {
+                    uplateTable.setItems(FXCollections.emptyObservableList());
+                }
+            }
+
+            // 7. Fokusiranje komponente radi prečica
+            Platform.runLater(() -> {
+                if (korenskiVBox != null) korenskiVBox.requestFocus();
+            });
+
         } catch (Exception e) {
+            System.err.println("GRESKA u loadStudentData: " + e.getMessage());
             e.printStackTrace();
+            if (labelError != null) labelError.setText("Greška pri osvežavanju podataka.");
         }
     }
 
@@ -410,15 +450,26 @@ public class StudentController {
         double sumaOcena = 0;
         int brojPolozenih = 0;
 
-        for (PolozeniPredmetiResponse p : polozeni) {
-            ukupnoEspb += (p.getEspb() != null) ? p.getEspb() : 0;
-            if (p.getOcena() != null && p.getOcena() > 5) {
-                sumaOcena += p.getOcena();
-                brojPolozenih++;
+        if (polozeni != null) {
+            for (PolozeniPredmetiResponse p : polozeni) {
+                // Provera ocene: bodovi i prosek se računaju samo ako je ispit položen
+                if (p.getOcena() != null && p.getOcena() > 5) {
+                    // Sabiramo ESPB poene predmeta [cite: 9, 92]
+                    ukupnoEspb += (p.getEspb() != null) ? p.getEspb() : 0;
+                    sumaOcena += p.getOcena();
+                    brojPolozenih++;
+                }
             }
         }
 
-        if (ukupnoEspbLabel != null) ukupnoEspbLabel.setText(String.valueOf(ukupnoEspb));
-        if (prosekLabel != null) prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
+        // Ažuriranje labela na UI-ju
+        if (ukupnoEspbLabel != null) {
+            ukupnoEspbLabel.setText(String.valueOf(ukupnoEspb));
+        }
+
+        if (prosekLabel != null) {
+            prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
+        }
     }
+
 }

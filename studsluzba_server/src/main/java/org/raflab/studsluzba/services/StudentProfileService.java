@@ -186,46 +186,62 @@ public class StudentProfileService  {
 
     public Page<PolozeniPredmetiResponse> getPolozeniPredmeti(Long studentIndeksId, int page, int size) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("datumPolaganja").descending());
+        // 1. Dobijamo sve zapise za položene predmete
+        List<PolozeniPredmeti> sviZapisi = polozeniPredmetiRepository.findByStudentIndeks(indeks);
 
-        Page<PolozeniPredmeti> polozeniPredmeti = polozeniPredmetiRepository.findByStudentIndeks(indeks, pageable);
+        // 2. Filtriranje duplikata na osnovu ŠIFRE ili ID-a PREDMETA
+        // Koristimo Mapu: ključ je ID predmeta, vrednost je DTO
+        Map<Long, PolozeniPredmetiResponse> unikatniPolozeni = sviZapisi.stream()
+                .filter(p -> p.getOcena() != null && p.getOcena() > 5)
+                .map(p -> {
+                    PolozeniPredmetiResponse response = new PolozeniPredmetiResponse();
+                    response.setId(p.getId());
+                    response.setPredmetNaziv(p.getPredmet().getNaziv());
+                    response.setOcena(p.getOcena());
+                    response.setEspb(p.getPredmet().getEspb());
 
-        return polozeniPredmeti.map(p -> {
-            PolozeniPredmetiResponse response = new PolozeniPredmetiResponse();
-            response.setId(p.getId());
-            response.setStudentIndeksId(indeks.getId());
-            response.setStudentImePrezime(indeks.getStudent().getIme() + " " + indeks.getStudent().getPrezime());
-            response.setPredmetId(p.getPredmet().getId());
-            response.setPredmetNaziv(p.getPredmet().getNaziv());
-            response.setOcena(p.getOcena());
-            response.setPriznat(p.isPriznat());
-            response.setIzlazakNaIspitId(p.getIzlazakNaIspit() != null ? p.getIzlazakNaIspit().getId() : null);
-            return response;
-        });
+                    // Putanja do datuma
+                    if (p.getIzlazakNaIspit() != null &&
+                            p.getIzlazakNaIspit().getPrijavaIspita() != null &&
+                            p.getIzlazakNaIspit().getPrijavaIspita().getIspit() != null) {
+                        response.setDatumPolaganja(p.getIzlazakNaIspit().getPrijavaIspita().getIspit().getDatumOdrzavanja());
+                    }
+                    return response;
+                })
+                .collect(Collectors.toMap(
+                        res -> res.getPredmetId(), // Koristi ID predmeta kao ključ
+                        res -> res,
+                        (stari, novi) -> stari // Ako postoji duplikat, zadrži prvi na koji naiđeš
+                ));
+
+        List<PolozeniPredmetiResponse> finalnaLista = new ArrayList<>(unikatniPolozeni.values());
+
+        // 3. Ručna paginacija za povratni Page objekat
+        int start = Math.min(page * size, finalnaLista.size());
+        int end = Math.min((start + size), finalnaLista.size());
+
+        return new PageImpl<>(finalnaLista.subList(start, end), PageRequest.of(page, size), finalnaLista.size());
     }
 
     @Transactional(readOnly = true)
     public Page<NepolozeniPredmetDTO> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
-
-        // 1. Pronađi indeks preko BROJA indeksa, a ne ID-a
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
-        // 2. Dohvati sve predmete koje student SLUŠA (iz tablice koju smo maloprije popravljali)
-        List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
-
-        // 3. Dohvati sve što je već POLOŽENO
-        Set<Long> polozeniPredmetiIds = polozeniPredmetiRepository.findByStudentIndeks(indeks)
+        // 1. Skup ŠIFARA položenih predmeta (najsigurniji način)
+        Set<String> polozeneSifre = polozeniPredmetiRepository.findByStudentIndeks(indeks)
                 .stream()
                 .filter(pp -> pp.getOcena() != null && pp.getOcena() > 5)
-                .map(pp -> pp.getPredmet().getId())
+                .map(pp -> pp.getPredmet().getSifra())
                 .collect(Collectors.toSet());
 
-        // 4. Filtriraj: Uzmi one koje sluša, a koji NISU u položenima
-        List<NepolozeniPredmetDTO> nepolozeni = slusaList.stream()
-                .filter(sp -> !polozeniPredmetiIds.contains(sp.getDrziPredmet().getPredmet().getId()))
+        // 2. Sve što student sluša
+        List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
+
+        // 3. Mapiranje i filtriranje preko Mape da se izbegnu duplikati
+        Map<String, NepolozeniPredmetDTO> filtrirano = slusaList.stream()
                 .map(sp -> {
                     Predmet p = sp.getDrziPredmet().getPredmet();
                     NepolozeniPredmetDTO dto = new NepolozeniPredmetDTO();
@@ -233,26 +249,23 @@ public class StudentProfileService  {
                     dto.setSifraPredmeta(p.getSifra());
                     dto.setNazivPredmeta(p.getNaziv());
                     dto.setEspb(p.getEspb());
-
-                    if (sp.getDrziPredmet().getNastavnik() != null) {
-                        dto.setImeNastavnika(sp.getDrziPredmet().getNastavnik().getIme());
-                        dto.setPrezimeNastavnika(sp.getDrziPredmet().getNastavnik().getPrezime());
-                    }
                     return dto;
                 })
-                .collect(Collectors.toList());
+                // Izbacujemo one čija je šifra u skupu položenih
+                .filter(dto -> !polozeneSifre.contains(dto.getSifraPredmeta()))
+                // Garantujemo unikatnost (šifra je ključ)
+                .collect(Collectors.toMap(
+                        NepolozeniPredmetDTO::getSifraPredmeta,
+                        dto -> dto,
+                        (existing, replacement) -> existing
+                ));
 
-        // 5. Ručna paginacija
+        List<NepolozeniPredmetDTO> rezultat = new ArrayList<>(filtrirano.values());
+
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), nepolozeni.size());
-
-        if (start > nepolozeni.size()) {
-            return new PageImpl<>(new ArrayList<>(), pageable, nepolozeni.size());
-        }
-
-        return new PageImpl<>(nepolozeni.subList(start, end), pageable, nepolozeni.size());
+        int end = Math.min((start + pageable.getPageSize()), rezultat.size());
+        return new PageImpl<>(rezultat.subList(start, end), pageable, rezultat.size());
     }
-
     // ------------------ UPIS GODINE ------------------
     public List<UpisGodineResponse> getUpisaneGodine(Long studentIndeksId) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
