@@ -144,6 +144,12 @@ public class StudentController {
         studentProfileService.obrisiStudenta(id);
         return ResponseEntity.ok("Student i svi povezani podaci su obrisani.");
     }
+    @GetMapping("uplate/student/{studentId}")
+    public ResponseEntity<List<UplataResponse>> getUplateZaStudenta(@PathVariable Long studentId) {
+        List<UplataResponse> uplate = studentProfileService.getSveUplate(studentId);
+
+        return ResponseEntity.ok(uplate);
+    }
 /*
     private final StudentPodaciRepository studentPodaciRepository;
     private final StudentIndeksRepository studentIndeksRepository;

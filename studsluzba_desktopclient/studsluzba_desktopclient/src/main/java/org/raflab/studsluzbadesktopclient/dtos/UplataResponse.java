@@ -10,15 +10,15 @@ public class UplataResponse {
     private Double iznosEur;
     private Double iznosRsd;
     private Double srednjiKurs;
-
-
+    private String svrhaUplate;
     public UplataResponse() {
     }
 
-    public UplataResponse(LocalDate datumUplate, Double iznosEur, Double iznosRsd, Double srednjiKurs) {
+    public UplataResponse(LocalDate datumUplate, Double iznosEur, Double iznosRsd, Double srednjiKurs,String svrhaUplate) {
         this.datumUplate = datumUplate;
         this.iznosEur = iznosEur;
         this.iznosRsd = iznosRsd;
         this.srednjiKurs = srednjiKurs;
+        this.svrhaUplate = svrhaUplate;
     }
 }

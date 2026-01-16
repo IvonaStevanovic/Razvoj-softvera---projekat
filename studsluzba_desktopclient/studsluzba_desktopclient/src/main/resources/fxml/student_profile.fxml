@@ -25,33 +25,40 @@
                             <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
 
                             <Label text="Ime:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <TextField fx:id="imeTf" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                            <TextField fx:id="imeTf" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
                             <Label text="Srednje ime:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <TextField fx:id="srednjeImeTf" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                            <TextField fx:id="srednjeImeTf" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
                             <Label text="Prezime:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                            <TextField fx:id="prezimeTf" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                            <TextField fx:id="prezimeTf" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
                             <Label text="JMBG:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                            <TextField fx:id="jmbgTf" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                            <TextField fx:id="jmbgTf" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                            <Label text="Broj lične karte:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                            <TextField fx:id="brojLicneKarteTf" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
                             <Label text="Datum rođenja:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                            <DatePicker fx:id="datumRodjenjaDp" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                            <DatePicker fx:id="datumRodjenjaDp" disable="true" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
 
                             <Label text="Pol:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                             <HBox spacing="10" GridPane.columnIndex="3" GridPane.rowIndex="1">
-                                <RadioButton fx:id="muski" text="M"/>
-                                <RadioButton fx:id="zenski" text="Ž"/>
+                                <RadioButton fx:id="muski" text="M" disable="true"/>
+                                <RadioButton fx:id="zenski" text="Ž" disable="true"/>
                             </HBox>
 
-                            <Label text="Adresa:" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                            <TextField fx:id="adresaTf" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+                            <Label text="Mesto rođenja:" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                            <TextField fx:id="mestoRodjenjaTf" editable="false" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
 
-                            <Label text="Nacionalnost:" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-                            <TextField fx:id="nacionalnostTf" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
-                            <Label text="Broj lične karte" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-                            <TextField fx:id="brojLicneKarteTf" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                            <Label text="Država rođenja:" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                            <TextField fx:id="drzavaRodjenjaTf" editable="false" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+
+                            <Label text="Državljanstvo:" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+                            <TextField fx:id="drzavljanstvoTf" editable="false" GridPane.columnIndex="3" GridPane.rowIndex="4"/>
+
+                            <Label text="Nacionalnost:" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+                            <TextField fx:id="nacionalnostTf" editable="false" GridPane.columnIndex="3" GridPane.rowIndex="5"/>
                         </GridPane>
                     </ScrollPane>
                 </content>

@@ -9,8 +9,7 @@ public class UplataResponse {
     private Double iznosEur;
     private Double iznosRsd;
     private Double srednjiKurs;
-
-
+    private String svrhaUplate;
     public UplataResponse() {
     }
 
@@ -20,4 +19,5 @@ public class UplataResponse {
         this.iznosRsd = iznosRsd;
         this.srednjiKurs = srednjiKurs;
     }
+
 }

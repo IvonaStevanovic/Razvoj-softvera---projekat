@@ -1,6 +1,7 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,6 +25,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.raflab.studsluzbadesktopclient.dtos.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +43,7 @@ public class StudentController {
     @FXML private TextField imeTf, prezimeTf, srednjeImeTf, jmbgTf, nacionalnostTf, brojLicneKarteTf, adresaTf, emailPrivatniTf, emailFakultetTf, brojTelefonaTf, godinaUpisaTf, brojIndeksaTf, godinaIndeksaTf, uspehSrednjaSkolaTf, uspehPrijemniTf;
     @FXML private RadioButton muski, zenski;
     @FXML private DatePicker datumRodjenjaDp, datumAktivacijeDp;
-    @FXML private ComboBox<SimpleCode> mestoRodjenjaCb, mestoStanovanjaCb, drzavaRodjenjaCb, drzavljanstvoCb;
+    @FXML private TextField mestoRodjenjaTf, drzavaRodjenjaTf, drzavljanstvoTf,mestoStanovanjaTf;
     @FXML private ComboBox<SrednjaSkolaResponse> srednjaSkolaCb;
     @FXML private Label labelError, ukupnoEspbLabel, prosekLabel;
     @FXML private VBox korenskiVBox;
@@ -66,7 +69,6 @@ public class StudentController {
 
     @FXML
     public void initialize() {
-        setupCoders();
         setupTableColumns();
         updateSrednjeSkole();
         if (profilTabPane != null) {
@@ -142,47 +144,86 @@ public class StudentController {
         if (prosekLabel != null) prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
     }
 
-    private void setupCoders() {
-        if (drzavaRodjenjaCb != null) drzavaRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
-        if (drzavljanstvoCb != null) drzavljanstvoCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.DRZAVA).getCodes()));
-        if (mestoRodjenjaCb != null) mestoRodjenjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
-        if (mestoStanovanjaCb != null) mestoStanovanjaCb.setItems(FXCollections.observableArrayList(coderFactory.getSimpleCoder(CoderType.MESTO).getCodes()));
-    }
-
     private void setupTableColumns() {
+        // --- ISPITI (Postojeće kolone - ne menjamo ih ako rade) ---
         if (predmetPolozioCol != null) predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
         if (ocenaCol != null) ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
         if (datumPolaganjaCol != null) datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
         if (espbPolozioCol != null) espbPolozioCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
+
         if (predmetNepolozenCol != null) predmetNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
         if (espbNepolozenCol != null) espbNepolozenCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
-    }
 
+        // --- FINANSIJE (ISPRAVLJENO) ---
+
+        // 1. DATUM UPLATE
+        // Rešenje greške: Koristimo lambda izraz da konvertujemo LocalDate -> String
+        if (datumUplateCol != null) {
+            datumUplateCol.setCellValueFactory(cellData -> {
+                // Izvlačimo datum iz objekta
+                LocalDate datum = cellData.getValue().getDatumUplate();
+
+                if (datum != null) {
+                    // Formatiramo ga u String (npr. "16.01.2026.")
+                    String formatiranDatum = datum.format(DateTimeFormatter.ofPattern("dd.MM.yyyy."));
+                    return new SimpleStringProperty(formatiranDatum);
+                } else {
+                    // Ako je datum null, vraćamo prazan string
+                    return new SimpleStringProperty("");
+                }
+            });
+        }
+
+        // 2. IZNOS (Sa dodavanjem "RSD")
+        if (iznosCol != null) {
+            // Povezujemo sa poljem "iznosRsd" iz klase UplataResponse
+            iznosCol.setCellValueFactory(new PropertyValueFactory<>("iznosRsd"));
+
+            // Menjamo izgled ćelije da doda "RSD" na kraj
+            iznosCol.setCellFactory(column -> new TableCell<UplataResponse, Double>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        // Formatiranje: 5.000,00 RSD
+                        setText(String.format("%,.2f RSD", item));
+                    }
+                }
+            });
+        }
+
+        // 3. SVRHA UPLATE
+        if (svrhaCol != null) {
+            // Povezujemo sa poljem "svrhaUplate" iz klase UplataResponse
+            svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
+        }
+    }
     public void popuniFormuIzBaze(StudentPodaciResponse student) {
+        // 1. Osnovni podaci (Zaključavanje)
         postaviTekstIZakljucaj(imeTf, student.getIme());
         postaviTekstIZakljucaj(prezimeTf, student.getPrezime());
+        postaviTekstIZakljucaj(srednjeImeTf, student.getSrednjeIme());
         postaviTekstIZakljucaj(jmbgTf, student.getJmbg());
         postaviTekstIZakljucaj(brojIndeksaTf, String.valueOf(student.getBrojIndeksa()));
         postaviTekstIZakljucaj(godinaUpisaTf, String.valueOf(student.getGodinaUpisa()));
-        postaviTekstIZakljucaj(srednjeImeTf, student.getSrednjeIme());
         postaviTekstIZakljucaj(adresaTf, student.getAdresa());
         postaviTekstIZakljucaj(nacionalnostTf, student.getNacionalnost());
         postaviTekstIZakljucaj(brojLicneKarteTf, student.getBrojLicneKarte());
-
+        postaviTekstIZakljucaj(mestoRodjenjaTf, student.getMestoRodjenja());
+        postaviTekstIZakljucaj(drzavaRodjenjaTf, student.getDrzavaRodjenja());
+        postaviTekstIZakljucaj(drzavljanstvoTf, student.getDrzavljanstvo());
         if (datumRodjenjaDp != null) {
             datumRodjenjaDp.setValue(student.getDatumRodjenja());
             datumRodjenjaDp.setDisable(true);
+            datumRodjenjaDp.setStyle("-fx-opacity: 1; -fx-background-color: #eeeeee;");
         }
 
         if (student.getPol() != null) {
-            String polStr = String.valueOf(student.getPol());
-            if (polStr.equalsIgnoreCase("M")) {
-                if (muski != null) { muski.setSelected(true); muski.setDisable(true); }
-                if (zenski != null) zenski.setDisable(true);
-            } else {
-                if (zenski != null) { zenski.setSelected(true); zenski.setDisable(true); }
-                if (muski != null) muski.setDisable(true);
-            }
+            boolean jeMusko = String.valueOf(student.getPol()).equalsIgnoreCase("M");
+            if (muski != null) { muski.setSelected(jeMusko); muski.setDisable(true); }
+            if (zenski != null) { zenski.setSelected(!jeMusko); zenski.setDisable(true); }
         }
     }
 
@@ -193,7 +234,44 @@ public class StudentController {
             tf.setStyle("-fx-background-color: #eeeeee;");
         }
     }
+    public void prikaziStudenta(StudentPodaciResponse student) {
+        if (student == null) return;
 
+        // 1. Popuni i zaključaj polja (ovo poziva tvoju pomoćnu metodu)
+        popuniFormuIzBaze(student);
+
+        // 2. Učitaj dodatne tabele (ispiti, uplate)
+        ucitajDetaljeStudenta(student.getId());
+    }
+    private void ucitajDetaljeStudenta(Long studentId) {
+        try {
+            List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
+            List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(Math.toIntExact(studentId));
+            List<UplataResponse> uplate = studentService.getUplate(studentId);
+
+            polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
+            nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni));
+            uplateTable.setItems(FXCollections.observableArrayList(uplate));
+            System.out.println("DEBUG UPLATE za ID " + studentId + ":");
+            if (uplate == null) {
+                System.out.println(" -> Lista je NULL!");
+            } else {
+                System.out.println(" -> Broj uplata: " + uplate.size());
+                uplate.forEach(u -> System.out.println(" -> Uplata: " + u.getIznosRsd()));
+            }
+            if (uplateTable != null) {
+                if (uplate != null) {
+                    uplateTable.setItems(FXCollections.observableArrayList(uplate));
+                } else {
+                    uplateTable.setItems(FXCollections.emptyObservableList());
+                }
+            }
+            // Obavezno proračunaj prosek
+            obracunajAkademskiStatus(polozeni);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public void updateSrednjeSkole() {
         try {
             srednjaSkolaCb.setItems(FXCollections.observableArrayList(sifarniciService.getSrednjeSkole()));

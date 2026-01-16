@@ -636,6 +636,26 @@ public class StudentProfileService  {
                     "Nije moguće obrisati studenta zbog ograničenja integriteta u bazi podataka.");
         }
     }
+    public List<UplataResponse> getSveUplate(Long studentId) {
+        // 1. Provera postojanja studenta
+        StudentPodaci student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
+
+        // 2. Povlačenje uplata iz baze
+        List<Uplata> uplate = uplataRepository.findByStudentPodaciId(studentId);
+
+        // 3. Mapiranje u Response
+        return uplate.stream().map(u -> {
+            UplataResponse r = new UplataResponse();
+            r.setDatumUplate(u.getDatumUplate());
+            r.setIznosRsd(u.getIznosRsd());
+            r.setIznosEur(u.getIznosEur());
+            r.setSrednjiKurs(u.getSrednjiKurs());
+            // Mapiramo napomenu u svrhuUplate
+            r.setSvrhaUplate(u.getNapomena() != null ? u.getNapomena() : "Uplata");
+            return r;
+        }).collect(Collectors.toList());
+    }
     /*
     @Transactional
     public void obrisiStudenta(Long studentId) {
