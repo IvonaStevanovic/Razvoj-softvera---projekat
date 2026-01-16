@@ -33,6 +33,10 @@ public class StudProgramiPrikazController {
 
     @Autowired
     private NavigationService navigationService;
+    @FXML private TextField txtGodinaOd;
+    @FXML private TextField txtGodinaDo;
+    @FXML private Label lblProsekRezultat;
+
 
     @FXML
     public void initialize() {
@@ -84,7 +88,41 @@ public class StudProgramiPrikazController {
             });
         }
     }
+    @FXML
+    private void handleShowProsekPopUp() {
+        PredmetResponse selektovaniPredmet = tablePredmeti.getSelectionModel().getSelectedItem();
 
+        if (selektovaniPredmet == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte predmet u tabeli!").show();
+            return;
+        }
+
+        // Kreiramo jednostavan dijalog za unos raspona godina
+        // Možeš koristiti i custom FXML ako želiš lepši dizajn, ali ovo je najbrže
+        TextInputDialog dialog = new TextInputDialog("2020-2026");
+        dialog.setTitle("Prosek ocena");
+        dialog.setHeaderText("Statistika za predmet: " + selektovaniPredmet.getNaziv());
+        dialog.setContentText("Unesite raspon godina (npr. 2022-2025):");
+
+        dialog.showAndWait().ifPresent(unos -> {
+            try {
+                String[] godine = unos.split("-");
+                Integer odG = Integer.parseInt(godine[0].trim());
+                Integer doG = Integer.parseInt(godine[1].trim());
+
+                // Pozivamo servis koji smo već pripremili
+                studProgramService.getProsekZaPredmet(selektovaniPredmet.getId(), odG, doG, prosek -> {
+                    Alert info = new Alert(Alert.AlertType.INFORMATION);
+                    info.setTitle("Rezultat statistike");
+                    info.setHeaderText("Prosečna ocena na predmetu");
+                    info.setContentText(String.format("Prosek za period %d-%d iznosi: %.2f", odG, doG, prosek));
+                    info.show();
+                });
+            } catch (Exception e) {
+                new Alert(Alert.AlertType.ERROR, "Neispravan format. Unesite npr: 2022-2025").show();
+            }
+        });
+    }
     private void prikaziPredmeteZaProgram(StudijskiProgramResponse program) {
         studProgramService.getPredmetiByProgram(program.getId(), predmeti -> {
             tablePredmeti.getItems().setAll(predmeti);

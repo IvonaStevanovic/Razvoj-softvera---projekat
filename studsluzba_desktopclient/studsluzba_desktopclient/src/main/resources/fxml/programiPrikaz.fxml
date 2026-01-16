@@ -22,6 +22,7 @@
                     </columns>
                 </TableView>
                 <Button text="Dodaj novi predmet"  onAction="#handleOpenAddPredmetPopUp" styleClass="primary-button" />
+                <Button text="Prikaži prosek" onAction="#handleShowProsekPopUp" styleClass="secondary-button" />
             </VBox>
         </items>
     </SplitPane>

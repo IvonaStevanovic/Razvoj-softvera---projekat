@@ -51,6 +51,16 @@ public class StudProgramService {
                         err -> Platform.runLater(() -> errorCallback.accept(err.getMessage()))
                 );
     }
+    public void getProsekZaPredmet(Long predmetId, Integer odG, Integer doG, Consumer<Double> callback) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/api/predmet/{id}/prosek")
+                        .queryParam("odGodina", odG)
+                        .queryParam("doGodina", doG)
+                        .build(predmetId))
+                .retrieve()
+                .bodyToMono(Double.class)
+                .subscribe(prosek -> Platform.runLater(() -> callback.accept(prosek)));
+    }
     public void deletePredmet(Long id, Runnable successCallback, Consumer<String> errorCallback) {
         webClient.delete()
                 .uri("/api/predmet/{id}", id)
