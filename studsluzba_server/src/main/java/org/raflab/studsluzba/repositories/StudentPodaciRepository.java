@@ -28,7 +28,6 @@ public interface StudentPodaciRepository extends JpaRepository<StudentPodaci, Lo
 
 
 
-
     /*
     Optional<StudentPodaci> findByEmailFakultetIgnoreCase(String emailFakultet);
 

@@ -1,41 +1,61 @@
-package org.raflab.studsluzba.controllers.response;
+package org.raflab.studsluzbadesktopclient.dtos;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+
 
 import java.time.LocalDate;
+
 @Data
-@NoArgsConstructor // Zamenjuje tvoj prazan konstruktor
-public class StudentPodaciResponse {
-    private Long id;
+public class StudentPodaciRequest {
+
+    @NotNull
     private String ime;
+    @NotNull
     private String prezime;
+    @NotNull
     private String srednjeIme;
+    @NotNull
     private String jmbg;
+    @NotNull
     private LocalDate datumRodjenja;
     private String mestoRodjenja;
+    @NotNull
     private String mestoPrebivalista;
     private String drzavaRodjenja;
+    @NotNull
     private String drzavljanstvo;
     private String nacionalnost;
+    @NotNull
     private Character pol;
+    @NotNull
     private String adresa;
     private String brojTelefonaMobilni;
     private String brojTelefonaFiksni;
+    @NotNull
     private String emailFakultet;
     private String emailPrivatni;
     private String brojLicneKarte;
     private String licnuKartuIzdao;
+
+
+    private Double uspehSrednjaSkola;
+    private Double uspehPrijemni;
+
+
+    @NotNull
+    private Long srednjaSkolaId;
+
+    @NotNull
+    private Integer brojIndeksa;
+
+    @NotNull
+    private int godinaUpisa;
+
+    @NotNull
+    private String studProgramOznaka;
+
+    private String nacinFinansiranja;
     private String mestoStanovanja;
     private String adresaStanovanja;
-    private Integer godinaUpisa;
-    private Integer brojIndeksa; // Ključno za specifikaciju
-    private String srednjaSkola; // Naziv škole iz šifarnika
-    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
-        this.id = id;
-        this.ime = ime;
-        this.prezime = prezime;
-        this.brojIndeksa = brojIndeksa;
-    }
 }

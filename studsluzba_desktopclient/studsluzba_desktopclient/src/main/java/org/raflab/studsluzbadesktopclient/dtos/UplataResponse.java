@@ -1,8 +1,9 @@
-package org.raflab.studsluzba.controllers.response;
+package org.raflab.studsluzbadesktopclient.dtos;
 
 import lombok.Data;
 
 import java.time.LocalDate;
+
 @Data
 public class UplataResponse {
     private LocalDate datumUplate;
@@ -13,11 +14,11 @@ public class UplataResponse {
     public UplataResponse() {
     }
 
-    public UplataResponse(LocalDate datumUplate, Double iznosEur, Double iznosRsd, Double srednjiKurs) {
+    public UplataResponse(LocalDate datumUplate, Double iznosEur, Double iznosRsd, Double srednjiKurs,String svrhaUplate) {
         this.datumUplate = datumUplate;
         this.iznosEur = iznosEur;
         this.iznosRsd = iznosRsd;
         this.srednjiKurs = srednjiKurs;
+        this.svrhaUplate = svrhaUplate;
     }
-
 }

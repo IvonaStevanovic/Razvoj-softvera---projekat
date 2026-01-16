@@ -120,23 +120,35 @@ public class StudentController {
     public Page<StudentPodaciResponse> searchStudente(
             @RequestParam(required = false) String ime,
             @RequestParam(required = false) String prezime,
+            @RequestParam(required = false) String indeks, // <--- NOVO: Dodat parametar
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return studentProfileService.searchStudente(ime, prezime, page, size);
+        // Prosleđujemo 'indeks' (koji može biti null, "12" ili "12/2023") u servis
+        return studentProfileService.searchStudente(ime, prezime, indeks, page, size);
     }
-
     @GetMapping("/srednja-skola")
     public List<StudentPodaciResponse> getStudentiPoSrednjojSkoli(
             @RequestParam String srednjaSkola
     ) {
         return studentProfileService.getStudentiPoSrednjojSkoli(srednjaSkola);
     }
-
+    @GetMapping("/srednja-skola/all")
+    public List<SrednjaSkolaResponse> getAllSkole() {
+        // Pozivamo metodu iz servisa koju smo ranije videli
+        // studentProfileService bi trebalo da ima pristup SrednjaSkolaRepository-u
+        return studentProfileService.getAllSrednjeSkole();
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> obrisiStudenta(@PathVariable Long id) {
         studentProfileService.obrisiStudenta(id);
         return ResponseEntity.ok("Student i svi povezani podaci su obrisani.");
+    }
+    @GetMapping("uplate/student/{studentId}")
+    public ResponseEntity<List<UplataResponse>> getUplateZaStudenta(@PathVariable Long studentId) {
+        List<UplataResponse> uplate = studentProfileService.getSveUplate(studentId);
+
+        return ResponseEntity.ok(uplate);
     }
 /*
     private final StudentPodaciRepository studentPodaciRepository;

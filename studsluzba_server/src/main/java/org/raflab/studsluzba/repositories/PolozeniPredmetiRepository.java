@@ -30,7 +30,8 @@ public interface PolozeniPredmetiRepository extends JpaRepository<PolozeniPredme
     // Za sve položene predmete određenog studenta
     @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.id = :studentIndeksId AND p.ocena IS NOT NULL")
     List<PolozeniPredmeti> findPolozeniByStudentIndeks(@Param("studentIndeksId") Long studentIndeksId);
-
+    @Query("SELECT p FROM PolozeniPredmeti p WHERE p.studentIndeks.student.id = :studentId")
+    List<PolozeniPredmeti> findAllByStudentId(@Param("studentId") Long studentId);
     @Modifying
     @Transactional
     @Query("DELETE FROM PolozeniPredmeti p WHERE p.studentIndeks = :indeks")

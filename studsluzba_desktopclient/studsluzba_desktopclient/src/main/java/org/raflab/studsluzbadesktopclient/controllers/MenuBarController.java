@@ -1,44 +1,48 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
+import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.control.MenuBar;
 import org.raflab.studsluzbadesktopclient.MainView;
-import org.raflab.studsluzbadesktopclient.services.StudentService;
+import org.raflab.studsluzbadesktopclient.services.NavigationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.MenuBar;
-
 @Component
-public class MenuBarController { 
+public class MenuBarController {
 
-	final MainView mainView;
-	final StudentService studentService;
+    private final MainView mainView;
+    private final NavigationService navigationService;
 
-	@FXML
-	private MenuBar menuBar;
+    @FXML
+    private MenuBar menuBar;
 
-    public MenuBarController(StudentService studentService, MainView mainView){
-        this.studentService = studentService;
+    @Autowired
+    public MenuBarController(MainView mainView, NavigationService navigationService) {
         this.mainView = mainView;
+        this.navigationService = navigationService;
     }
 
-	public void openSearchStudent() {
-		mainView.changeRoot("searchStudent");
-	}
+    @FXML
+    public void openSearchStudent() {
+        Parent view = mainView.loadPane("searchStudent");
+        navigationService.navigateTo(view);
+    }
 
-	public void openNewStudent() {
-		mainView.changeRoot("newStudent");
-	}
+    @FXML
+    public void openNewStudent() {
+        Parent view = mainView.loadPane("newStudent");
+        navigationService.navigateTo(view);
+    }
 
-	public void openEventsPage(){
-		mainView.changeRoot("events");
-	}
+    @FXML
+    public void openReportsPage() {
+        Parent view = mainView.loadPane("reports");
+        navigationService.navigateTo(view);
+    }
 
-	public void openReportsPage(){
-		mainView.changeRoot("reports");
-	}
-
-	@FXML
-    public void initialize() {		
-
+    @FXML
+    public void handleBack() {
+        navigationService.goBack();
     }
 }

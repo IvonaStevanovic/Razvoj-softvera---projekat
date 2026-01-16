@@ -1,10 +1,10 @@
-package org.raflab.studsluzba.controllers.response;
+package org.raflab.studsluzbadesktopclient.dtos;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor // Zamenjuje tvoj prazan konstruktor
 public class StudentPodaciResponse {
@@ -19,7 +19,7 @@ public class StudentPodaciResponse {
     private String drzavaRodjenja;
     private String drzavljanstvo;
     private String nacionalnost;
-    private Character pol;
+    private String pol;
     private String adresa;
     private String brojTelefonaMobilni;
     private String brojTelefonaFiksni;
@@ -32,10 +32,36 @@ public class StudentPodaciResponse {
     private Integer godinaUpisa;
     private Integer brojIndeksa; // Ključno za specifikaciju
     private String srednjaSkola; // Naziv škole iz šifarnika
-    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
+    public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa,Integer godinaUpisa) {
         this.id = id;
         this.ime = ime;
         this.prezime = prezime;
         this.brojIndeksa = brojIndeksa;
     }
+
+    public void setPol(String pol) {
+        if (pol != null && (pol.equalsIgnoreCase("M") || pol.equalsIgnoreCase("Ž"))) {
+            this.pol = pol.toUpperCase();
+        }
+    }
+
+    public int getGodinaUpisa() {
+        return godinaUpisa;
+    }
+
+    public void setGodinaUpisa(int godinaUpisa) {
+        this.godinaUpisa = godinaUpisa;
+    }
+
+    public int getBrojIndeksa() {
+        return brojIndeksa;
+    }
+
+    public void setBrojIndeksa(int brojIndeksa) {
+        this.brojIndeksa = brojIndeksa;
+    }
+    public String getEmailFakultet() {
+        return emailFakultet;
+    }
+    public String getJmbg() { return jmbg; }
 }

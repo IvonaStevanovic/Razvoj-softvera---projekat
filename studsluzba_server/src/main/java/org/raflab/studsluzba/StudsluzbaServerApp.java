@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -15,6 +16,11 @@ public class StudsluzbaServerApp {
 	public static void main(String[] args) {
 		SpringApplication.run(StudsluzbaServerApp.class, args);
 	}
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
 //	@Bean
 //	ApplicationRunner h2Reporter(Environment env, DataSource dataSource) {

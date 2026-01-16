@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
 
-<BorderPane fx:id="mainPane" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.raflab.studsluzbadesktopclient.controllers.MainWindowController">
- <center>
-     <fx:include source="searchStudent.fxml"/>
- </center>
+<!-- BorderPane je root jer MainView.java (linija 37) radi kasting (BorderPane)loader.load() -->
+<BorderPane fx:id="mainPane" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.MainWindowController">
+    <top>
+        <!-- JEDINO mesto gde treba da bude meni -->
+        <fx:include source="menuBar.fxml" />
+    </top>
+
+    <center>
+        <!-- StackPane contentArea koji tvoj kontroler koristi za navigaciju -->
+        <StackPane fx:id="contentArea" BorderPane.alignment="CENTER" />
+    </center>
 </BorderPane>

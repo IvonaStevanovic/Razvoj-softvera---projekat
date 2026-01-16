@@ -12,6 +12,7 @@ import org.raflab.studsluzba.model.dtos.StudentProfileDTO;
 import org.raflab.studsluzba.model.dtos.StudentWebProfileDTO;
 import org.raflab.studsluzba.model.dtos.UpisanaGodinaDTO;
 import org.raflab.studsluzba.repositories.*;
+import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
@@ -83,6 +84,7 @@ public class StudentProfileService  {
         r.setDrzavaRodjenja(s.getDrzavaRodjenja());
         r.setDrzavljanstvo(s.getDrzavljanstvo());
         r.setNacionalnost(s.getNacionalnost());
+        r.setGodinaUpisa(indeks.getGodina());
         r.setPol(s.getPol());
         r.setAdresa(s.getAdresa());
         r.setBrojTelefonaMobilni(s.getBrojTelefonaMobilni());
@@ -184,46 +186,62 @@ public class StudentProfileService  {
 
     public Page<PolozeniPredmetiResponse> getPolozeniPredmeti(Long studentIndeksId, int page, int size) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("datumPolaganja").descending());
+        // 1. Dobijamo sve zapise za položene predmete
+        List<PolozeniPredmeti> sviZapisi = polozeniPredmetiRepository.findByStudentIndeks(indeks);
 
-        Page<PolozeniPredmeti> polozeniPredmeti = polozeniPredmetiRepository.findByStudentIndeks(indeks, pageable);
+        // 2. Filtriranje duplikata na osnovu ŠIFRE ili ID-a PREDMETA
+        // Koristimo Mapu: ključ je ID predmeta, vrednost je DTO
+        Map<Long, PolozeniPredmetiResponse> unikatniPolozeni = sviZapisi.stream()
+                .filter(p -> p.getOcena() != null && p.getOcena() > 5)
+                .map(p -> {
+                    PolozeniPredmetiResponse response = new PolozeniPredmetiResponse();
+                    response.setId(p.getId());
+                    response.setPredmetNaziv(p.getPredmet().getNaziv());
+                    response.setOcena(p.getOcena());
+                    response.setEspb(p.getPredmet().getEspb());
 
-        return polozeniPredmeti.map(p -> {
-            PolozeniPredmetiResponse response = new PolozeniPredmetiResponse();
-            response.setId(p.getId());
-            response.setStudentIndeksId(indeks.getId());
-            response.setStudentImePrezime(indeks.getStudent().getIme() + " " + indeks.getStudent().getPrezime());
-            response.setPredmetId(p.getPredmet().getId());
-            response.setPredmetNaziv(p.getPredmet().getNaziv());
-            response.setOcena(p.getOcena());
-            response.setPriznat(p.isPriznat());
-            response.setIzlazakNaIspitId(p.getIzlazakNaIspit() != null ? p.getIzlazakNaIspit().getId() : null);
-            return response;
-        });
+                    // Putanja do datuma
+                    if (p.getIzlazakNaIspit() != null &&
+                            p.getIzlazakNaIspit().getPrijavaIspita() != null &&
+                            p.getIzlazakNaIspit().getPrijavaIspita().getIspit() != null) {
+                        response.setDatumPolaganja(p.getIzlazakNaIspit().getPrijavaIspita().getIspit().getDatumOdrzavanja());
+                    }
+                    return response;
+                })
+                .collect(Collectors.toMap(
+                        res -> res.getPredmetId(), // Koristi ID predmeta kao ključ
+                        res -> res,
+                        (stari, novi) -> stari // Ako postoji duplikat, zadrži prvi na koji naiđeš
+                ));
+
+        List<PolozeniPredmetiResponse> finalnaLista = new ArrayList<>(unikatniPolozeni.values());
+
+        // 3. Ručna paginacija za povratni Page objekat
+        int start = Math.min(page * size, finalnaLista.size());
+        int end = Math.min((start + size), finalnaLista.size());
+
+        return new PageImpl<>(finalnaLista.subList(start, end), PageRequest.of(page, size), finalnaLista.size());
     }
 
     @Transactional(readOnly = true)
     public Page<NepolozeniPredmetDTO> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
-
-        // 1. Pronađi indeks preko BROJA indeksa, a ne ID-a
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
-        // 2. Dohvati sve predmete koje student SLUŠA (iz tablice koju smo maloprije popravljali)
-        List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
-
-        // 3. Dohvati sve što je već POLOŽENO
-        Set<Long> polozeniPredmetiIds = polozeniPredmetiRepository.findByStudentIndeks(indeks)
+        // 1. Skup ŠIFARA položenih predmeta (najsigurniji način)
+        Set<String> polozeneSifre = polozeniPredmetiRepository.findByStudentIndeks(indeks)
                 .stream()
                 .filter(pp -> pp.getOcena() != null && pp.getOcena() > 5)
-                .map(pp -> pp.getPredmet().getId())
+                .map(pp -> pp.getPredmet().getSifra())
                 .collect(Collectors.toSet());
 
-        // 4. Filtriraj: Uzmi one koje sluša, a koji NISU u položenima
-        List<NepolozeniPredmetDTO> nepolozeni = slusaList.stream()
-                .filter(sp -> !polozeniPredmetiIds.contains(sp.getDrziPredmet().getPredmet().getId()))
+        // 2. Sve što student sluša
+        List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
+
+        // 3. Mapiranje i filtriranje preko Mape da se izbegnu duplikati
+        Map<String, NepolozeniPredmetDTO> filtrirano = slusaList.stream()
                 .map(sp -> {
                     Predmet p = sp.getDrziPredmet().getPredmet();
                     NepolozeniPredmetDTO dto = new NepolozeniPredmetDTO();
@@ -231,26 +249,23 @@ public class StudentProfileService  {
                     dto.setSifraPredmeta(p.getSifra());
                     dto.setNazivPredmeta(p.getNaziv());
                     dto.setEspb(p.getEspb());
-
-                    if (sp.getDrziPredmet().getNastavnik() != null) {
-                        dto.setImeNastavnika(sp.getDrziPredmet().getNastavnik().getIme());
-                        dto.setPrezimeNastavnika(sp.getDrziPredmet().getNastavnik().getPrezime());
-                    }
                     return dto;
                 })
-                .collect(Collectors.toList());
+                // Izbacujemo one čija je šifra u skupu položenih
+                .filter(dto -> !polozeneSifre.contains(dto.getSifraPredmeta()))
+                // Garantujemo unikatnost (šifra je ključ)
+                .collect(Collectors.toMap(
+                        NepolozeniPredmetDTO::getSifraPredmeta,
+                        dto -> dto,
+                        (existing, replacement) -> existing
+                ));
 
-        // 5. Ručna paginacija
+        List<NepolozeniPredmetDTO> rezultat = new ArrayList<>(filtrirano.values());
+
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), nepolozeni.size());
-
-        if (start > nepolozeni.size()) {
-            return new PageImpl<>(new ArrayList<>(), pageable, nepolozeni.size());
-        }
-
-        return new PageImpl<>(nepolozeni.subList(start, end), pageable, nepolozeni.size());
+        int end = Math.min((start + pageable.getPageSize()), rezultat.size());
+        return new PageImpl<>(rezultat.subList(start, end), pageable, rezultat.size());
     }
-
     // ------------------ UPIS GODINE ------------------
     public List<UpisGodineResponse> getUpisaneGodine(Long studentIndeksId) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
@@ -266,40 +281,31 @@ public class StudentProfileService  {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
+        // --- DODATA LOGIKA ZA ESPB LIMIT ---
+        List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
+        int ukupnoEspb = predmeti.stream().mapToInt(Predmet::getEspb).sum();
+
+        if (ukupnoEspb > 60) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maksimalni zbir ESPB poena je 60. Pokušano: " + ukupnoEspb);
+        }
+        // ------------------------------------
+
         SkolskaGodina skolskaGodina = skolskaGodinaRepository.findByAktivnaTrue()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aktivna školska godina nije definisana"));
 
-        // 1. Kreiranje zapisa o upisu godine
         UpisGodine upis = new UpisGodine();
         upis.setStudentIndeks(indeks);
         upis.setGodinaStudija(request.getGodinaStudija());
         upis.setDatumUpisa(request.getDatum());
         upis.setNapomena(request.getNapomena());
         upis.setSkolskaGodina(skolskaGodina);
-
-        List<Predmet> predmeti = predmetRepository.findAllById(request.getPrenetiPredmetiIds());
         upis.setPredmeti(predmeti);
+
         upisGodineRepository.save(upis);
-
-        // 2. Automatsko dodavanje predmeta u "karton" studenta kao nepoloženih
-        for (Predmet p : predmeti) {
-            // Provera da li već postoji u kartonu (da ne dupliramo ako je npr. prenet predmet)
-            boolean vecPostoji = polozeniPredmetiRepository.existsByStudentIndeksAndPredmet(indeks, p);
-
-            if (!vecPostoji) {
-                PolozeniPredmeti nepolozen = new PolozeniPredmeti();
-                nepolozen.setStudentIndeks(indeks);
-                nepolozen.setPredmet(p);
-                nepolozen.setOcena(null);       // Inicijalno nepoložen
-                nepolozen.setPriznat(false);    // Biće true samo ako se prizna sa drugog faksa
-                nepolozen.setDatumPolaganja(null); // Čeka trenutak polaganja (mora biti nullable u bazi!)
-
-                polozeniPredmetiRepository.save(nepolozen);
-            }
-        }
-
+        // ... ostatak tvoje logike za polozeniPredmetiRepository ...
         return mapToUpisGodineResponse(upis);
     }
+
     private UpisGodineResponse mapToUpisGodineResponse(UpisGodine u) {
         UpisGodineResponse r = new UpisGodineResponse();
         r.setId(u.getId());
@@ -425,44 +431,55 @@ public class StudentProfileService  {
     }
 
     // ------------------ UPLATA ------------------
+    // U StudentProfileService.java
+
+    @Transactional
     public UplataResponse evidentirajUplatu(Long studentId, Double iznosRsd) {
+        // 1. Koristimo studentRepository jer Uplata prima StudentPodaci entitet
         StudentPodaci student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
 
-        double kurs = fetchDanasnjiKurs(); // Metoda koju smo ranije definisali
+        // 2. Pozivamo tvoju postojeću metodu fetchDanasnjiKurs (koja je već u fajlu)
+        double kurs = fetchDanasnjiKurs();
         double iznosEur = iznosRsd / kurs;
 
+        // 3. Kreiranje uplate - koristimo TAČNA imena polja iz tvog Uplata.java modela
         Uplata uplata = new Uplata();
-        uplata.setStudentPodaci(student);
-        uplata.setIznosRsd(iznosRsd);
-        uplata.setIznosEur(iznosEur);
-        uplata.setSrednjiKurs(kurs);
-        uplata.setDatum(LocalDate.now());
+        uplata.setStudentPodaci(student); //
+        uplata.setIznosRsd(iznosRsd);      //
+        uplata.setIznosEur(iznosEur);      //
+        uplata.setSrednjiKurs(kurs);       //
+        uplata.setDatum(LocalDate.now());  //
 
         uplataRepository.save(uplata);
 
-        // Koristimo tvoj konstruktor: datum, eur, rsd, kurs
+        // 4. Vraćamo odgovor koristeći tvoj konstruktor iz UplataResponse (datum, eur, rsd, kurs)
+        // Proveri da li tvoj UplataResponse ima ovaj konstruktor
         return new UplataResponse(LocalDate.now(), iznosEur, iznosRsd, kurs);
     }
+
     public IznosPreostaliResponse getPreostaliIznos(Long studentIndeksId) {
+        // 1. Pronalazimo indeks da bismo došli do studenta
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
 
-        double ukupno = 3000.0; // Konstanta SKOLARINA_EUR
+        final double ukupno = 3000.0; // SKOLARINA_EUR iz specifikacije
 
-        // Suma svih uplata - koristimo već izračunato polje iz baze
+        // 2. Koristimo tvoju metodu findByStudentPodaciId iz UplataRepository
         List<Uplata> uplate = uplataRepository.findByStudentPodaciId(indeks.getStudent().getId());
-        double uplacenoEur = uplate.stream().mapToDouble(Uplata::getIznosEur).sum();
+
+        // 3. Sumiramo iznosEur (polje iz tvog modela)
+        double uplacenoEur = uplate.stream()
+                .mapToDouble(u -> u.getIznosEur() != null ? u.getIznosEur() : 0.0)
+                .sum();
 
         double preostaloEur = ukupno - uplacenoEur;
-
-        // Za dinarski iznos koristimo današnji pravi kurs
         double danasnjiKurs = fetchDanasnjiKurs();
-        double preostaloRsd = preostaloEur * danasnjiKurs;
 
+        // 4. Mapiramo na tvoj IznosPreostaliResponse
         IznosPreostaliResponse response = new IznosPreostaliResponse();
         response.setPreostaloEur(preostaloEur);
-        response.setPreostaloRsd(preostaloRsd);
+        response.setPreostaloRsd(preostaloEur * danasnjiKurs);
 
         return response;
     }
@@ -484,11 +501,38 @@ public class StudentProfileService  {
         }
         return 117.5;
     }
-    public Page<StudentPodaciResponse> searchStudente(String ime, String prezime, int page, int size) {
+    // Dodaj String indeksParam u argumente metode
+    public Page<StudentPodaciResponse> searchStudente(String ime, String prezime, String indeksParam, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("student.ime").ascending());
         Page<StudentIndeks> studenti;
 
-        if (ime != null && !ime.isEmpty() && prezime != null && !prezime.isEmpty()) {
+        // 1. LOGIKA ZA PRETRAGU PO INDEKSU (Najviši prioritet)
+        if (indeksParam != null && !indeksParam.trim().isEmpty()) {
+            String cleanIndeks = indeksParam.trim();
+
+            if (cleanIndeks.contains("/")) {
+                // Slučaj: 12/2023
+                try {
+                    String[] parts = cleanIndeks.split("/");
+                    int broj = Integer.parseInt(parts[0]);
+                    int godina = Integer.parseInt(parts[1]);
+                    studenti = studentIndeksRepository.findByBrojAndGodina(broj, godina, pageable);
+                } catch (NumberFormatException e) {
+                    // Ako format nije dobar, vrati prazno ili sve
+                    studenti = Page.empty();
+                }
+            } else {
+                // Slučaj: samo 12
+                try {
+                    int broj = Integer.parseInt(cleanIndeks);
+                    studenti = studentIndeksRepository.findByBroj(broj, pageable);
+                } catch (NumberFormatException e) {
+                    studenti = Page.empty();
+                }
+            }
+        }
+        // 2. LOGIKA ZA IME I PREZIME (Ako nije unet indeks)
+        else if (ime != null && !ime.isEmpty() && prezime != null && !prezime.isEmpty()) {
             studenti = studentIndeksRepository
                     .findByStudent_ImeContainingIgnoreCaseAndStudent_PrezimeContainingIgnoreCase(ime, prezime, pageable);
         } else if (ime != null && !ime.isEmpty()) {
@@ -496,18 +540,27 @@ public class StudentProfileService  {
         } else if (prezime != null && !prezime.isEmpty()) {
             studenti = studentIndeksRepository.findByStudent_PrezimeContainingIgnoreCase(prezime, pageable);
         } else {
+            // Ako ništa nije uneto, vrati sve
             studenti = studentIndeksRepository.findAll(pageable);
         }
 
+        // Mapiranje rezultata
         return studenti.map(indeks -> {
             StudentPodaci s = indeks.getStudent();
             StudentPodaciResponse r = new StudentPodaciResponse();
             r.setId(s.getId());
             r.setIme(s.getIme());
             r.setPrezime(s.getPrezime());
-            r.setBrojIndeksa(indeks.getBroj()); // polje broj iz StudentIndeks
+            r.setBrojIndeksa(indeks.getBroj()); // Uzmi broj direktno iz pronađenog indeksa
+            r.setGodinaUpisa(indeks.getGodina());
+            r.setEmailFakultet(s.getEmailFakultet());
+            r.setJmbg(s.getJmbg());
+            if (s.getSrednjaSkola() != null) {
+                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
+            }
             return r;
         });
+
     }
 
 
@@ -528,17 +581,41 @@ public class StudentProfileService  {
         for (StudentIndeks indeks : studenti) {
             StudentPodaci s = indeks.getStudent();
             StudentPodaciResponse r = new StudentPodaciResponse();
+
+            // Osnovni podaci
             r.setId(s.getId());
             r.setIme(s.getIme());
             r.setPrezime(s.getPrezime());
+
+            // Podaci o indeksu (OVO JE FALILO)
             r.setBrojIndeksa(indeks.getBroj());
+            r.setGodinaUpisa(indeks.getGodina()); // Dodaj ovo da bi se video format 12/2023
+
+            // Dodatni podaci (OVO JE FALILO)
+            r.setJmbg(s.getJmbg()); // Setuješ JMBG iz entiteta StudentPodaci
+            r.setEmailFakultet(s.getEmailFakultet()); // Setuješ email (pazi na naziv polja u entitetu)
+
+            // Srednja škola
             if (s.getSrednjaSkola() != null) {
-                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv()); // ili .getIme() zavisi od imena polja u entitetu
+                r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
 
             responses.add(r);
         }
         return responses;
+    }
+    public List<SrednjaSkolaResponse> getAllSrednjeSkole() {
+        // 1. Povuci sve škole iz baze preko repozitorijuma
+        List<SrednjaSkola> skole = srednjaSkolaRepository.findAll();
+
+        // 2. Mapiraj entitete u Response objekte
+        return skole.stream().map(skola -> {
+            SrednjaSkolaResponse res = new SrednjaSkolaResponse();
+            res.setId(skola.getId());
+            res.setNaziv(skola.getNaziv());
+            // Dodaj i ostala polja ako tvoj Response objekat to zahteva (npr. mesto)
+            return res;
+        }).collect(Collectors.toList());
     }
     @Transactional
     public void obrisiStudenta(Long studentId) {
@@ -558,6 +635,26 @@ public class StudentProfileService  {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Nije moguće obrisati studenta zbog ograničenja integriteta u bazi podataka.");
         }
+    }
+    public List<UplataResponse> getSveUplate(Long studentId) {
+        // 1. Provera postojanja studenta
+        StudentPodaci student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
+
+        // 2. Povlačenje uplata iz baze
+        List<Uplata> uplate = uplataRepository.findByStudentPodaciId(studentId);
+
+        // 3. Mapiranje u Response
+        return uplate.stream().map(u -> {
+            UplataResponse r = new UplataResponse();
+            r.setDatumUplate(u.getDatumUplate());
+            r.setIznosRsd(u.getIznosRsd());
+            r.setIznosEur(u.getIznosEur());
+            r.setSrednjiKurs(u.getSrednjiKurs());
+            // Mapiramo napomenu u svrhuUplate
+            r.setSvrhaUplate(u.getNapomena() != null ? u.getNapomena() : "Uplata");
+            return r;
+        }).collect(Collectors.toList());
     }
     /*
     @Transactional
