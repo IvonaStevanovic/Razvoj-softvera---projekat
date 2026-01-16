@@ -49,17 +49,15 @@ public class IspitService {
     private PolozeniPredmetiRepository polozeniPredmetiRepository;
 
     @Transactional(readOnly = true)
+    // Na serveru u IspitService
     public List<IspitResponse> findAllResponses() {
-        List<Ispit> ispiti = ispitRepository.findAll();
-        return ispiti.stream().map(ispit -> {
+        return ispitRepository.findAll().stream().map(ispit -> {
             IspitResponse resp = new IspitResponse();
             resp.setId(ispit.getId());
-            resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
-            resp.setVremePocetka(ispit.getVremePocetka());
-            // ovo je safe jer je session jos uvek otvoren
             resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
-            resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
-            resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+            // KLJUČNA LINIJA:
+            resp.setIspitniRokId(ispit.getIspitniRok().getId());
+            resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
             return resp;
         }).collect(Collectors.toList());
     }

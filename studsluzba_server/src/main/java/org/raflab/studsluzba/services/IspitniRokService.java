@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.services;
 
+import org.raflab.studsluzba.controllers.response.IspitniRokResponse;
 import org.raflab.studsluzba.model.Ispit;
 import org.raflab.studsluzba.model.IspitniRok;
 import org.raflab.studsluzba.repositories.IspitniRokRepository;
@@ -11,11 +12,34 @@ import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class IspitniRokService {
     @Autowired
     private IspitniRokRepository repository;
+
+    @Transactional(readOnly = true)
+    public List<IspitniRokResponse> findAllResponses() {
+        List<IspitniRok> rokovi = (List<IspitniRok>) repository.findAll();
+
+        return rokovi.stream().map(rok -> {
+            IspitniRokResponse resp = new IspitniRokResponse();
+            resp.setId(rok.getId());
+            resp.setNaziv(rok.getNaziv());
+
+            // Mapiranje školske godine - važno za prikaz u klijentu
+            if (rok.getSkolskaGodina() != null) {
+                resp.setSkolskaGodinaId(rok.getSkolskaGodina().getId());
+                resp.setSkolskaGodinaNaziv(rok.getSkolskaGodina().getNaziv());
+            }
+
+            resp.setPocetak(rok.getDatumPocetka());
+            resp.setKraj(rok.getDatumZavrsetka());
+            resp.setAktivan(rok.getAktivan());
+            return resp;
+        }).collect(Collectors.toList());
+    }
 
     public List<IspitniRok> findAll() {
         return (List<IspitniRok>) repository.findAll();

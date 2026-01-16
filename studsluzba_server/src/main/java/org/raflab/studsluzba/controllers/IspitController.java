@@ -45,6 +45,14 @@ public class IspitController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/search/rok")
+    public List<IspitResponse> searchByRok(@RequestParam Long ispitniRokId) {
+        // Koristimo tvoju postojeću metodu iz IspitService da dohvatimo sve
+        // i filtriramo po roku koji je klijent selektovao u ComboBox-u
+        return ispitService.findAllResponses().stream()
+                .filter(i -> i.getIspitniRokId() != null && i.getIspitniRokId().equals(ispitniRokId))
+                .collect(Collectors.toList());
+    }
     // Pretraga ispita po nazivu predmeta ili roku
     @GetMapping("/search")
     public ResponseEntity<List<IspitResponse>> searchIspiti(

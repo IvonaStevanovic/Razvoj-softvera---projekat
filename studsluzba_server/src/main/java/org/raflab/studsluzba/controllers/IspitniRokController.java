@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.raflab.studsluzba.controllers.request.IspitniRokRequest;
 import org.raflab.studsluzba.controllers.response.IspitniRokResponse;
 import org.raflab.studsluzba.model.IspitniRok;
@@ -15,11 +16,16 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
-@CrossOrigin
 @RestController
-@RequestMapping("/api/ispitni-rok")
+@RequestMapping("/api/ispitni-rokovi") // Ova putanja mora odgovarati klijentu
+@RequiredArgsConstructor
 public class IspitniRokController {
+    private final IspitniRokService ispitniRokService;
+
+    @GetMapping("/all") // Putanja postaje /api/ispitni-rokovi/all
+    public List<IspitniRokResponse> getAll() {
+        return ispitniRokService.findAllResponses();
+    }
 /*
     @Autowired
     private IspitniRokService service;
