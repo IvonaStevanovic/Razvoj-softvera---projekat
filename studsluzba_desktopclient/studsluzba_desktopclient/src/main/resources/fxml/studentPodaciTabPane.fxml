@@ -10,7 +10,7 @@
     </padding>
 
     <HBox spacing="10">
-        <Button text="← Nazad na pretragu (Ctrl+[)" onAction="#handleBack"
+        <Button text="← Nazad" onAction="#handleBack"
                 style="-fx-font-weight: bold; -fx-cursor: hand;"/>
     </HBox>
 

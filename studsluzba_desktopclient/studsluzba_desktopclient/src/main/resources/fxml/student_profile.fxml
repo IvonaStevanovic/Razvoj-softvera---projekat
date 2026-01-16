@@ -5,6 +5,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.text.Font?>
 
+
 <VBox fx:id="korenskiVBox" onKeyPressed="#handleKeyPressed" spacing="10" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.StudentController">
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
