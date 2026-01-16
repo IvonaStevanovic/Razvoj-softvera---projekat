@@ -1,41 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 
-<!-- Glavni kontejner aplikacije. Svi ostali ekrani se učitavaju u "contentArea" -->
+<!-- BorderPane je root jer MainView.java (linija 37) radi kasting (BorderPane)loader.load() -->
 <BorderPane fx:id="mainPane" prefHeight="700.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.MainWindowController">
-
     <top>
-        <MenuBar BorderPane.alignment="CENTER">
-            <menus>
-                <Menu mnemonicParsing="false" text="Studenti">
-                    <items>
-                        <MenuItem fx:id="menuSearchStudent" mnemonicParsing="false" onAction="#handleSearchStudent" text="Pretraga studenata" />
-                        <MenuItem fx:id="menuNewStudent" mnemonicParsing="false" onAction="#handleNewStudent" text="Novi student" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Šifarnici">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Predmeti" />
-                        <MenuItem mnemonicParsing="false" text="Srednje škole" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Izveštaji">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Generiši izveštaje" />
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
+        <!-- JEDINO mesto gde treba da bude meni -->
+        <fx:include source="menuBar.fxml" />
     </top>
 
-    <!-- Ovde se dinamički menjaju ekrani (Pretraga, Profil, itd.) -->
     <center>
-        <StackPane fx:id="contentArea" prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+        <!-- StackPane contentArea koji tvoj kontroler koristi za navigaciju -->
+        <StackPane fx:id="contentArea" BorderPane.alignment="CENTER" />
     </center>
-
 </BorderPane>

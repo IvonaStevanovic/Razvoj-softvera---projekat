@@ -109,7 +109,7 @@ public class MainWindowController {
                 // 2. Učitavanje FXML-a (proveri da li je putanja tačno ova)
                 // Napomena: u prošloj poruci si poslala /fxml/student_profile.fxml,
                 // a ovde studentPodaciTabPane.fxml. Koristi ono što ti je u resursima!
-                FXMLLoader loader = contextLoader.getLoader("/fxml/studentPodaciTabPane.fxml");
+                FXMLLoader loader = contextLoader.getLoader("/fxml/student_profile.fxml");
                 Parent view = loader.load();
 
                 // 3. Povezivanje sa ispravnim kontrolerom
