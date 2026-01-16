@@ -135,84 +135,112 @@ public class StudentController {
         datumUplateCol.setCellValueFactory(new PropertyValueFactory<>("datumUplate"));
         iznosCol.setCellValueFactory(new PropertyValueFactory<>("iznos"));
         svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
-    }
+        if (predmetPolozioCol != null) predmetPolozioCol.setCellValueFactory(new PropertyValueFactory<>("nazivPredmeta"));
+        if (ocenaCol != null) ocenaCol.setCellValueFactory(new PropertyValueFactory<>("ocena"));
+        if (datumPolaganjaCol != null) datumPolaganjaCol.setCellValueFactory(new PropertyValueFactory<>("datumPolaganja"));
 
+        // Ova provera sprečava NullPointerException koji trenutno imaš
+        if (espbPolozioCol != null) {
+            espbPolozioCol.setCellValueFactory(new PropertyValueFactory<>("espb"));
+        }
+    }
     public void prikaziStudenta(StudentPodaciResponse student) {
         if (student == null) return;
 
-        // 1. Popunjavanje osnovnih polja (provera null za svako polje da ne pukne)
+        // --- 1. ZAKLJUČAVANJE POLJA (Read-only režim) ---
+        // Proveravamo svaki element pre nego što mu pristupimo
+        if (imeTf != null) imeTf.setEditable(false);
+        if (prezimeTf != null) prezimeTf.setEditable(false);
+        if (srednjeImeTf != null) srednjeImeTf.setEditable(false);
+        if (jmbgTf != null) jmbgTf.setEditable(false);
+        if (adresaTf != null) adresaTf.setEditable(false);
+        if (nacionalnostTf != null) nacionalnostTf.setEditable(false);
+        if (brojLicneKarteTf != null) brojLicneKarteTf.setEditable(false);
+        if (brojIndeksaTf != null) brojIndeksaTf.setEditable(false);
+        if (godinaUpisaTf != null) godinaUpisaTf.setEditable(false);
+
+        // Onemogućavanje izbora za interaktivne elemente
+        if (datumRodjenjaDp != null) datumRodjenjaDp.setDisable(true);
+        if (muski != null) muski.setDisable(true);
+        if (zenski != null) zenski.setDisable(true);
+        if (mestoRodjenjaCb != null) mestoRodjenjaCb.setDisable(true);
+        if (drzavaRodjenjaCb != null) drzavaRodjenjaCb.setDisable(true);
+        if (drzavljanstvoCb != null) drzavljanstvoCb.setDisable(true);
+
+        // --- 2. POPUNJAVANJE PODATAKA IZ OBJEKTA ---
         if (imeTf != null) imeTf.setText(student.getIme());
         if (prezimeTf != null) prezimeTf.setText(student.getPrezime());
-        if (srednjeImeTf != null) srednjeImeTf.setText(student.getSrednjeIme() != null ? student.getSrednjeIme() : "");
         if (jmbgTf != null) jmbgTf.setText(student.getJmbg());
-        if (adresaTf != null) adresaTf.setText(student.getAdresa());
-        if (brojIndeksaTf != null) brojIndeksaTf.setText(String.valueOf(student.getBrojIndeksa()));
-        if (godinaUpisaTf != null) godinaUpisaTf.setText(String.valueOf(student.getGodinaUpisa()));
 
-        // 2. Podešavanje Radio Button-a za pol
-        if (muski != null && zenski != null) {
-            if ("MUSKI".equalsIgnoreCase(student.getPol())) muski.setSelected(true);
-            else if ("ZENSKI".equalsIgnoreCase(student.getPol())) zenski.setSelected(true);
+        if (srednjeImeTf != null) {
+            srednjeImeTf.setText(student.getSrednjeIme() != null ? student.getSrednjeIme() : "");
         }
 
-        // 3. Podešavanje datuma
-        if (datumRodjenjaDp != null) datumRodjenjaDp.setValue(student.getDatumRodjenja());
+        if (adresaTf != null) {
+            adresaTf.setText(student.getAdresa() != null ? student.getAdresa() : "");
+        }
 
-        // 4. NASILNO DODAVANJE PREČICA DIREKTNO NA SCENU (Ovo rešava tvoj problem)
+        if (nacionalnostTf != null) {
+            nacionalnostTf.setText(student.getNacionalnost() != null ? student.getNacionalnost() : "");
+        }
+
+        if (brojIndeksaTf != null) {
+            brojIndeksaTf.setText(String.valueOf(student.getBrojIndeksa()));
+        }
+
+        if (godinaUpisaTf != null) {
+            godinaUpisaTf.setText(String.valueOf(student.getGodinaUpisa()));
+        }
+
+        // Datum rođenja
+        if (datumRodjenjaDp != null && student.getDatumRodjenja() != null) {
+            datumRodjenjaDp.setValue(student.getDatumRodjenja());
+        }
+
+        // Pol (Radio Buttons)
+        if (student.getPol() != null) {
+            if ("M".equalsIgnoreCase(student.getPol()) || "MUSKI".equalsIgnoreCase(student.getPol())) {
+                if (muski != null) muski.setSelected(true);
+            } else if ("Ž".equalsIgnoreCase(student.getPol()) || "ZENSKI".equalsIgnoreCase(student.getPol())) {
+                if (zenski != null) zenski.setSelected(true);
+            }
+        }
+
+        // --- 3. REGISTRACIJA PREČICA (Ctrl + [) ---
+        // Ovo osigurava da prečica za nazad radi čim se podaci učitaju
         Platform.runLater(() -> {
             if (korenskiVBox != null && korenskiVBox.getScene() != null) {
-                Scene scene = korenskiVBox.getScene();
-
-                // Čistimo stare prečice da se ne dupliraju
-                scene.getAccelerators().clear();
-
-                // CTRL + [ (Specifikacija)
-                scene.getAccelerators().put(
+                korenskiVBox.getScene().getAccelerators().put(
                         new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.CONTROL_ANY),
                         () -> handleBack(null)
                 );
-
-                // CTRL + B (Rezervna prečica ako zagrada ne radi na tastaturi)
-                scene.getAccelerators().put(
-                        new KeyCodeCombination(KeyCode.B, KeyCombination.CONTROL_ANY),
-                        () -> handleBack(null)
-                );
-
-                // ESCAPE (Najsigurnije za testiranje)
-                scene.getAccelerators().put(
-                        new KeyCodeCombination(KeyCode.ESCAPE),
-                        () -> handleBack(null)
-                );
-
-                korenskiVBox.requestFocus();
-                System.out.println("DEBUG: Prečice registrovane na sceni.");
             }
         });
 
-        // 5. Učitavanje tabela (ispiti i uplate) i proračun proseka/ESPB
+
         ucitajDetaljeStudenta(student.getId());
     }
 
     private void ucitajDetaljeStudenta(Long studentId) {
         try {
-            // Dohvatanje podataka sa servisa
             List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
             List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(studentId);
             List<UplataResponse> uplate = studentService.getUplate(studentId);
 
-            // Punjenje tabela
             polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
             nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni));
             uplateTable.setItems(FXCollections.observableArrayList(uplate));
 
-            // Računanje proseka i ESPB (Sekcija 1 specifikacije)
+            // --- PRORAČUN STATUSA (Sekcija 1 Specifikacije) ---
             int ukupnoEspb = 0;
             double sumaOcena = 0;
             int brojPolozenih = 0;
 
             for (PolozeniPredmetiResponse p : polozeni) {
-                ukupnoEspb += p.getEspb();
-                if (p.getOcena() > 5) {
+                // Koristimo tvoje polje 'espb' iz DTO-a
+                ukupnoEspb += (p.getEspb() != null) ? p.getEspb() : 0;
+
+                if (p.getOcena() != null && p.getOcena() > 5) {
                     sumaOcena += p.getOcena();
                     brojPolozenih++;
                 }
@@ -222,7 +250,8 @@ public class StudentController {
             prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
 
         } catch (Exception e) {
-            labelError.setText("Greška pri učitavanju detalja: " + e.getMessage());
+            labelError.setText("Greška pri učitavanju detalja!");
+            e.printStackTrace();
         }
     }
 
@@ -260,6 +289,63 @@ public class StudentController {
     public void handleOpenModalSrednjeSkole(ActionEvent ae) {
         mainView.openModal("addSrednjaSkola");
     }
+    public void popuniFormuIzBaze(StudentPodaciResponse student) {
+        if (student == null) return;
+
+        // --- POPUNJAVANJE I ZAKLJUČAVANJE TEKSTUALNIH POLJA ---
+        postaviTekstIZakljucaj(imeTf, student.getIme());
+        postaviTekstIZakljucaj(prezimeTf, student.getPrezime());
+        postaviTekstIZakljucaj(jmbgTf, student.getJmbg());
+        postaviTekstIZakljucaj(brojIndeksaTf, String.valueOf(student.getBrojIndeksa()));
+        postaviTekstIZakljucaj(godinaUpisaTf, String.valueOf(student.getGodinaUpisa()));
+
+        // Polja koja su pravila grešku (sada su sigurna)
+        postaviTekstIZakljucaj(srednjeImeTf, student.getSrednjeIme());
+        postaviTekstIZakljucaj(adresaTf, student.getAdresa());
+        postaviTekstIZakljucaj(nacionalnostTf, student.getNacionalnost());
+        postaviTekstIZakljucaj(brojLicneKarteTf, student.getBrojLicneKarte());
+
+        // --- DATUM ---
+        if (datumRodjenjaDp != null) {
+            datumRodjenjaDp.setValue(student.getDatumRodjenja());
+            datumRodjenjaDp.setDisable(true); // Onemogućava izmjenu datuma
+        }
+
+        // --- POL (Radio Buttons) ---
+        if (student.getPol() != null) {
+            String polStr = String.valueOf(student.getPol()); // Jer je u modelu Character
+            if (polStr.equalsIgnoreCase("M")) {
+                if (muski != null) { muski.setSelected(true); muski.setDisable(true); }
+                if (zenski != null) zenski.setDisable(true);
+            } else {
+                if (zenski != null) { zenski.setSelected(true); zenski.setDisable(true); }
+                if (muski != null) muski.setDisable(true);
+            }
+        }
+    }
+
+    // Pomoćna metoda da ne pišeš isti kod 20 puta
+    private void postaviTekstIZakljucaj(TextField tf, String vrednost) {
+        if (tf != null) {
+            tf.setText(vrednost != null ? vrednost : "");
+            tf.setEditable(false); // Onemogućava kucanje
+            tf.setStyle("-fx-background-color: #eeeeee;"); // Opciono: daje sivu boju kao znak da je zaključano
+        }
+    }
+    private void postaviPoljaNaReadOnly() {
+        imeTf.setEditable(false);
+        prezimeTf.setEditable(false);
+        srednjeImeTf.setEditable(false);
+        jmbgTf.setEditable(false);
+        nacionalnostTf.setEditable(false);
+        brojLicneKarteTf.setEditable(false);
+        datumRodjenjaDp.setDisable(true); // Disable se koristi za DatePicker da bi se sprečio pop-up kalendar
+        muski.setDisable(true);
+        zenski.setDisable(true);
+        mestoRodjenjaCb.setDisable(true);
+        drzavaRodjenjaCb.setDisable(true);
+        drzavljanstvoCb.setDisable(true);
+    }
     @FXML
     void handleUverenje(ActionEvent event) {
         try {
@@ -293,34 +379,46 @@ public class StudentController {
     }
     public void loadStudentData(Long studentId) {
         try {
-            // Pokušavamo da nađemo studenta preko servisa
-            // (Pretpostavljam da imaš metodu findById, ako ne, koristi search kao fallback)
-            StudentPodaciResponse student = null;
-
-            // OPCIJA A: Ako imaš findById (Idealno)
-            // student = studentService.findById(studentId);
-
-            // OPCIJA B: Privremeni trik ako nemaš findById (koristi pretragu da nađeš jednog)
-            if (studentService != null) {
-                // Ovo je samo primer, prilagodi svom servisu
-                List<StudentPodaciResponse> svi = studentService.searchStudents(null, null, null, null);
-                student = svi.stream().filter(s -> s.getId().equals(studentId)).findFirst().orElse(null);
-            }
+            // 1. Poziv servisu da povuče podatke iz baze
+            StudentPodaciResponse student = studentService.getStudentById(studentId);
 
             if (student != null) {
-                // Popunjavamo tekstualna polja (Ime, Prezime, Indeks...)
-                prikaziStudenta(student);
+                // 2. Popunjavanje tekstualnih polja i zaključavanje (ona metoda koju smo sredili)
+                popuniFormuIzBaze(student);
 
-                // Učitavamo tabele (Ispiti, Uplate...)
-                ucitajDetaljeStudenta(studentId);
+                // 3. Popunjavanje tabela za ispite i uplate
+                // Proveri da li se ove metode u StudentService zovu baš ovako
+                List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
+                List<UplataResponse> uplate = studentService.getUplate(studentId);
 
-                // Fokusiramo ekran da bi radile prečice sa tastature
-                Platform.runLater(() -> {
-                    if (korenskiVBox != null) korenskiVBox.requestFocus();
-                });
+                if (polozeniTable != null) polozeniTable.setItems(FXCollections.observableArrayList(polozeni));
+                if (uplateTable != null) uplateTable.setItems(FXCollections.observableArrayList(uplate));
+
+                // 4. Izračunaj prosek i ESPB (KT1 zahtev)
+                obracunajAkademskiStatus(polozeni);
+
+            } else {
+                System.err.println("Student sa ID " + studentId + " nije pronađen u bazi.");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void obracunajAkademskiStatus(List<PolozeniPredmetiResponse> polozeni) {
+        int ukupnoEspb = 0;
+        double sumaOcena = 0;
+        int brojPolozenih = 0;
+
+        for (PolozeniPredmetiResponse p : polozeni) {
+            ukupnoEspb += (p.getEspb() != null) ? p.getEspb() : 0;
+            if (p.getOcena() != null && p.getOcena() > 5) {
+                sumaOcena += p.getOcena();
+                brojPolozenih++;
+            }
+        }
+
+        if (ukupnoEspbLabel != null) ukupnoEspbLabel.setText(String.valueOf(ukupnoEspb));
+        if (prosekLabel != null) prosekLabel.setText(brojPolozenih > 0 ? String.format("%.2f", sumaOcena / brojPolozenih) : "0.00");
     }
 }

@@ -100,30 +100,37 @@ public class MainWindowController {
     public void openStudentProfile(Long studentId) {
         try {
             if (contextLoader != null) {
-                // A) PAMTITMO ISTORIJU (Back funkcionalnost)
+                // 1. Logika za Back (History) - prema specifikaciji
+                // Ako imaš NavigationService, koristi ga. Ako ne, ostavi push.
                 if (!contentArea.getChildren().isEmpty()) {
                     backStack.push(contentArea.getChildren().get(0));
                 }
 
-                // B) UČITAVAMO FXML KOJI SI POSLALA
-                FXMLLoader loader = contextLoader.getLoader("/fxml/studentPodaciTabPane.fxml");
+                // 2. Učitavanje FXML-a (proveri da li je putanja tačno ova)
+                // Napomena: u prošloj poruci si poslala /fxml/student_profile.fxml,
+                // a ovde studentPodaciTabPane.fxml. Koristi ono što ti je u resursima!
+                FXMLLoader loader = contextLoader.getLoader("/fxml/student_profile.fxml");
                 Parent view = loader.load();
 
-                // C) PROSLEĐUJEMO PODATKE KONTROLERU
-                Object controller = loader.getController();
+                // 3. Povezivanje sa ispravnim kontrolerom
+                // Izbrisali smo StudentProfileController, sada koristimo samo StudentController
+                StudentController controller = loader.getController();
 
-                // *** OVDE JE BILA GREŠKA - SADA JE ISPRAVLJENO ***
-                // Tvoj FXML kaže da je kontroler 'StudentController', pa to i koristimo.
-                if (controller instanceof StudentController) {
-                    ((StudentController) controller).loadStudentData(studentId);
+                if (controller != null) {
+                    // Ova metoda u StudentController-u sada povlači podatke iz baze i zaključava polja
+                    controller.loadStudentData(studentId);
                 } else {
-                    System.err.println("Greska: Ocekivan StudentController, dobijen: " + controller.getClass().getName());
+                    System.err.println("GRESKA: Kontroler nije uspešno učitan iz FXML-a!");
                 }
 
-                // D) PRIKAZUJEMO NOVI EKRAN
+                // 4. Prikaz na ekranu
                 setView(view);
+
+                // 5. Fokusiranje za prečice (Ctrl + [)
+                view.requestFocus();
             }
         } catch (IOException e) {
+            System.err.println("GRESKA prilikom otvaranja profila: " + e.getMessage());
             e.printStackTrace();
         }
     }

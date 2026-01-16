@@ -179,11 +179,17 @@ public class StudentService {
     }
 
     public StudentPodaciResponse getStudentById(Long id) {
-        // Improvisation: search all and find one, or add direct endpoint if exists
-        return sviStudenti().stream()
-                .filter(s -> s.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        try {
+            // Koristimo direktan poziv ka serveru po ID-ju studenta
+            return restTemplate.getForObject(baseUrl + "/api/student/" + id, StudentPodaciResponse.class);
+        } catch (Exception e) {
+            System.err.println("Greska pri dohvatanju studenta sa servera: " + e.getMessage());
+            // Fallback: ako nemas direktan endpoint, pretrazi sve (manje efikasno)
+            return searchStudents(null, null, null, null).stream()
+                    .filter(s -> s.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 
     // Pomoćna metoda za filtriranje
