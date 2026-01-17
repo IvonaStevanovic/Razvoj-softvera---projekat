@@ -76,7 +76,7 @@ public class IspitController {
         return ResponseEntity.ok(ispitService.findAllResponses());
     }
 
-    @PostMapping("/prijava")
+    @PostMapping("/prijavi")
     public ResponseEntity<PrijavaIspitaResponse> prijaviIspit(@RequestBody PrijavaIspitaRequest request) {
         return ResponseEntity.ok(ispitService.prijaviIspit(request));
     }

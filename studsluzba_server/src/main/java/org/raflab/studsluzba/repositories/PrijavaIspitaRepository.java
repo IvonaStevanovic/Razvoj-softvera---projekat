@@ -24,7 +24,7 @@ public interface PrijavaIspitaRepository extends JpaRepository<PrijavaIspita, Lo
             @Param("predmetId") Long predmetId
     );
     List<PrijavaIspita> findByStudentIndeksAndIspit(StudentIndeks studentIndeks, Ispit ispit);
-
+    boolean existsByStudentIndeksAndIspit(StudentIndeks student, Ispit ispit);
 
     /*
     /// Sve prijave određenog studenta

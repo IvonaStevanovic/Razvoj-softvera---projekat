@@ -42,7 +42,7 @@ public interface StudentIndeksRepository extends JpaRepository<StudentIndeks, Lo
 
     // 2. Kada korisnik ukuca broj/godina (npr. "12/2023")
     Page<StudentIndeks> findByBrojAndGodina(Integer broj, Integer godina, Pageable pageable);
-
+    Optional<StudentIndeks> findByBrojAndGodina(Integer broj, Integer godina);
 
 
 

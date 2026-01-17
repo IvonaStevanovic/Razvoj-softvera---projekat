@@ -8,4 +8,5 @@ public class PrijavaIspitaRequest {
     private LocalDate datumPrijave;
     private Long ispitId;
     private Long studentIndeksId;
+    private String studentIndeksUnos;
 }

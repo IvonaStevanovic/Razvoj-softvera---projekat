@@ -36,13 +36,14 @@
                 <ListView fx:id="listIspiti" VBox.vgrow="ALWAYS" />
                 <Button text="Dodaj novi ispit" onAction="#handleOpenAddIspit"
                         maxWidth="Infinity" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+                <Button text="Zapisnik" onAction="#handlePrikaziPrijavljene" />
             </VBox>
 
             <VBox spacing="10">
                 <padding>
                     <Insets top="10" right="10" bottom="10" left="10"/>
                 </padding>
-                <Label text="Zapisnik / Rezultati selektovanog ispita" style="-fx-font-weight: bold;"/>
+                <Label text="Rezultati selektovanog ispita" style="-fx-font-weight: bold;"/>
                 <TableView fx:id="tableRezultati" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="colProgram" text="Program" prefWidth="80"/>

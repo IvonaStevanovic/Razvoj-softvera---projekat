@@ -1,5 +1,6 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -112,28 +113,26 @@ public class IspitiController {
     @FXML
     private void handlePrijava() {
         IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Izaberite ispit!").show();
-            return;
-        }
+        if (selected == null) return;
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Prijava");
         dialog.setHeaderText("Prijava za: " + selected.getPredmetNaziv());
-        dialog.setContentText("ID indeksa:");
+        dialog.setContentText("Unesite indeks (format: broj/godina):");
 
-        dialog.showAndWait().ifPresent(idStr -> {
-            try {
-                ispitService.prijaviStudenta(selected.getId(), Long.parseLong(idStr),
-                        () -> ucitajRezultate(selected.getId()),
-                        err -> new Alert(Alert.AlertType.ERROR, err).show()
-                );
-            } catch (NumberFormatException e) {
-                new Alert(Alert.AlertType.ERROR, "ID mora biti broj!").show();
-            }
+        dialog.showAndWait().ifPresent(unos -> {
+            ispitService.prijaviStudenta(selected.getId(), unos,
+                    () -> {
+                        ucitajRezultate(selected.getId());
+                        // Opciono: obaveštenje o uspehu
+                        Platform.runLater(() -> new Alert(Alert.AlertType.INFORMATION, "Uspešna prijava!").show());
+                    },
+                    err -> {
+                        // 'err' je sada očišćena poruka sa servera (npr. "Student ne sluša predmet")
+                        new Alert(Alert.AlertType.ERROR, err).show();
+                    }
+            );
         });
     }
-
     @FXML
     private void handlePrintZapisnik() {
         IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
@@ -193,5 +192,39 @@ public class IspitiController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    @FXML
+    private void handlePrikaziPrijavljene() {
+        // 1. Provera selekcije
+        IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            new Alert(Alert.AlertType.WARNING, "Molimo izaberite ispit iz liste!").show();
+            return;
+        }
+
+        // 2. Poziv servisa
+        ispitService.getPrijavljeniZaIspit(selected.getId(), lista -> {
+            try {
+                // 3. Učitavanje popup-a
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/prijavljeniStudentiModal.fxml"));
+                loader.setControllerFactory(ClientAppConfig.getContext()::getBean);
+                Parent root = loader.load();
+
+                // 4. Slanje podataka u kontroler popupa
+                PrijavljeniStudentiModalController controller = loader.getController();
+                controller.setData(lista);
+
+                // 5. Kreiranje i prikaz prozora
+                Stage stage = new Stage();
+                stage.setTitle("Zapisnik - Prijavljeni studenti");
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.setScene(new Scene(root));
+                stage.show();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Greška pri otvaranju prozora: " + e.getMessage()).show();
+            }
+        });
     }
 }

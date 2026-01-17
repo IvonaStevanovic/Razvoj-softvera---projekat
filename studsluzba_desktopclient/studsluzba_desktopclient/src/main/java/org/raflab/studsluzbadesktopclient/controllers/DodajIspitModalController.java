@@ -77,31 +77,35 @@ public class DodajIspitModalController {
             return;
         }
 
-        // Pozivamo server da nađe ID spojne tabele
-        ispitService.getDrziPredmetId(p.getId(), n.getId(), drziId -> {
-            if (drziId == null) {
-                Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Veza nije pronađena u bazi!").show());
-                return;
-            }
+        // Pozivamo server uz dodatu lambdu za obradu greške
+        ispitService.getDrziPredmetId(p.getId(), n.getId(),
+                drziId -> {
+                    // --- LOGIKA ZA USPEH ---
+                    IspitRequest request = new IspitRequest();
+                    request.setDrziPredmetId(drziId);
+                    request.setPredmetId(p.getId());
+                    request.setIspitniRokId(selektovaniRokId);
+                    request.setDatumOdrzavanja(datum);
 
-            // KREIRAMO REQUEST TEK OVDE
-            IspitRequest request = new IspitRequest();
-
-            // Postavljamo ID koji smo dobili
-            request.setDrziPredmetId(drziId);
-            request.setPredmetId(p.getId()); // Postavi i ovo za svaki slučaj ako server traži
-
-            request.setIspitniRokId(selektovaniRokId);
-            request.setDatumOdrzavanja(datum);
-
-            // Šaljemo na server
-            ispitService.saveIspit(request, () -> {
-                Platform.runLater(() -> {
-                    if (onSuccess != null) onSuccess.run();
-                    dialogStage.close();
-                });
-            });
-        });
+                    ispitService.saveIspit(request, () -> {
+                        Platform.runLater(() -> {
+                            if (onSuccess != null) onSuccess.run();
+                            dialogStage.close();
+                        });
+                    });
+                },
+                errorMessage -> {
+                    // --- LOGIKA ZA GREŠKU (404 Not Found) ---
+                    // Umesto čudne poruke u konzoli, sada iskače tvoj popup
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Greška pri kreiranju ispita");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Izabrani nastavnik ne drži izabrani predmet!");
+                        alert.show();
+                    });
+                }
+        );
     }
     @FXML private void handleCancel() { dialogStage.close(); }
 }
