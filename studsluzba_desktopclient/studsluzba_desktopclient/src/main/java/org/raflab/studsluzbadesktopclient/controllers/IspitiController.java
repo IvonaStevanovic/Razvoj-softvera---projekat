@@ -5,8 +5,14 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import org.raflab.studsluzbadesktopclient.ClientAppConfig;
 import org.raflab.studsluzbadesktopclient.dtos.IspitResponse;
 import org.raflab.studsluzbadesktopclient.dtos.IspitniRokResponse;
 import org.raflab.studsluzbadesktopclient.dtos.StudentIspitRezultatiResponse;
@@ -15,6 +21,7 @@ import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Comparator;
 
 @Component
@@ -128,16 +135,63 @@ public class IspitiController {
     }
 
     @FXML
-    private void handleOpenAddIspit(ActionEvent event) {
-        // Ovde pozovi metodu za otvaranje modala (npr. preko MainView)
-        System.out.println("Otvaram prozor za dodavanje ispita...");
-    }
-
-    @FXML
     private void handlePrintZapisnik() {
         IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
         if (selected != null) {
             System.out.println("Generišem izveštaj za ispit: " + selected.getId());
+        }
+    }
+    @FXML
+    private void handleOpenAddIspit(ActionEvent event) {
+        IspitniRokResponse trenutniRok = comboRokovi.getValue();
+        if (trenutniRok == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo izaberite ispitni rok!").show();
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dodajIspitModal.fxml"));
+            loader.setControllerFactory(ClientAppConfig.getContext()::getBean);
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Novi ispit");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(new Scene(root));
+
+            DodajIspitModalController controller = loader.getController();
+            // Prosleđujemo ID roka i šta da uradi kad završi (refresh liste)
+            controller.setParams(trenutniRok.getId(), stage, () -> {
+                ispitService.getIspitiByRok(trenutniRok.getId(), list -> listIspiti.getItems().setAll(list));
+            });
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    @FXML
+    private void handleOpenAddRok(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dodajIspitniRokModal.fxml"));
+            loader.setControllerFactory(org.raflab.studsluzbadesktopclient.ClientAppConfig.getContext()::getBean);
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Novi ispitni rok");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(new Scene(root));
+
+            // Ovo je onaj modalni kontroler koji smo ranije napravili
+            DodajIspitniRokModalController controller = loader.getController();
+            controller.setParams(stage, () -> {
+                // Osvežavamo listu nakon dodavanja
+                ispitService.getAllRokovi(list -> comboRokovi.getItems().setAll(list));
+            });
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

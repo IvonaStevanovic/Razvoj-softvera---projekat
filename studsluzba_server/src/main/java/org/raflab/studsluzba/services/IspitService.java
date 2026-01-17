@@ -48,6 +48,30 @@ public class IspitService {
     @Autowired
     private PolozeniPredmetiRepository polozeniPredmetiRepository;
 
+
+    @Transactional
+    public void saveNewIspit(IspitRequest request) {
+        Ispit ispit = new Ispit();
+
+        // 1. Pronađi DrziPredmet
+        DrziPredmet dp = drziPredmetRepository.findById(request.getDrziPredmetId())
+                .orElseThrow(() -> new RuntimeException("Veza Nastavnik-Predmet nije pronađena"));
+
+        // 2. OBAVEZNO setuj predmet (ovo je falilo i bacalo 500!)
+        ispit.setPredmet(dp.getPredmet());
+        ispit.setDrziPredmet(dp);
+
+        // 3. Pronađi Ispitni Rok
+        ispit.setIspitniRok(ispitniRokRepository.findById(request.getIspitniRokId())
+                .orElseThrow(() -> new RuntimeException("Ispitni rok nije pronađen")));
+
+        ispit.setDatumOdrzavanja(request.getDatumOdrzavanja());
+        ispit.setVremePocetka(request.getVremePocetka());
+        ispit.setNapomena(request.getNapomena());
+        ispit.setZakljucen(false);
+
+        ispitRepository.save(ispit);
+    }
     @Transactional(readOnly = true)
     // Na serveru u IspitService
     public List<IspitResponse> findAllResponses() {

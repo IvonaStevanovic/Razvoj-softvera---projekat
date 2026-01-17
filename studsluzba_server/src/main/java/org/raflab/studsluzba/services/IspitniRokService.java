@@ -1,9 +1,11 @@
 package org.raflab.studsluzba.services;
 
+import org.raflab.studsluzba.controllers.request.IspitniRokRequest;
 import org.raflab.studsluzba.controllers.response.IspitniRokResponse;
 import org.raflab.studsluzba.model.Ispit;
 import org.raflab.studsluzba.model.IspitniRok;
 import org.raflab.studsluzba.repositories.IspitniRokRepository;
+import org.raflab.studsluzba.repositories.SkolskaGodinaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,8 @@ import java.util.stream.Collectors;
 public class IspitniRokService {
     @Autowired
     private IspitniRokRepository repository;
-
+    @Autowired
+    private  SkolskaGodinaRepository skolskaGodinaRepository;
     @Transactional(readOnly = true)
     public List<IspitniRokResponse> findAllResponses() {
         List<IspitniRok> rokovi = (List<IspitniRok>) repository.findAll();
@@ -52,7 +55,21 @@ public class IspitniRokService {
     //public List<IspitniRok> findBySkolskaGodina(Long godinaId) {
        // return repository.findBySkolskaGodinaId(godinaId);
  //   }
+    @Transactional
+    public IspitniRok saveNewRok(IspitniRokRequest request) {
+        IspitniRok rok = new IspitniRok();
+        rok.setNaziv(request.getNaziv());
+        rok.setDatumPocetka(request.getPocetak());
+        rok.setDatumZavrsetka(request.getKraj());
 
+        // Pronalaženje školske godine (ako šalješ ID sa klijenta)
+        if (request.getSkolskaGodinaId() != null) {
+            rok.setSkolskaGodina(skolskaGodinaRepository.findById(request.getSkolskaGodinaId())
+                    .orElseThrow(() -> new RuntimeException("Školska godina nije pronađena")));
+        }
+
+        return repository.save(rok);
+    }
     public IspitniRok save(IspitniRok rok) {
         return repository.save(rok);
     }

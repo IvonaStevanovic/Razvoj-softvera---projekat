@@ -26,6 +26,24 @@ public class IspitniRokController {
     public List<IspitniRokResponse> getAll() {
         return ispitniRokService.findAllResponses();
     }
+    @PostMapping
+    public ResponseEntity<IspitniRokResponse> save(@RequestBody IspitniRokRequest request) {
+        // 1. Sačuvaj entitet preko servisa
+        IspitniRok sacuvaniRok = ispitniRokService.saveNewRok(request);
+
+        // 2. Mapiraj entitet u IspitniRokResponse
+        IspitniRokResponse response = new IspitniRokResponse();
+        response.setId(sacuvaniRok.getId());
+        response.setNaziv(sacuvaniRok.getNaziv());
+        response.setPocetak(sacuvaniRok.getDatumPocetka());
+        response.setKraj(sacuvaniRok.getDatumZavrsetka());
+        // Ako tvoj response ima i ID školske godine:
+        if (sacuvaniRok.getSkolskaGodina() != null) {
+            response.setSkolskaGodinaId(sacuvaniRok.getSkolskaGodina().getId());
+        }
+
+        return ResponseEntity.ok(response);
+    }
 /*
     @Autowired
     private IspitniRokService service;

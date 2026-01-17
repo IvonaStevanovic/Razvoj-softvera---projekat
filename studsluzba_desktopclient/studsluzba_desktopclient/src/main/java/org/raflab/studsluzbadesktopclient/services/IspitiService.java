@@ -1,10 +1,7 @@
 package org.raflab.studsluzbadesktopclient.services;
 
 import javafx.application.Platform;
-import org.raflab.studsluzbadesktopclient.dtos.IspitResponse;
-import org.raflab.studsluzbadesktopclient.dtos.IspitniRokResponse;
-import org.raflab.studsluzbadesktopclient.dtos.PrijavaIspitaRequest;
-import org.raflab.studsluzbadesktopclient.dtos.StudentIspitRezultatiResponse;
+import org.raflab.studsluzbadesktopclient.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -39,7 +36,7 @@ public class IspitiService {
     }
 
     public void getRezultati(Long ispitId, Consumer<List<StudentIspitRezultatiResponse>> callback) {
-        webClient.get().uri("/api/ispiti/{id}/rezultati", ispitId)
+        webClient.get().uri("/api/ispit/{id}/rezultati", ispitId)
                 .retrieve()
                 .bodyToFlux(StudentIspitRezultatiResponse.class) // KORISTI NOVU KLASU
                 .collectList()
@@ -53,7 +50,7 @@ public class IspitiService {
         req.setStudentIndeksId(studentIndeksId);
         req.setDatumPrijave(LocalDate.now());
 
-        webClient.post().uri("/api/ispiti/prijavi")
+        webClient.post().uri("/api/ispit/prijavi")
                 .bodyValue(req)
                 .retrieve()
                 .toBodilessEntity()
@@ -61,5 +58,60 @@ public class IspitiService {
                         res -> Platform.runLater(success),
                         err -> Platform.runLater(() -> error.accept("Student ne sluša predmet ili je već položio."))
                 );
+    }
+    public void getAllPredmeti(Consumer<List<PredmetResponse>> callback) {
+        webClient.get().uri("/api/predmeti/all")
+                .retrieve()
+                .bodyToFlux(PredmetResponse.class)
+                .collectList()
+                .subscribe(list -> Platform.runLater(() -> callback.accept(list)));
+    }
+
+    public void getAllNastavnici(Consumer<List<NastavnikResponse>> callback) {
+        webClient.get().uri("/api/nastavnici/all")
+                .retrieve()
+                .bodyToFlux(NastavnikResponse.class)
+                .collectList()
+                .subscribe(list -> Platform.runLater(() -> callback.accept(list)));
+    }
+
+    // I metoda za čuvanje ispita koju će pozvati "Sačuvaj" dugme
+    public void saveIspit(IspitRequest request, Runnable onSuccess) {
+        if (request.getDrziPredmetId() == null) {
+            System.err.println("Greška: drziPredmetId je NULL. Ne šaljem zahtev.");
+            return;
+        }
+
+        webClient.post()
+                .uri("/api/ispit")
+                .bodyValue(request) // Ovde Jackson puca ako je unutra null
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe(
+                        response -> Platform.runLater(onSuccess),
+                        error -> System.err.println("Greška pri čuvanju: " + error.getMessage())
+                );
+    }
+    public void getDrziPredmetId(Long predmetId, Long nastavnikId, Consumer<Long> callback) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/predmeti/drzi-predmet-id") // Mora se poklapati sa serverom
+                        .queryParam("predmetId", predmetId)
+                        .queryParam("nastavnikId", nastavnikId)
+                        .build())
+                .retrieve()
+                .bodyToMono(Long.class)
+                .subscribe(
+                        id -> Platform.runLater(() -> callback.accept(id)),
+                        err -> System.err.println("Greška na serveru: " + err.getMessage())
+                );
+    }
+    public void saveIspitniRok(IspitniRokRequest request, Runnable onSuccess) {
+        webClient.post()
+                .uri("/api/ispitni-rokovi")
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe(res -> Platform.runLater(onSuccess));
     }
 }
