@@ -136,6 +136,44 @@
             </VBox>
         </Tab>
 
+        <Tab text="Tok studija">
+            <VBox spacing="20">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="Pregled upisanih godina" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <TableView fx:id="upisGodineTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colUpisGodina" text="Godina studija" prefWidth="120"/>
+                            <TableColumn fx:id="colUpisSkolska" text="Školska godina" prefWidth="150"/>
+                            <TableColumn fx:id="colUpisDatum" text="Datum upisa" prefWidth="120"/>
+                            <TableColumn fx:id="colUpisNapomena" text="Napomena" prefWidth="250"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="Nema podataka o upisima"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+
+                <Separator/>
+
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="Pregled obnovljenih godina" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <TableView fx:id="obnovaGodineTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colObnovaGodina" text="Godina studija" prefWidth="120"/>
+                            <TableColumn fx:id="colObnovaDatum" text="Datum obnove" prefWidth="120"/>
+                            <TableColumn fx:id="colObnovaPredmeti" text="Predmeti" prefWidth="300"/>
+                            <TableColumn fx:id="colObnovaNapomena" text="Napomena" prefWidth="200"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="Nema podataka o obnovama"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+
+            </VBox>
+        </Tab>
         <Tab text="Akademski status">
             <VBox spacing="30" alignment="CENTER">
                 <HBox spacing="100" alignment="CENTER">

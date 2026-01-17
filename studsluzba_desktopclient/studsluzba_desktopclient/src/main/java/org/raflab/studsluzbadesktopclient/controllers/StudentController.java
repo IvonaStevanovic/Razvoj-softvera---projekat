@@ -8,7 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.GridPane; // Dodato
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import org.raflab.studsluzbadesktopclient.coder.CoderFactory;
 import org.raflab.studsluzbadesktopclient.dtos.*;
@@ -30,7 +30,7 @@ public class StudentController {
     private final SifarniciService sifarniciService;
     private final NavigationService navigationService;
 
-    // FXML Elementi
+    // FXML Elementi - Forma
     @FXML private TextField imeTf, prezimeTf, srednjeImeTf, jmbgTf, nacionalnostTf, brojLicneKarteTf, adresaTf, emailPrivatniTf, emailFakultetTf, brojTelefonaTf, godinaUpisaTf, brojIndeksaTf, godinaIndeksaTf, uspehSrednjaSkolaTf, uspehPrijemniTf;
     @FXML private RadioButton muski, zenski;
     @FXML private DatePicker datumRodjenjaDp, datumAktivacijeDp;
@@ -40,10 +40,9 @@ public class StudentController {
     @FXML private VBox korenskiVBox;
     @FXML private TabPane profilTabPane;
 
-    // NOVO: Labela za ukupan zbir
     @FXML private Label ukupnoUplateLabel;
 
-    // Tabele
+    // Tabele - Ispiti i Uplate
     @FXML private TableView<PolozeniPredmetiResponse> polozeniTable;
     @FXML private TableView<NepolozeniPredmetDTO> nepolozeniTable;
     @FXML private TableView<UplataResponse> uplateTable;
@@ -58,8 +57,22 @@ public class StudentController {
     @FXML private TableColumn<UplataResponse, String> datumUplateCol, svrhaCol;
     @FXML private TableColumn<UplataResponse, Double> iznosCol;
 
-    // Čuvamo ID trenutnog studenta za novu uplatu
+    // --- NOVO: Tabele za Tok studija (Upis i Obnova) ---
+    @FXML private TableView<UpisGodineResponse> upisGodineTable;
+    @FXML private TableColumn<UpisGodineResponse, Integer> colUpisGodina;
+    @FXML private TableColumn<UpisGodineResponse, String> colUpisSkolska;
+    @FXML private TableColumn<UpisGodineResponse, String> colUpisDatum;
+    @FXML private TableColumn<UpisGodineResponse, String> colUpisNapomena;
+
+    @FXML private TableView<ObnovaGodineResponse> obnovaGodineTable;
+    @FXML private TableColumn<ObnovaGodineResponse, Integer> colObnovaGodina;
+    @FXML private TableColumn<ObnovaGodineResponse, String> colObnovaDatum;
+    @FXML private TableColumn<ObnovaGodineResponse, String> colObnovaPredmeti;
+    @FXML private TableColumn<ObnovaGodineResponse, String> colObnovaNapomena;
+
     private Long currentStudentId;
+    // Čuvamo i ID trenutno prikazanog indeksa da bismo znali šta osvežavamo
+    private Long currentIndeksId;
 
     @Autowired
     public StudentController(StudentService studentService, CoderFactory coderFactory,
@@ -93,42 +106,73 @@ public class StudentController {
         navigationService.goForward();
     }
 
+    // --- METODA 1: Stara metoda (zadržana zbog kompatibilnosti) ---
     public void loadStudentData(Long studentId) {
-        this.currentStudentId = studentId; // Bitno za dodavanje uplate
+        // Ako se pozove stara metoda, pozivamo novu sa null za indeks (automatski će naći aktivan)
+        loadStudentData(studentId, null);
+    }
+
+    // --- METODA 2: Nova metoda koja prima i ID indeksa ---
+    public void loadStudentData(Long studentId, Long selectedIndeksId) {
+        this.currentStudentId = studentId;
         try {
             StudentPodaciResponse student = studentService.getStudentById(studentId);
             if (student == null) return;
 
+            // ODLUČIVANJE: Koji indeks prikazujemo?
+            // Ako je prosleđen selectedIndeksId, koristimo njega.
+            // Ako nije (null), koristimo onaj koji je stigao uz studenta (default/aktivan).
+            this.currentIndeksId = (selectedIndeksId != null) ? selectedIndeksId : student.getStudentIndeksId();
+
             popuniFormuIzBaze(student);
 
-            List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(studentId);
-            List<UplataResponse> uplate = studentService.getUplate(studentId);
-
-            if (polozeniTable != null) {
-                polozeniTable.setItems(FXCollections.observableArrayList(polozeni != null ? polozeni : FXCollections.emptyObservableList()));
-                obracunajAkademskiStatus(polozeni);
+            // 1. Ispiti (koristimo tačan indeks)
+            if (this.currentIndeksId != null) {
+                List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(this.currentIndeksId);
+                if (polozeniTable != null) {
+                    polozeniTable.setItems(FXCollections.observableArrayList(polozeni != null ? polozeni : FXCollections.emptyObservableList()));
+                    obracunajAkademskiStatus(polozeni);
+                }
+            } else {
+                // Fallback ako nema indeksa
+                if (polozeniTable != null) polozeniTable.setItems(FXCollections.emptyObservableList());
             }
 
+            // Nepoloženi (koriste broj indeksa, to je ok)
             if (student.getBrojIndeksa() > 0 && nepolozeniTable != null) {
                 List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(student.getBrojIndeksa());
                 nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni != null ? nepolozeni : FXCollections.emptyObservableList()));
             }
 
+            // 2. Uplate (vezane za studenta, ne indeks)
+            List<UplataResponse> uplate = studentService.getUplate(studentId);
             if (uplateTable != null) {
                 uplateTable.setItems(FXCollections.observableArrayList(uplate != null ? uplate : FXCollections.emptyObservableList()));
-
-                // Računanje zbira
                 if (ukupnoUplateLabel != null) {
                     double ukupno = 0.0;
                     if (uplate != null) {
                         for (UplataResponse u : uplate) {
-                            if (u.getIznosRsd() != null) {
-                                ukupno += u.getIznosRsd();
-                            }
+                            if (u.getIznosRsd() != null) ukupno += u.getIznosRsd();
                         }
                     }
                     ukupnoUplateLabel.setText(String.format("%,.2f RSD", ukupno));
                 }
+            }
+
+            // 3. TOK STUDIJA (Upisi i Obnove) - KLJUČNA IZMENA
+            if (this.currentIndeksId != null) {
+                List<UpisGodineResponse> upisi = studentService.getUpisaneGodine(this.currentIndeksId);
+                if (upisGodineTable != null) {
+                    upisGodineTable.setItems(FXCollections.observableArrayList(upisi != null ? upisi : FXCollections.emptyObservableList()));
+                }
+
+                List<ObnovaGodineResponse> obnove = studentService.getObnovljeneGodine(this.currentIndeksId);
+                if (obnovaGodineTable != null) {
+                    obnovaGodineTable.setItems(FXCollections.observableArrayList(obnove != null ? obnove : FXCollections.emptyObservableList()));
+                }
+            } else {
+                if (upisGodineTable != null) upisGodineTable.setItems(FXCollections.emptyObservableList());
+                if (obnovaGodineTable != null) obnovaGodineTable.setItems(FXCollections.emptyObservableList());
             }
 
             Platform.runLater(() -> {
@@ -144,7 +188,6 @@ public class StudentController {
         }
     }
 
-    // --- NOVA METODA ZA DODAVANJE UPLATE ---
     @FXML
     public void handleNovaUplata(ActionEvent event) {
         if (currentStudentId == null) {
@@ -154,16 +197,13 @@ public class StudentController {
             return;
         }
 
-        // 1. Kreiranje Dijaloga
         Dialog<UplataRequest> dialog = new Dialog<>();
         dialog.setTitle("Nova uplata");
         dialog.setHeaderText("Unesite podatke o uplati");
 
-        // Dugmad
         ButtonType saveButtonType = new ButtonType("Sačuvaj", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
-        // 2. Polja za unos
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -188,7 +228,6 @@ public class StudentController {
         dialog.getDialogPane().setContent(grid);
         Platform.runLater(iznosTf::requestFocus);
 
-        // 3. Konverzija rezultata
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
                 try {
@@ -206,12 +245,12 @@ public class StudentController {
             return null;
         });
 
-        // 4. Obrada rezultata
         dialog.showAndWait().ifPresent(request -> {
             if (request != null) {
                 boolean success = studentService.dodajUplatu(request);
                 if (success) {
-                    loadStudentData(currentStudentId); // Osveži tabelu i zbir
+                    // Pozivamo sa currentIndeksId da bi ostali na istom indeksu
+                    loadStudentData(currentStudentId, currentIndeksId);
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Uspeh");
                     alert.setContentText("Uplata je uspešno sačuvana!");
@@ -286,6 +325,30 @@ public class StudentController {
 
         if (svrhaCol != null) {
             svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
+        }
+
+        // --- NOVO: UPIS GODINE ---
+        if (colUpisGodina != null) {
+            colUpisGodina.setCellValueFactory(new PropertyValueFactory<>("godinaStudija"));
+            colUpisSkolska.setCellValueFactory(new PropertyValueFactory<>("skolskaGodina"));
+            colUpisNapomena.setCellValueFactory(new PropertyValueFactory<>("napomena"));
+            colUpisDatum.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getDatumUpisa() != null ? cellData.getValue().getDatumUpisa().toString() : ""));
+        }
+
+        // --- NOVO: OBNOVA GODINE ---
+        if (colObnovaGodina != null) {
+            colObnovaGodina.setCellValueFactory(new PropertyValueFactory<>("godinaStudija"));
+            colObnovaNapomena.setCellValueFactory(new PropertyValueFactory<>("napomena"));
+            colObnovaDatum.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getDatum() != null ? cellData.getValue().getDatum().toString() : ""));
+
+            colObnovaPredmeti.setCellValueFactory(cellData -> {
+                if (cellData.getValue().getPredmetiNazivi() != null && !cellData.getValue().getPredmetiNazivi().isEmpty()) {
+                    return new SimpleStringProperty(String.join(", ", cellData.getValue().getPredmetiNazivi()));
+                }
+                return new SimpleStringProperty("");
+            });
         }
     }
 

@@ -66,8 +66,18 @@ public class StudentProfileController {
     @FXML private TableColumn<UplataResponse, String> colUplataDatum;
     @FXML private TableColumn<UplataResponse, String> colUplataSvrha;
 
-    // --- Tab 4: Tok studija ---
-    @FXML private TableView<?> tableTokStudija;
+    // --- Tab 4: Tok studija (Upis i Obnova) ---
+    @FXML private TableView<org.raflab.studsluzbadesktopclient.dtos.UpisGodineResponse> upisGodineTable;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.UpisGodineResponse, Integer> colUpisGodina;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.UpisGodineResponse, String> colUpisSkolska;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.UpisGodineResponse, String> colUpisDatum;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.UpisGodineResponse, String> colUpisNapomena;
+
+    @FXML private TableView<org.raflab.studsluzbadesktopclient.dtos.ObnovaGodineResponse> obnovaGodineTable;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.ObnovaGodineResponse, Integer> colObnovaGodina;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.ObnovaGodineResponse, String> colObnovaDatum;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.ObnovaGodineResponse, String> colObnovaPredmeti;
+    @FXML private TableColumn<org.raflab.studsluzbadesktopclient.dtos.ObnovaGodineResponse, String> colObnovaNapomena;
 
     private Long currentStudentId;
 
