@@ -7,7 +7,6 @@ import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
-import org.raflab.studsluzba.model.dtos.NepolozeniPredmetDTO;
 import org.raflab.studsluzba.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -92,8 +91,12 @@ public class StudentProfileService {
 
         if (indeks != null) {
             r.setBrojIndeksa(indeks.getBroj());
-            // --- OVO JE KLJUČNA ISPRAVKA: Šaljemo pravi ID indeksa klijentu ---
             r.setStudentIndeksId(indeks.getId());
+            // --- OVO JE JEDINA IZMENA OVDE: Dodajemo ID programa da bi klijent znao sta da povuče ---
+            if (indeks.getStudijskiProgram() != null) {
+                r.setStudijskiProgramId(indeks.getStudijskiProgram().getId());
+            }
+            // ----------------------------------------------------------------------------------------
         }
 
         if (s.getSrednjaSkola() != null) {
@@ -181,9 +184,6 @@ public class StudentProfileService {
         return new PageImpl<>(finalnaLista.subList(start, end), PageRequest.of(page, size), finalnaLista.size());
     }
 
-    // --- OBAVEZNO PROMENI IMPORT NA VRHU KLASE: ---
-    // import org.raflab.studsluzba.controllers.response.NepolozeniPredmetResponse;
-
     @Transactional(readOnly = true)
     public Page<NepolozeniPredmetResponse> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
@@ -200,11 +200,9 @@ public class StudentProfileService {
         Map<String, NepolozeniPredmetResponse> filtrirano = slusaList.stream()
                 .map(sp -> {
                     Predmet p = sp.getDrziPredmet().getPredmet();
-
-                    // --- KREIRAMO NOVI RESPONSE OBJEKAT ---
                     NepolozeniPredmetResponse resp = new NepolozeniPredmetResponse();
                     resp.setId(sp.getId());
-                    resp.setPredmetId(p.getId()); // Popunjavamo ID predmeta
+                    resp.setPredmetId(p.getId());
                     resp.setSifraPredmeta(p.getSifra());
                     resp.setNazivPredmeta(p.getNaziv());
                     resp.setEspb(p.getEspb());
@@ -221,7 +219,6 @@ public class StudentProfileService {
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), rezultat.size());
         if (start > end) start = end;
-
         return new PageImpl<>(rezultat.subList(start, end), pageable, rezultat.size());
     }
 
@@ -521,7 +518,6 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
-            // --- POPUNJAVAMO ID INDEKSA I OVDE ---
             r.setStudentIndeksId(indeks.getId());
             return r;
         });
@@ -543,7 +539,6 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
-            // --- POPUNJAVAMO ID INDEKSA I OVDE ---
             r.setStudentIndeksId(indeks.getId());
             responses.add(r);
         }

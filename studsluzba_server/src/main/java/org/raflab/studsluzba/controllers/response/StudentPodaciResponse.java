@@ -34,6 +34,8 @@ public class StudentPodaciResponse {
     private String srednjaSkola; // Naziv škole iz šifarnika
     private Long studentIndeksId;
     private String napomena;
+    private Long studijskiProgramId;
+
     public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
         this.id = id;
         this.ime = ime;
