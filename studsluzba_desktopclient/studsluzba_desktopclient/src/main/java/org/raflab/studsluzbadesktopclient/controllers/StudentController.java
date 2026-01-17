@@ -686,11 +686,6 @@ public class StudentController {
     }
 
     @FXML
-    public void handleUverenje(ActionEvent event) {
-        System.out.println("Uverenje generisanje pokrenuto...");
-    }
-
-    @FXML
     public void handleKeyPressed(KeyEvent event) {
         if (event.isControlDown()) {
             if (event.getCode().toString().equals("OPEN_BRACKET")) {
@@ -698,6 +693,63 @@ public class StudentController {
             } else if (event.getCode().toString().equals("CLOSE_BRACKET")) {
                 navigationService.goForward();
             }
+        }
+    }
+    @FXML
+    public void handleUverenje(ActionEvent event) {
+        if (currentIndeksId == null) {
+            // Ovde možeš dodati Alert da korisnik mora da selektuje studenta
+            System.out.println("Nije izabran student!");
+            return;
+        }
+
+        try {
+            String url = "http://localhost:8090/api/student/izvestaj/uverenje-o-ispitima/" + currentIndeksId;
+
+            // --- FIX ZA HEADLESS EXCEPTION ---
+            // Umesto java.awt.Desktop, koristimo sistemsku komandu koja radi uvek
+            String os = System.getProperty("os.name").toLowerCase();
+
+            if (os.contains("win")) {
+                // Windows
+                new ProcessBuilder("cmd", "/c", "start", url).start();
+            } else if (os.contains("mac")) {
+                // Mac
+                new ProcessBuilder("open", url).start();
+            } else {
+                // Linux
+                new ProcessBuilder("xdg-open", url).start();
+            }
+            // ----------------------------------
+
+        } catch (Exception e) {
+            System.err.println("Neuspešno otvaranje pretraživača: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    @FXML
+    public void handleUverenjeOStudiranju(ActionEvent event) {
+        if (currentIndeksId == null) return;
+
+        try {
+            String url = "http://localhost:8090/api/student/izvestaj/uverenje-o-studiranju/" + currentIndeksId;
+
+            String os = System.getProperty("os.name").toLowerCase();
+
+            if (os.contains("win")) {
+                // --- PROMENA JE OVDE ---
+                // Dodali smo "msedge" u komandu.
+                // Ovo kaže: cmd -> start -> Microsoft Edge -> URL
+                new ProcessBuilder("cmd", "/c", "start", "msedge", url).start();
+
+            } else if (os.contains("mac")) {
+                new ProcessBuilder("open", "-a", "Microsoft Edge", url).start();
+            } else {
+                new ProcessBuilder("xdg-open", url).start();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

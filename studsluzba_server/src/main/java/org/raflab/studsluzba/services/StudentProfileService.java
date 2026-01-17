@@ -1,24 +1,34 @@
 package org.raflab.studsluzba.services;
 
 import lombok.AllArgsConstructor;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
 import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
+import org.raflab.studsluzba.model.dtos.IzvestajIspitDTO;
 import org.raflab.studsluzba.repositories.*;
 import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -581,6 +591,68 @@ public class StudentProfileService {
                     "Nije moguće obrisati studenta zbog ograničenja integriteta u bazi podataka.");
         }
     }
+    public byte[] generisiPdfUverenje(Long studentIndeksId) throws Exception {
+        StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
+
+        // 1. Parametri zaglavlja (Header)
+        Map<String, Object> parametri = new HashMap<>();
+        parametri.put("studentIme", indeks.getStudent().getIme() + " " + indeks.getStudent().getPrezime());
+        parametri.put("brojIndeksa", indeks.getBroj() + "/" + indeks.getGodina());
+
+        // 2. Izvlačenje ispita za tabelu (Data Source)
+        List<PolozeniPredmeti> polozeni = polozeniPredmetiRepository.findByStudentIndeks(indeks);
+
+        // Mapiramo u listu DTO objekata koji imaju ista polja kao u JRXML-u
+        List<Map<String, Object>> listaIspita = new ArrayList<>();
+        for (PolozeniPredmeti p : polozeni) {
+            if (p.getOcena() != null && p.getOcena() > 5) {
+                Map<String, Object> stavka = new HashMap<>();
+                stavka.put("nazivPredmeta", p.getPredmet().getNaziv());
+                stavka.put("ocena", p.getOcena());
+                stavka.put("espb", p.getPredmet().getEspb());
+                stavka.put("godinaStudija", 1); // Ovde možeš staviti p.getPredmet().getGodina() ako postoji
+                stavka.put("datumPolaganja", "12.01.2024."); // Izvadi pravi datum ako ga imaš
+                listaIspita.add(stavka);
+            }
+        }
+
+        // 3. Učitavanje i popunjavanje
+        InputStream reportStream = getClass().getResourceAsStream("/reports/uverenje_o_ispitima.jrxml");
+        if (reportStream == null) throw new RuntimeException("Fajl uverenje_ispiti.jrxml nije nađen!");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+
+        // KLJUČNA PROMENA: Šaljemo listu ispita umesto EmptyDataSource
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(listaIspita);
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametri, dataSource);
+
+        return JasperExportManager.exportReportToPdf(jasperPrint);
+    }
+
+    public byte[] generisiPdfUverenjeOStudiranju(Long studentIndeksId) throws Exception {
+        StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
+
+        // Moramo popuniti SVE što piše u .jrxml (osim onog što smo obrisali)
+        Map<String, Object> parametri = new HashMap<>();
+        parametri.put("fakultetNaziv", "RAČUNARSKI FAKULTET");
+        parametri.put("studentIme", indeks.getStudent().getIme() + " " + indeks.getStudent().getPrezime());
+        parametri.put("jmbg", indeks.getStudent().getJmbg() != null ? indeks.getStudent().getJmbg() : "");
+        parametri.put("brojIndeksa", indeks.getBroj() + "/" + indeks.getGodina());
+        parametri.put("studijskiProgram", indeks.getStudijskiProgram() != null ? indeks.getStudijskiProgram().getNaziv() : "SI");
+        parametri.put("godinaStudija", "1"); // Možeš izvući iz baze, za test fiksno
+        parametri.put("skolskaGodina", "2023/2024");
+        parametri.put("status", indeks.getNacinFinansiranja() != null ? indeks.getNacinFinansiranja() : "Budžet");
+        parametri.put("datum", LocalDate.now().toString());
+
+        InputStream reportStream = getClass().getResourceAsStream("/reports/uverenje_o_studiranju.jrxml");
+        if (reportStream == null) throw new RuntimeException("Fajl uverenje_o_studiranju.jrxml nije nađen!");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametri, new JREmptyDataSource());
+
+        return JasperExportManager.exportReportToPdf(jasperPrint);
 
     // U StudentService.java na serveru
 

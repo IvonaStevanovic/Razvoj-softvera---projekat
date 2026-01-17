@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="UverenjeOStudiranju" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40">
+
+    <parameter name="fakultetNaziv" class="java.lang.String"/>
+    <parameter name="studentIme" class="java.lang.String"/>
+    <parameter name="jmbg" class="java.lang.String"/>
+    <parameter name="brojIndeksa" class="java.lang.String"/>
+    <parameter name="studijskiProgram" class="java.lang.String"/>
+    <parameter name="godinaStudija" class="java.lang.String"/>
+    <parameter name="skolskaGodina" class="java.lang.String"/>
+    <parameter name="status" class="java.lang.String"/>
+    <parameter name="datum" class="java.lang.String"/>
+
+    <title>
+        <band height="100">
+            <textField>
+                <reportElement x="0" y="0" width="515" height="30"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="16" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{fakultetNaziv}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="50" width="515" height="30"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="22" isBold="true"/>
+                </textElement>
+                <text><![CDATA[UVERENJE O STUDIRANJU]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <detail>
+        <band height="400">
+            <textField textAdjust="StretchHeight">
+                <reportElement x="0" y="20" width="515" height="150"/>
+                <textElement textAlignment="Justified" lineSpacing="1_1_2">
+                    <font fontName="SansSerif" size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Potvrđuje se da je student " + $P{studentIme} +
+                    ", rođen/a sa JMBG " + $P{jmbg} +
+                    ", upisan/a školske " + $P{skolskaGodina} + " godine" +
+                    " na studijski program " + $P{studijskiProgram} +
+                    " kao student " + $P{godinaStudija} + ". godine studija." +
+                    "\n\nStudent ima status: " + $P{status} + "." +
+                    "\n\nOvo uverenje se izdaje na lični zahtev studenta broj indeksa " + $P{brojIndeksa} +
+                    " radi regulisanja prava na zdravstveno osiguranje i povlastice za prevoz, i u druge svrhe se ne može koristiti."]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="250" width="100" height="20"/>
+                <textElement>
+                    <font fontName="SansSerif" size="12"/>
+                </textElement>
+                <text><![CDATA[U Beogradu,]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="270" width="150" height="20"/>
+                <textElement>
+                    <font fontName="SansSerif" size="12"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Datum: " + $P{datum}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="350" y="250" width="165" height="20"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Ovlašćeno lice]]></text>
+            </staticText>
+            <line>
+                <reportElement x="350" y="290" width="165" height="1"/>
+            </line>
+        </band>
+    </detail>
+</jasperReport>

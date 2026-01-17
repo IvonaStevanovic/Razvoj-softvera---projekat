@@ -1,12 +1,15 @@
 package org.raflab.studsluzba.controllers;
 
 import lombok.AllArgsConstructor;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.raflab.studsluzba.controllers.request.ObnovaGodineRequest;
 import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.Uplata;
+import org.raflab.studsluzba.model.dtos.IzvestajIspitDTO;
 import org.raflab.studsluzba.model.dtos.NepolozeniPredmetDTO;;
 import org.raflab.studsluzba.services.StudentProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +17,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +151,55 @@ public class StudentController {
         // Pozivamo metodu iz servisa koju smo ranije videli
         // studentProfileService bi trebalo da ima pristup SrednjaSkolaRepository-u
         return studentProfileService.getAllSrednjeSkole();
+    }
+
+
+    // U StudentController.java
+
+    // --- UVERENJE O STUDIRANJU ---
+    @GetMapping(value = "/izvestaj/uverenje-o-studiranju/{studentIndeksId}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generisiUverenjeOStudiranju(@PathVariable Long studentIndeksId) {
+        try {
+            System.out.println("Primljen zahtev za uverenje o studiranju: " + studentIndeksId);
+
+            // 1. Generisanje PDF-a
+            byte[] pdfBytes = studentProfileService.generisiPdfUverenjeOStudiranju(studentIndeksId);
+
+            // 2. Kreiranje imena fajla (Samo ID i Datum, da ne puca)
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String nazivFajla = "Uverenje_Studiranje_ID" + studentIndeksId + "_" + timestamp + ".pdf";
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + nazivFajla + "\"")
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // OVO POGLEDAJ U KONZOLI AKO PUKNE
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // --- UVERENJE O ISPITIMA (FIXED) ---
+    @GetMapping(value = "/izvestaj/uverenje-o-ispitima/{studentIndeksId}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generisiUverenjeOIspitima(@PathVariable Long studentIndeksId) {
+        try {
+            System.out.println("Primljen zahtev za uverenje o ispitima: " + studentIndeksId);
+
+            // 1. Generisanje PDF-a
+            byte[] pdfBytes = studentProfileService.generisiPdfUverenje(studentIndeksId);
+
+            // 2. Kreiranje imena fajla
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String nazivFajla = "Uverenje_Ispiti_ID" + studentIndeksId + "_" + timestamp + ".pdf";
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + nazivFajla + "\"")
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // OVO POGLEDAJ U KONZOLI AKO PUKNE
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> obrisiStudenta(@PathVariable Long id) {
