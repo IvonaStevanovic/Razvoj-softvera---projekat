@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.controllers;
 
 import lombok.RequiredArgsConstructor;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.raflab.studsluzba.controllers.request.*;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
@@ -16,8 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.io.InputStream;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -141,4 +145,5 @@ public class IspitController {
         ispitService.obrisiIspit(id);
         return ResponseEntity.ok("Ispit sa ID-jem " + id + " i svi povezani podaci su uspešno obrisani.");
     }
+
 }

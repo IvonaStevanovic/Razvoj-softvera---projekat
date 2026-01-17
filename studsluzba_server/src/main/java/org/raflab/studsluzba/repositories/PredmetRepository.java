@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.model.PolozeniPredmeti;
 import org.raflab.studsluzba.model.Predmet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,10 @@ public interface PredmetRepository extends JpaRepository<Predmet, Long> {
     Double getAverageOcenaForPredmetInRange(@Param("predmetId") Long predmetId,
                                             @Param("odGodine") Integer odGodine,
                                             @Param("doGodine") Integer doGodine);
+    @Query("SELECT pp FROM PolozeniPredmeti pp " +
+            "WHERE pp.predmet.id = :predmetId " +
+            "AND YEAR(pp.datumPolaganja) BETWEEN :odGodine AND :doGodine")
+    List<PolozeniPredmeti> getStavkeZaProsek(@Param("predmetId") Long predmetId,
+                                             @Param("odGodine") Integer odGodine,
+                                             @Param("doGodine") Integer doGodine);
 }

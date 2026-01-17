@@ -80,8 +80,15 @@ public class PredmetService {
                 .collect(Collectors.toList());
     }
 
-    public Double getProsek(Long id, Integer odG, Integer doG) {
+    public Double izracunajProsek(Long id, Integer odG, Integer doG) {
         Double prosek = predmetRepository.getAverageOcenaForPredmetInRange(id, odG, doG);
         return prosek != null ? prosek : 0.0;
+    }
+    public Predmet findById(Long id) {
+        return predmetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Predmet sa ID-jem " + id + " ne postoji."));
+    }
+    public Double getProsek(Long id, Integer odG, Integer doG) {
+        return izracunajProsek(id, odG, doG);
     }
 }

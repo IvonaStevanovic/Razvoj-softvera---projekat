@@ -14,16 +14,31 @@
 
         <Label text="Upravljanje Ispitima" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <Label text="Izaberite ispitni rok:"/>
-            <ComboBox fx:id="comboRokovi" prefWidth="200" promptText="Izaberite rok"/>
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <VBox spacing="2">
+                <Label text="Ispitni rok:" style="-fx-font-size: 11px;"/>
+                <HBox spacing="5">
+                    <ComboBox fx:id="comboRokovi" prefWidth="180" promptText="Izaberite rok"/>
+                    <Button text="+" onAction="#handleOpenAddRok" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+            </VBox>
 
-            <Button text="+" onAction="#handleOpenAddRok"
-                    style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;">
-                <tooltip>
-                    <Tooltip text="Dodaj novi ispitni rok"/>
-                </tooltip>
-            </Button> </HBox>
+            <VBox spacing="2">
+                <Label text="Brza pretraga predmeta:" style="-fx-font-size: 11px;"/>
+                <ComboBox fx:id="comboPredmet" prefWidth="250" promptText="Izaberite predmet"/>
+            </VBox>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <VBox spacing="2" alignment="CENTER_RIGHT">
+                <Label text="Statistika period:" style="-fx-font-size: 11px;"/>
+                <HBox spacing="5">
+                    <TextField fx:id="txtGodinaOd" prefWidth="60" promptText="Od"/>
+                    <TextField fx:id="txtGodinaDo" prefWidth="60" promptText="Do"/>
+                    <Button text="Statistika PDF" onAction="#handleStampajIzvestaj" style="-fx-background-color: #FF9800; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+        </HBox>
     </VBox>
 
     <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
@@ -34,30 +49,39 @@
                 </padding>
                 <Label text="Ispiti u izabranom roku" style="-fx-font-weight: bold;"/>
                 <ListView fx:id="listIspiti" VBox.vgrow="ALWAYS" />
-                <Button text="Dodaj novi ispit" onAction="#handleOpenAddIspit"
-                        maxWidth="Infinity" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
-                <Button text="Zapisnik" onAction="#handlePrikaziPrijavljene" />
+                <HBox spacing="10">
+                    <Button text="Dodaj novi ispit" onAction="#handleOpenAddIspit" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+                    <Button text="Zapisnik (Popup)" onAction="#handlePrikaziPrijavljene" style="-fx-background-color: #607D8B; -fx-text-fill: white;"/>
+                </HBox>
             </VBox>
 
             <VBox spacing="10">
                 <padding>
                     <Insets top="10" right="10" bottom="10" left="10"/>
                 </padding>
-                <Label text="Rezultati selektovanog ispita" style="-fx-font-weight: bold;"/>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Rezultati selektovanog ispita" style="-fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label fx:id="lblProsekRezultat" style="-fx-font-style: italic; -fx-text-fill: #2e7d32;"/>
+                </HBox>
+
                 <TableView fx:id="tableRezultati" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="colProgram" text="Program" prefWidth="80"/>
                         <TableColumn fx:id="colIndeks" text="Indeks" prefWidth="100"/>
-                        <TableColumn fx:id="colImePrezime" text="Student" prefWidth="150"/>
-                        <TableColumn fx:id="colPoeni" text="Ukupno poena" prefWidth="100"/>
-                        <TableColumn fx:id="colOcena" text="Ocena" prefWidth="70"/>
+                        <TableColumn fx:id="colImePrezime" text="Student" prefWidth="200"/>
+                        <TableColumn fx:id="colPoeni" text="Poeni" prefWidth="80"/>
+                        <TableColumn fx:id="colOcena" text="Ocena" prefWidth="60"/>
                     </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
                 </TableView>
 
                 <HBox spacing="10" alignment="CENTER_RIGHT">
-                    <Button text="Prijavi studenta" onAction="#handlePrijava" />
-                    <Button text="Štampaj zapisnik" onAction="#handlePrintZapisnik"
-                            style="-fx-background-color: #607D8B; -fx-text-fill: white;"/>
+                    <Button text="Prijavi studenta" onAction="#handlePrijava" prefWidth="150" style="-fx-background-color: #f8f9fa; -fx-border-color: #ccc;"/>
+                    <Button text="Štampaj Zapisnik (PDF)" onAction="#handlePrintZapisnik" prefWidth="180"
+                            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 </HBox>
             </VBox>
         </items>

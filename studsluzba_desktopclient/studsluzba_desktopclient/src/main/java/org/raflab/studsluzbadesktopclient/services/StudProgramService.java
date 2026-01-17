@@ -3,6 +3,7 @@ package org.raflab.studsluzbadesktopclient.services;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.raflab.studsluzbadesktopclient.dtos.ProsekIzvestajResponse;
 import org.raflab.studsluzbadesktopclient.dtos.StudijskiProgramResponse;
 import org.raflab.studsluzbadesktopclient.dtos.PredmetResponse;
 import org.raflab.studsluzbadesktopclient.dtos.PredmetRequest;
@@ -69,6 +70,21 @@ public class StudProgramService {
                 .subscribe(
                         res -> Platform.runLater(successCallback),
                         err -> Platform.runLater(() -> errorCallback.accept("Ne možete obrisati predmet jer ga studenti slušaju."))
+                );
+    }
+    public void getDetaljnaStatistika(Long predmetId, Integer odG, Integer doG, Consumer<List<ProsekIzvestajResponse>> callback) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/predmeti/statistika-detaljno/{predmetId}") // Putanja na serveru
+                        .queryParam("odG", odG)
+                        .queryParam("doG", doG)
+                        .build(predmetId))
+                .retrieve()
+                .bodyToFlux(ProsekIzvestajResponse.class)
+                .collectList()
+                .subscribe(
+                        list -> Platform.runLater(() -> callback.accept(list)),
+                        err -> System.err.println("Greška pri dohvatanju statistike: " + err.getMessage())
                 );
     }
 }

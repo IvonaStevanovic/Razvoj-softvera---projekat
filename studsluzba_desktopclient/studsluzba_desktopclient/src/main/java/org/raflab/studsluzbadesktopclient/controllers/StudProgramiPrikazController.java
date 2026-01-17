@@ -1,22 +1,29 @@
 package org.raflab.studsluzbadesktopclient.controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.raflab.studsluzbadesktopclient.ClientAppConfig;
 import org.raflab.studsluzbadesktopclient.dtos.StudijskiProgramResponse;
 import org.raflab.studsluzbadesktopclient.dtos.PredmetResponse;
+import org.raflab.studsluzbadesktopclient.services.IspitiService;
 import org.raflab.studsluzbadesktopclient.services.StudProgramService;
 import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 @Component
 public class StudProgramiPrikazController {
@@ -30,6 +37,8 @@ public class StudProgramiPrikazController {
     @FXML private TabPane tabPaneDesno;
     @Autowired
     private StudProgramService studProgramService;
+    @Autowired
+    private IspitiService ispitService;
 
     @Autowired
     private NavigationService navigationService;
@@ -90,38 +99,38 @@ public class StudProgramiPrikazController {
     }
     @FXML
     private void handleShowProsekPopUp() {
-        PredmetResponse selektovaniPredmet = tablePredmeti.getSelectionModel().getSelectedItem();
-
-        if (selektovaniPredmet == null) {
-            new Alert(Alert.AlertType.WARNING, "Prvo selektujte predmet u tabeli!").show();
+        PredmetResponse selektovani = tablePredmeti.getSelectionModel().getSelectedItem();
+        if (selektovani == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte predmet!").show();
             return;
         }
 
-        // Kreiramo jednostavan dijalog za unos raspona godina
-        // Možeš koristiti i custom FXML ako želiš lepši dizajn, ali ovo je najbrže
-        TextInputDialog dialog = new TextInputDialog("2020-2026");
-        dialog.setTitle("Prosek ocena");
-        dialog.setHeaderText("Statistika za predmet: " + selektovaniPredmet.getNaziv());
-        dialog.setContentText("Unesite raspon godina (npr. 2022-2025):");
+        try {
+            Integer odG = Integer.parseInt(txtGodinaOd.getText().trim());
+            Integer doG = Integer.parseInt(txtGodinaDo.getText().trim());
 
-        dialog.showAndWait().ifPresent(unos -> {
-            try {
-                String[] godine = unos.split("-");
-                Integer odG = Integer.parseInt(godine[0].trim());
-                Integer doG = Integer.parseInt(godine[1].trim());
+            // Pozivamo novi endpoint (koji treba da dodaš u servis) koji vraća LISTU detalja
+            studProgramService.getDetaljnaStatistika(selektovani.getId(), odG, doG, listaPodataka -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/statistikaPredmetaModal.fxml"));
+                    loader.setControllerFactory(ClientAppConfig.getContext()::getBean);
+                    Parent root = loader.load();
 
-                // Pozivamo servis koji smo već pripremili
-                studProgramService.getProsekZaPredmet(selektovaniPredmet.getId(), odG, doG, prosek -> {
-                    Alert info = new Alert(Alert.AlertType.INFORMATION);
-                    info.setTitle("Rezultat statistike");
-                    info.setHeaderText("Prosečna ocena na predmetu");
-                    info.setContentText(String.format("Prosek za period %d-%d iznosi: %.2f", odG, doG, prosek));
-                    info.show();
-                });
-            } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Neispravan format. Unesite npr: 2022-2025").show();
-            }
-        });
+                    StatistikaPredmetaModalController controller = loader.getController();
+                    controller.setData(selektovani.getNaziv(), odG + "-" + doG, listaPodataka);
+
+                    Stage stage = new Stage();
+                    stage.setTitle("Detaljna statistika");
+                    stage.initModality(Modality.APPLICATION_MODAL);
+                    stage.setScene(new Scene(root));
+                    stage.show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.ERROR, "Unesite ispravne godine!").show();
+        }
     }
     private void prikaziPredmeteZaProgram(StudijskiProgramResponse program) {
         studProgramService.getPredmetiByProgram(program.getId(), predmeti -> {
@@ -203,6 +212,63 @@ public class StudProgramiPrikazController {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Neuspešno učitavanje forme za dodavanje.");
             alert.show();
+        }
+    }
+    @FXML
+    private void handleStampajIzvestaj() {
+        System.out.println("DEBUG: Dugme za štampu kliknuto.");
+
+        PredmetResponse selektovani = tablePredmeti.getSelectionModel().getSelectedItem();
+        if (selektovani == null) {
+            System.out.println("DEBUG: Predmet nije selektovan u tabeli.");
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte predmet u tabeli!").show();
+            return;
+        }
+
+        try {
+            String odGStr = txtGodinaOd.getText();
+            String doGStr = txtGodinaDo.getText();
+
+            System.out.println("DEBUG: Uneto Od: " + odGStr + ", Do: " + doGStr);
+
+            if (odGStr == null || odGStr.isEmpty() || doGStr == null || doGStr.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Unesite godine!").show();
+                return;
+            }
+
+            Integer odG = Integer.parseInt(odGStr.trim());
+            Integer doG = Integer.parseInt(doGStr.trim());
+
+            System.out.println("DEBUG: Šaljem zahtev klijentskom servisu za predmet ID: " + selektovani.getId());
+
+            ispitService.preuzmiPDFSaParametrima(selektovani.getId(), odG, doG, bytes -> {
+                System.out.println("DEBUG: Bajtovi stigli sa servera. Veličina: " + (bytes != null ? bytes.length : "NULL"));
+
+                if (bytes == null || bytes.length == 0) {
+                    Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Server je vratio prazan fajl.").show());
+                    return;
+                }
+
+                try {
+                    File tempFile = File.createTempFile("izvestaj_prosek_", ".pdf");
+                    java.nio.file.Files.write(tempFile.toPath(), bytes);
+                    System.out.println("DEBUG: Fajl sačuvan na: " + tempFile.getAbsolutePath());
+
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop.getDesktop().open(tempFile);
+                    } else {
+                        new ProcessBuilder("cmd", "/c", "start", tempFile.getAbsolutePath()).start();
+                    }
+                } catch (IOException e) {
+                    System.err.println("DEBUG: Greška pri čuvanju/otvaranju fajla: " + e.getMessage());
+                }
+            });
+        } catch (NumberFormatException e) {
+            System.err.println("DEBUG: Greška u formatu godine: " + e.getMessage());
+            new Alert(Alert.AlertType.ERROR, "Godine moraju biti brojevi!").show();
+        } catch (Exception e) {
+            System.err.println("DEBUG: Opšta greška: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
