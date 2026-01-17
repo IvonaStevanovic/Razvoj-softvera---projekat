@@ -158,10 +158,26 @@ public class IspitiController {
     }
     @FXML
     private void handlePrintZapisnik() {
-        IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            System.out.println("Generišem izveštaj za ispit: " + selected.getId());
+        IspitResponse selektovani = listIspiti.getSelectionModel().getSelectedItem();
+        if (selektovani == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte ispit iz liste levo!").show();
+            return;
         }
+
+        ispitService.preuzmiZapisnikPDF(selektovani.getId(), bytes -> {
+            try {
+                File tempFile = File.createTempFile("zapisnik_ispita_", ".pdf");
+                java.nio.file.Files.write(tempFile.toPath(), bytes);
+
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().open(tempFile);
+                } else {
+                    new ProcessBuilder("cmd", "/c", "start", tempFile.getAbsolutePath()).start();
+                }
+            } catch (IOException e) {
+                new Alert(Alert.AlertType.ERROR, "Greška pri otvaranju PDF-a: " + e.getMessage()).show();
+            }
+        });
     }
     @FXML
     private void handleOpenAddIspit(ActionEvent event) {

@@ -29,15 +29,6 @@
             </VBox>
 
             <Region HBox.hgrow="ALWAYS" />
-
-            <VBox spacing="2" alignment="CENTER_RIGHT">
-                <Label text="Statistika period:" style="-fx-font-size: 11px;"/>
-                <HBox spacing="5">
-                    <TextField fx:id="txtGodinaOd" prefWidth="60" promptText="Od"/>
-                    <TextField fx:id="txtGodinaDo" prefWidth="60" promptText="Do"/>
-                    <Button text="Statistika PDF" onAction="#handleStampajIzvestaj" style="-fx-background-color: #FF9800; -fx-text-fill: white;"/>
-                </HBox>
-            </VBox>
         </HBox>
     </VBox>
 

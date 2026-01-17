@@ -176,4 +176,11 @@ public class IspitiService {
                         err -> System.err.println("Greška pri preuzimanju PDF-a: " + err.getMessage())
                 );
     }
+    public void preuzmiZapisnikPDF(Long ispitId, Consumer<byte[]> callback) {
+        webClient.get()
+                .uri("/api/ispit/izvestaj/zapisnik/{ispitId}", ispitId)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .subscribe(bytes -> Platform.runLater(() -> callback.accept(bytes)));
+    }
 }
