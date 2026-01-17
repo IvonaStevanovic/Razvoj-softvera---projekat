@@ -181,8 +181,11 @@ public class StudentProfileService {
         return new PageImpl<>(finalnaLista.subList(start, end), PageRequest.of(page, size), finalnaLista.size());
     }
 
+    // --- OBAVEZNO PROMENI IMPORT NA VRHU KLASE: ---
+    // import org.raflab.studsluzba.controllers.response.NepolozeniPredmetResponse;
+
     @Transactional(readOnly = true)
-    public Page<NepolozeniPredmetDTO> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
+    public Page<NepolozeniPredmetResponse> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
@@ -194,27 +197,31 @@ public class StudentProfileService {
 
         List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
 
-        Map<String, NepolozeniPredmetDTO> filtrirano = slusaList.stream()
+        Map<String, NepolozeniPredmetResponse> filtrirano = slusaList.stream()
                 .map(sp -> {
                     Predmet p = sp.getDrziPredmet().getPredmet();
-                    NepolozeniPredmetDTO dto = new NepolozeniPredmetDTO();
-                    dto.setId(sp.getId());
-                    dto.setSifraPredmeta(p.getSifra());
-                    dto.setNazivPredmeta(p.getNaziv());
-                    dto.setEspb(p.getEspb());
-                    return dto;
+
+                    // --- KREIRAMO NOVI RESPONSE OBJEKAT ---
+                    NepolozeniPredmetResponse resp = new NepolozeniPredmetResponse();
+                    resp.setId(sp.getId());
+                    resp.setPredmetId(p.getId()); // Popunjavamo ID predmeta
+                    resp.setSifraPredmeta(p.getSifra());
+                    resp.setNazivPredmeta(p.getNaziv());
+                    resp.setEspb(p.getEspb());
+                    return resp;
                 })
                 .filter(dto -> !polozeneSifre.contains(dto.getSifraPredmeta()))
                 .collect(Collectors.toMap(
-                        NepolozeniPredmetDTO::getSifraPredmeta,
+                        NepolozeniPredmetResponse::getSifraPredmeta,
                         dto -> dto,
                         (existing, replacement) -> existing
                 ));
 
-        List<NepolozeniPredmetDTO> rezultat = new ArrayList<>(filtrirano.values());
+        List<NepolozeniPredmetResponse> rezultat = new ArrayList<>(filtrirano.values());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), rezultat.size());
         if (start > end) start = end;
+
         return new PageImpl<>(rezultat.subList(start, end), pageable, rezultat.size());
     }
 

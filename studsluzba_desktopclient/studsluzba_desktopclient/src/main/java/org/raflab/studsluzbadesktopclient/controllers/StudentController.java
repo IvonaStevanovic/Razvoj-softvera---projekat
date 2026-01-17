@@ -44,14 +44,18 @@ public class StudentController {
 
     // Tabele - Ispiti i Uplate
     @FXML private TableView<PolozeniPredmetiResponse> polozeniTable;
-    @FXML private TableView<NepolozeniPredmetDTO> nepolozeniTable;
+
+    // --- IZMENA: Tabela sada koristi NepolozeniPredmetResponse ---
+    @FXML private TableView<NepolozeniPredmetResponse> nepolozeniTable;
     @FXML private TableView<UplataResponse> uplateTable;
 
     // Kolone - Ispiti
     @FXML private TableColumn<PolozeniPredmetiResponse, String> predmetPolozioCol, datumPolaganjaCol;
     @FXML private TableColumn<PolozeniPredmetiResponse, Integer> ocenaCol, espbPolozioCol;
-    @FXML private TableColumn<NepolozeniPredmetDTO, String> predmetNepolozenCol;
-    @FXML private TableColumn<NepolozeniPredmetDTO, Integer> espbNepolozenCol;
+
+    // --- IZMENA: Kolone sada koriste NepolozeniPredmetResponse ---
+    @FXML private TableColumn<NepolozeniPredmetResponse, String> predmetNepolozenCol;
+    @FXML private TableColumn<NepolozeniPredmetResponse, Integer> espbNepolozenCol;
 
     // Kolone - Finansije
     @FXML private TableColumn<UplataResponse, String> datumUplateCol, svrhaCol;
@@ -71,7 +75,6 @@ public class StudentController {
     @FXML private TableColumn<ObnovaGodineResponse, String> colObnovaNapomena;
 
     private Long currentStudentId;
-    // Čuvamo i ID trenutno prikazanog indeksa da bismo znali šta osvežavamo
     private Long currentIndeksId;
 
     @Autowired
@@ -106,27 +109,21 @@ public class StudentController {
         navigationService.goForward();
     }
 
-    // --- METODA 1: Stara metoda (zadržana zbog kompatibilnosti) ---
     public void loadStudentData(Long studentId) {
-        // Ako se pozove stara metoda, pozivamo novu sa null za indeks (automatski će naći aktivan)
         loadStudentData(studentId, null);
     }
 
-    // --- METODA 2: Nova metoda koja prima i ID indeksa ---
     public void loadStudentData(Long studentId, Long selectedIndeksId) {
         this.currentStudentId = studentId;
         try {
             StudentPodaciResponse student = studentService.getStudentById(studentId);
             if (student == null) return;
 
-            // ODLUČIVANJE: Koji indeks prikazujemo?
-            // Ako je prosleđen selectedIndeksId, koristimo njega.
-            // Ako nije (null), koristimo onaj koji je stigao uz studenta (default/aktivan).
             this.currentIndeksId = (selectedIndeksId != null) ? selectedIndeksId : student.getStudentIndeksId();
 
             popuniFormuIzBaze(student);
 
-            // 1. Ispiti (koristimo tačan indeks)
+            // 1. Ispiti
             if (this.currentIndeksId != null) {
                 List<PolozeniPredmetiResponse> polozeni = studentService.getPolozeniIspiti(this.currentIndeksId);
                 if (polozeniTable != null) {
@@ -134,17 +131,16 @@ public class StudentController {
                     obracunajAkademskiStatus(polozeni);
                 }
             } else {
-                // Fallback ako nema indeksa
                 if (polozeniTable != null) polozeniTable.setItems(FXCollections.emptyObservableList());
             }
 
-            // Nepoloženi (koriste broj indeksa, to je ok)
             if (student.getBrojIndeksa() > 0 && nepolozeniTable != null) {
-                List<NepolozeniPredmetDTO> nepolozeni = studentService.getNepolozeniIspiti(student.getBrojIndeksa());
+                // --- IZMENA: Očekujemo listu NepolozeniPredmetResponse ---
+                List<NepolozeniPredmetResponse> nepolozeni = studentService.getNepolozeniIspiti(student.getBrojIndeksa());
                 nepolozeniTable.setItems(FXCollections.observableArrayList(nepolozeni != null ? nepolozeni : FXCollections.emptyObservableList()));
             }
 
-            // 2. Uplate (vezane za studenta, ne indeks)
+            // 2. Uplate
             List<UplataResponse> uplate = studentService.getUplate(studentId);
             if (uplateTable != null) {
                 uplateTable.setItems(FXCollections.observableArrayList(uplate != null ? uplate : FXCollections.emptyObservableList()));
@@ -159,7 +155,7 @@ public class StudentController {
                 }
             }
 
-            // 3. TOK STUDIJA (Upisi i Obnove) - KLJUČNA IZMENA
+            // 3. Tok studija
             if (this.currentIndeksId != null) {
                 List<UpisGodineResponse> upisi = studentService.getUpisaneGodine(this.currentIndeksId);
                 if (upisGodineTable != null) {
@@ -186,6 +182,138 @@ public class StudentController {
             if (labelError != null) labelError.setText("Greška pri osvežavanju podataka.");
             e.printStackTrace();
         }
+    }
+
+    // --- NOVA METODA: UPIS GODINE SA IZBOROM PREDMETA ---
+    @FXML
+    public void handleUpisGodine(ActionEvent event) {
+        if (currentStudentId == null || currentIndeksId == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setContentText("Podaci o studentu nisu učitani.");
+            alert.showAndWait();
+            return;
+        }
+
+        Dialog<UpisGodineRequest> dialog = new Dialog<>();
+        dialog.setTitle("Upis godine");
+        dialog.setHeaderText("Unesite podatke za upis naredne godine");
+
+        ButtonType upisiButtonType = new ButtonType("Upiši", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(upisiButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField godinaStudijaTf = new TextField();
+        godinaStudijaTf.setPromptText("npr. 2");
+
+        int sledecaGodina = 1;
+        if (upisGodineTable != null && !upisGodineTable.getItems().isEmpty()) {
+            sledecaGodina = upisGodineTable.getItems().stream()
+                    .mapToInt(UpisGodineResponse::getGodinaStudija)
+                    .max().orElse(0) + 1;
+        }
+        godinaStudijaTf.setText(String.valueOf(sledecaGodina));
+
+        DatePicker datumDp = new DatePicker(LocalDate.now());
+
+        TextArea napomenaTa = new TextArea();
+        napomenaTa.setPromptText("Napomena (opciono)");
+        napomenaTa.setPrefRowCount(2);
+
+        // --- IZBOR PREDMETA (CHECKBOX LISTA) ---
+        VBox predmetiBox = new VBox(5);
+        ScrollPane scrollPane = new ScrollPane(predmetiBox);
+        scrollPane.setPrefHeight(150);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color:transparent;");
+
+        List<CheckBox> checkBoxes = new java.util.ArrayList<>();
+
+        // Koristimo podatke iz tabele koja sada sadrži Response objekte
+        if (nepolozeniTable != null && !nepolozeniTable.getItems().isEmpty()) {
+            for (NepolozeniPredmetResponse np : nepolozeniTable.getItems()) {
+                CheckBox cb = new CheckBox(np.getNazivPredmeta() + " (" + np.getEspb() + " ESPB)");
+                // OVDE JE MAGIJA: Koristimo getPredmetId() koji sada postoji u Response klasi
+                cb.setUserData(np.getPredmetId());
+                checkBoxes.add(cb);
+                predmetiBox.getChildren().add(cb);
+            }
+        } else {
+            predmetiBox.getChildren().add(new Label("Nema predmeta za prenos."));
+        }
+
+        grid.add(new Label("Godina studija:"), 0, 0);
+        grid.add(godinaStudijaTf, 1, 0);
+        grid.add(new Label("Datum upisa:"), 0, 1);
+        grid.add(datumDp, 1, 1);
+        grid.add(new Label("Napomena:"), 0, 2);
+        grid.add(napomenaTa, 1, 2);
+        grid.add(new Label("Prenos predmeta:"), 0, 3);
+        grid.add(scrollPane, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+        Platform.runLater(godinaStudijaTf::requestFocus);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == upisiButtonType) {
+                try {
+                    UpisGodineRequest req = new UpisGodineRequest();
+                    req.setGodinaStudija(Integer.parseInt(godinaStudijaTf.getText()));
+                    req.setDatum(datumDp.getValue());
+                    req.setNapomena(napomenaTa.getText());
+                    req.setStudentIndeksId(currentIndeksId);
+
+                    // Sakupljamo ID-jeve
+                    java.util.Set<Long> odabraniIds = new java.util.HashSet<>();
+                    for (CheckBox cb : checkBoxes) {
+                        if (cb.isSelected() && cb.getUserData() != null) {
+                            odabraniIds.add((Long) cb.getUserData());
+                        }
+                    }
+                    req.setPrenetiPredmetiIds(odabraniIds);
+
+                    return req;
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(req -> {
+            if (req != null) {
+                try {
+                    studentService.upisiGodinu(currentIndeksId, req);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Uspeh");
+                    alert.setContentText("Uspešno ste upisali godinu!");
+                    alert.showAndWait();
+
+                    loadStudentData(currentStudentId, currentIndeksId);
+
+                } catch (RuntimeException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Greška");
+                    alert.setHeaderText("Greška pri upisu");
+                    String msg = e.getMessage();
+                    if(msg.contains("message\":\"")) {
+                        int start = msg.indexOf("message\":\"") + 10;
+                        int end = msg.indexOf("\"", start);
+                        if (end > start) msg = msg.substring(start, end);
+                    }
+                    alert.setContentText(msg);
+                    alert.showAndWait();
+                }
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Neispravan unos godine!");
+                alert.showAndWait();
+            }
+        });
     }
 
     @FXML
@@ -249,7 +377,6 @@ public class StudentController {
             if (request != null) {
                 boolean success = studentService.dodajUplatu(request);
                 if (success) {
-                    // Pozivamo sa currentIndeksId da bi ostali na istom indeksu
                     loadStudentData(currentStudentId, currentIndeksId);
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Uspeh");
@@ -327,7 +454,7 @@ public class StudentController {
             svrhaCol.setCellValueFactory(new PropertyValueFactory<>("svrhaUplate"));
         }
 
-        // --- NOVO: UPIS GODINE ---
+        // --- UPIS GODINE ---
         if (colUpisGodina != null) {
             colUpisGodina.setCellValueFactory(new PropertyValueFactory<>("godinaStudija"));
             colUpisSkolska.setCellValueFactory(new PropertyValueFactory<>("skolskaGodina"));
@@ -336,7 +463,7 @@ public class StudentController {
                     new SimpleStringProperty(cellData.getValue().getDatumUpisa() != null ? cellData.getValue().getDatumUpisa().toString() : ""));
         }
 
-        // --- NOVO: OBNOVA GODINE ---
+        // --- OBNOVA GODINE ---
         if (colObnovaGodina != null) {
             colObnovaGodina.setCellValueFactory(new PropertyValueFactory<>("godinaStudija"));
             colObnovaNapomena.setCellValueFactory(new PropertyValueFactory<>("napomena"));
@@ -411,11 +538,6 @@ public class StudentController {
                 navigationService.goForward();
             }
         }
-    }
-
-    @FXML
-    void handleUpisGodine(ActionEvent event) {
-        System.out.println("Upis godine kliknut.");
     }
 
     @FXML
