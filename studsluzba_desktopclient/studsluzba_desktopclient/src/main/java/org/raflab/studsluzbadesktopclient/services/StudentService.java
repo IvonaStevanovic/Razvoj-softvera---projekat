@@ -5,11 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import org.raflab.studsluzbadesktopclient.dtos.NepolozeniPredmetDTO;
-import org.raflab.studsluzbadesktopclient.dtos.PolozeniPredmetiResponse;
-import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
-import org.raflab.studsluzbadesktopclient.dtos.UplataResponse;
-import org.raflab.studsluzbadesktopclient.dtos.UplataRequest;
+import org.raflab.studsluzbadesktopclient.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -39,7 +35,6 @@ public class StudentService {
     private final String baseUrl = "http://localhost:8090";
     private final String STUDENT_URL_PATH = "/api/student";
 
-    // --- TVOJE POSTOJEĆE METODE (NETAKNUTE) ---
 
     public List<StudentPodaciResponse> searchStudents(String ime, String prezime, String indeks, String skola) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + STUDENT_URL_PATH + "/search")
@@ -135,23 +130,29 @@ public class StudentService {
         return new ArrayList<>();
     }
 
-    public List<NepolozeniPredmetDTO> getNepolozeniIspiti(Integer brojIndeksa) {
+    // --- PROMENI IMPORT: import org.raflab.studsluzbadesktopclient.dtos.NepolozeniPredmetResponse; ---
+
+    public List<NepolozeniPredmetResponse> getNepolozeniIspiti(Integer brojIndeksa) {
+        String url = baseUrl + "/api/student/" + brojIndeksa + "/nepolozeni?page=0&size=1000";
         try {
-            String url = baseUrl + "/api/student/" + brojIndeksa + "/nepolozeni?page=0&size=10";
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            // Koristimo RestPageImpl<NepolozeniPredmetResponse>
+            ParameterizedTypeReference<RestPageImpl<NepolozeniPredmetResponse>> responseType =
+                    new ParameterizedTypeReference<RestPageImpl<NepolozeniPredmetResponse>>() {};
 
-            if (response.getBody() != null && response.getBody().containsKey("content")) {
-                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+            ResponseEntity<RestPageImpl<NepolozeniPredmetResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    responseType
+            );
 
-                ObjectMapper mapper = new ObjectMapper();
-                return content.stream()
-                        .map(map -> mapper.convertValue(map, NepolozeniPredmetDTO.class))
-                        .collect(Collectors.toList());
+            if (response.getBody() != null) {
+                return response.getBody().getContent();
             }
         } catch (Exception e) {
-            System.err.println("GRESKA pri dobavljanju nepoloženih: " + e.getMessage());
+            e.printStackTrace();
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     public List<UplataResponse> getUplate(Long studentId) {
@@ -167,7 +168,6 @@ public class StudentService {
         }
     }
 
-    // --- OVO JE JEDINA IZMENA (FIX ZA 415 GRESKU) ---
     public boolean dodajUplatu(UplataRequest request) {
         try {
             // Moramo eksplicitno postaviti Content-Type na JSON
@@ -189,7 +189,60 @@ public class StudentService {
             return false;
         }
     }
-    // -------------------------------------------------
+
+    // --- METODE ZA UPIS I OBNOVU GODINE ---
+
+    public List<UpisGodineResponse> getUpisaneGodine(Long studentIndeksId) {
+        String url = baseUrl + "/api/student/" + studentIndeksId + "/upisane-godine";
+        try {
+            ResponseEntity<List<UpisGodineResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<UpisGodineResponse>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public List<ObnovaGodineResponse> getObnovljeneGodine(Long studentIndeksId) {
+        String url = baseUrl + "/api/student/" + studentIndeksId + "/obnovljene-godine";
+        try {
+            ResponseEntity<List<ObnovaGodineResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<ObnovaGodineResponse>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+    // --- METODA ZA UPIS GODINE (POPRAVLJENA) ---
+    public boolean upisiGodinu(Long studentId, UpisGodineRequest request) {
+        String url = baseUrl + "/api/student/" + studentId + "/upis-godine";
+        try {
+            // 1. Kreiramo zaglavlja (Headers) da kažemo serveru da šaljemo JSON
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // 2. Pakujemo request objekat i zaglavlja u HttpEntity
+            HttpEntity<UpisGodineRequest> entity = new HttpEntity<>(request, headers);
+
+            // 3. Šaljemo POST zahtev
+            ResponseEntity<UpisGodineResponse> response = restTemplate.postForEntity(url, entity, UpisGodineResponse.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     public List<StudentPodaciResponse> sviStudenti() {
         return searchStudents(null, null, null, null);
@@ -243,5 +296,39 @@ public class StudentService {
 
     private String createURL(String pathEnd) {
         return baseUrl + STUDENT_URL_PATH + "/" + pathEnd;
+    }
+
+    // --- NOVE METODE DODATE ZA OBNOVU GODINE (OVO JE NOVO) ---
+
+    public List<PredmetResponse> getPredmetiByProgram(Long programId) {
+        String url = baseUrl + "/api/predmeti/program/" + programId;
+        try {
+            ResponseEntity<List<PredmetResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<PredmetResponse>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public void obnovaGodine(Long studentIndeksId, ObnovaGodineRequest request) {
+        String url = baseUrl + "/api/student/" + studentIndeksId + "/obnova-godine";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ObnovaGodineRequest> entity = new HttpEntity<>(request, headers);
+
+        try {
+            restTemplate.postForEntity(url, entity, ObnovaGodineResponse.class);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            throw new RuntimeException("Server greška: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new RuntimeException("Neuspešna obnova: " + e.getMessage());
+        }
     }
 }

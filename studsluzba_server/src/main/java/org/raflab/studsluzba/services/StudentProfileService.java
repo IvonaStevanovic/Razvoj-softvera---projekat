@@ -7,7 +7,6 @@ import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
-import org.raflab.studsluzba.model.dtos.NepolozeniPredmetDTO;
 import org.raflab.studsluzba.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -92,6 +91,12 @@ public class StudentProfileService {
 
         if (indeks != null) {
             r.setBrojIndeksa(indeks.getBroj());
+            r.setStudentIndeksId(indeks.getId());
+            // --- OVO JE JEDINA IZMENA OVDE: Dodajemo ID programa da bi klijent znao sta da povuče ---
+            if (indeks.getStudijskiProgram() != null) {
+                r.setStudijskiProgramId(indeks.getStudijskiProgram().getId());
+            }
+            // ----------------------------------------------------------------------------------------
         }
 
         if (s.getSrednjaSkola() != null) {
@@ -121,7 +126,6 @@ public class StudentProfileService {
         student.setPrezime(request.getPrezime());
         student.setJmbg(request.getJmbg());
         student.setSrednjaSkola(skola);
-        // ... ostala polja
         student = studentRepository.save(student);
 
         StudentIndeks indeks = new StudentIndeks();
@@ -181,7 +185,7 @@ public class StudentProfileService {
     }
 
     @Transactional(readOnly = true)
-    public Page<NepolozeniPredmetDTO> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
+    public Page<NepolozeniPredmetResponse> getNepolozeniPredmetiByBroj(Integer brojIndeksa, Pageable pageable) {
         StudentIndeks indeks = studentIndeksRepository.findByBroj(brojIndeksa)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Indeks nije pronađen"));
 
@@ -193,24 +197,25 @@ public class StudentProfileService {
 
         List<SlusaPredmet> slusaList = slusaPredmetRepository.findByStudentIndeks(indeks);
 
-        Map<String, NepolozeniPredmetDTO> filtrirano = slusaList.stream()
+        Map<String, NepolozeniPredmetResponse> filtrirano = slusaList.stream()
                 .map(sp -> {
                     Predmet p = sp.getDrziPredmet().getPredmet();
-                    NepolozeniPredmetDTO dto = new NepolozeniPredmetDTO();
-                    dto.setId(sp.getId());
-                    dto.setSifraPredmeta(p.getSifra());
-                    dto.setNazivPredmeta(p.getNaziv());
-                    dto.setEspb(p.getEspb());
-                    return dto;
+                    NepolozeniPredmetResponse resp = new NepolozeniPredmetResponse();
+                    resp.setId(sp.getId());
+                    resp.setPredmetId(p.getId());
+                    resp.setSifraPredmeta(p.getSifra());
+                    resp.setNazivPredmeta(p.getNaziv());
+                    resp.setEspb(p.getEspb());
+                    return resp;
                 })
                 .filter(dto -> !polozeneSifre.contains(dto.getSifraPredmeta()))
                 .collect(Collectors.toMap(
-                        NepolozeniPredmetDTO::getSifraPredmeta,
+                        NepolozeniPredmetResponse::getSifraPredmeta,
                         dto -> dto,
                         (existing, replacement) -> existing
                 ));
 
-        List<NepolozeniPredmetDTO> rezultat = new ArrayList<>(filtrirano.values());
+        List<NepolozeniPredmetResponse> rezultat = new ArrayList<>(filtrirano.values());
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), rezultat.size());
         if (start > end) start = end;
@@ -323,7 +328,6 @@ public class StudentProfileService {
         return mapToObnovaGodineResponse(obnova);
     }
 
-    // --- VRAĆENA METODA obnovaGodineSaESPB ---
     public ObnovaGodineResponse obnovaGodineSaESPB(Long studentIndeksId, ObnovaGodineRequest request) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
@@ -371,7 +375,6 @@ public class StudentProfileService {
 
     // ------------------ UPLATE I FINANSIJE ------------------
 
-    // --- NOVA METODA ZA KREIRANJE UPLATE ---
     @Transactional
     public Long createUplata(UplataRequest request) {
         StudentPodaci student = studentRepository.findById(request.getStudentId())
@@ -417,7 +420,6 @@ public class StudentProfileService {
         return new UplataResponse(LocalDate.now(), iznosEur, iznosRsd, kurs);
     }
 
-    // --- VRAĆENA METODA getSveUplate ---
     public List<UplataResponse> getSveUplate(Long studentId) {
         StudentPodaci student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
@@ -516,6 +518,7 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
+            r.setStudentIndeksId(indeks.getId());
             return r;
         });
     }
@@ -536,6 +539,7 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
+            r.setStudentIndeksId(indeks.getId());
             responses.add(r);
         }
         return responses;
@@ -551,7 +555,6 @@ public class StudentProfileService {
         }).collect(Collectors.toList());
     }
 
-    // --- VRAĆENA METODA obrisiStudenta ---
     @Transactional
     public void obrisiStudenta(Long studentId) {
         StudentPodaci student = studentRepository.findById(studentId)

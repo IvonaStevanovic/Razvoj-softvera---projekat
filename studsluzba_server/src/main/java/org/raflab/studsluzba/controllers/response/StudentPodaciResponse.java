@@ -32,11 +32,22 @@ public class StudentPodaciResponse {
     private Integer godinaUpisa;
     private Integer brojIndeksa; // Ključno za specifikaciju
     private String srednjaSkola; // Naziv škole iz šifarnika
+    private Long studentIndeksId;
     private String napomena;
+    private Long studijskiProgramId;
+
     public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa) {
         this.id = id;
         this.ime = ime;
         this.prezime = prezime;
         this.brojIndeksa = brojIndeksa;
+    }
+
+    public Long getStudentIndeksId() {
+        return studentIndeksId;
+    }
+
+    public void setStudentIndeksId(Long studentIndeksId) {
+        this.studentIndeksId = studentIndeksId;
     }
 }

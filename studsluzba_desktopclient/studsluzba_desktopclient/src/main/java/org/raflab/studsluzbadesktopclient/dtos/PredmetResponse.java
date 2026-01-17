@@ -16,6 +16,7 @@ public class PredmetResponse {
     private Boolean obavezan;
     private Integer fondPredavanja;
     private Integer fondVezbe;
+    private int godina;
 
     // Defaultni konstruktor
     public PredmetResponse() { }
