@@ -1,31 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.text.Text?>
-<?import javafx.geometry.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="mainPane" xmlns:fx="http://javafx.com/fxml" fx:controller="org.raflab.studsluzbadesktopclient.controllers.StudentController">
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.NewStudentController">
 
     <top>
         <fx:include source="menuBar.fxml"/>
     </top>
 
     <center>
-        <BorderPane>
-            <center>
-                <fx:include source="studentPodaciTabPane.fxml"/>
-            </center>
-            <bottom>
-                <GridPane alignment="center" hgap="10" vgap="10">
-                    <padding><Insets top="20" right="0" bottom="10" left="0"/></padding>
-                    <Button  onAction="#handleSaveStudent" text="Sačuvaj"
-                             GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                    <Text text="                                " fx:id="actionTarget" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 30;">
+
+                <Label text="Evidencija novog studenta" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+                <GridPane hgap="15" vgap="15" alignment="CENTER">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="RIGHT" minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS" maxWidth="300"/>
+                        <ColumnConstraints halignment="RIGHT" minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS" maxWidth="300"/>
+                    </columnConstraints>
+
+                    <Label text="Ime:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="imeTf" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Prezime:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                    <TextField fx:id="prezimeTf" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+                    <Label text="Srednje ime:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="srednjeImeTf" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="JMBG:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                    <TextField fx:id="jmbgTf" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+                    <Label text="Datum rođenja:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <DatePicker fx:id="datumRodjenjaDp" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Pol:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                    <HBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="3">
+                        <RadioButton fx:id="muski" text="M">
+                            <toggleGroup><ToggleGroup fx:id="polGroup"/></toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="zenski" text="Ž" toggleGroup="$polGroup"/>
+                    </HBox>
+
+                    <Label text="Mesto rođenja:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="mestoRodjenjaTf" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Država rođenja:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                    <TextField fx:id="drzavaRodjenjaTf" GridPane.rowIndex="3" GridPane.columnIndex="3"/>
+
+                    <Label text="Državljanstvo:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="drzavljanstvoTf" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <Label text="Nacionalnost:" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+                    <TextField fx:id="nacionalnostTf" GridPane.rowIndex="4" GridPane.columnIndex="3"/>
+
+                    <Label text="Broj lične karte:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <TextField fx:id="brojLicneKarteTf" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                    <Label text="Adresa prebivališta:" GridPane.rowIndex="5" GridPane.columnIndex="2"/>
+                    <TextField fx:id="adresaTf" GridPane.rowIndex="5" GridPane.columnIndex="3"/>
+
+                    <Label text="Mesto prebivališta:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                    <TextField fx:id="mestoPrebivalistaTf" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                    <Label text="Mesto stanovanja:" GridPane.rowIndex="6" GridPane.columnIndex="2"/>
+                    <TextField fx:id="mestoStanovanjaTf" GridPane.rowIndex="6" GridPane.columnIndex="3"/>
+
+                    <Label text="Email (Fakultet):" GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <TextField fx:id="emailFakultetTf" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                    <Label text="Email (Privatni):" GridPane.rowIndex="7" GridPane.columnIndex="2"/>
+                    <TextField fx:id="emailPrivatniTf" GridPane.rowIndex="7" GridPane.columnIndex="3"/>
+
+                    <Label text="Telefon:" GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                    <TextField fx:id="brojTelefonaTf" GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+
+                    <Label text="Srednja škola:" GridPane.rowIndex="8" GridPane.columnIndex="2"/>
+                    <ComboBox fx:id="srednjaSkolaCb" prefWidth="200" GridPane.rowIndex="8" GridPane.columnIndex="3"/>
+
+                    <Label text="Uspeh srednja:" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
+                    <TextField fx:id="uspehSrednjaSkolaTf" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+                    <Label text="Uspeh prijemni:" GridPane.rowIndex="9" GridPane.columnIndex="2"/>
+                    <TextField fx:id="uspehPrijemniTf" GridPane.rowIndex="9" GridPane.columnIndex="3"/>
+
+                    <Separator GridPane.columnSpan="4" GridPane.rowIndex="10"/>
+
+                    <Label text="Broj indeksa:" GridPane.rowIndex="11" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="brojIndeksaTf" GridPane.rowIndex="11" GridPane.columnIndex="1"/>
+
+                    <Label text="Godina upisa:" GridPane.rowIndex="11" GridPane.columnIndex="2" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="godinaUpisaTf" GridPane.rowIndex="11" GridPane.columnIndex="3"/>
+
+                    <Label text="Stud. program (Oznaka):" GridPane.rowIndex="12" GridPane.columnIndex="0"/>
+                    <TextField fx:id="studProgramOznakaTf" promptText="npr. RAS" GridPane.rowIndex="12" GridPane.columnIndex="1"/>
+
                 </GridPane>
-            </bottom>
-        </BorderPane>
+
+                <Button text="Sačuvaj studenta" onAction="#handleSave"
+                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 30; -fx-cursor: hand;"/>
+
+                <Label fx:id="msgLabel"/>
+            </VBox>
+        </ScrollPane>
     </center>
-
-
 </BorderPane>

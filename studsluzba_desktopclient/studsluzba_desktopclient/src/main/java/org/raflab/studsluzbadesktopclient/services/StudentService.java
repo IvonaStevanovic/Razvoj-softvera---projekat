@@ -363,4 +363,31 @@ public class StudentService {
             throw new RuntimeException("Neuspešna obnova: " + e.getMessage());
         }
     }
+
+    // Dodaj ovo u StudentService.java na klijentu
+
+    public StudentPodaciResponse createStudent(StudentPodaciRequest request) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            HttpEntity<StudentPodaciRequest> entity = new HttpEntity<>(request, headers);
+
+            // --- IZMENA OVDE ---
+            // Dodajemo "/dodaj" jer server to očekuje
+            ResponseEntity<StudentPodaciResponse> response = restTemplate.exchange(
+                    baseUrl + STUDENT_URL_PATH + "/dodaj",
+                    HttpMethod.POST,
+                    entity,
+                    StudentPodaciResponse.class
+            );
+            // -------------------
+
+            return response.getBody();
+        } catch (Exception e) {
+            System.err.println("Greška pri kreiranju studenta: " + e.getMessage());
+            throw new RuntimeException("Neuspešno čuvanje studenta: " + e.getMessage());
+        }
+    }
 }
