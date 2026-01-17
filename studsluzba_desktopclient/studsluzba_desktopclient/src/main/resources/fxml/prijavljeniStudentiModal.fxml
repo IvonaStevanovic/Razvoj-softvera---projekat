@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="400.0" prefWidth="600.0" spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.raflab.studsluzbadesktopclient.controllers.PrijavljeniStudentiModalController">
+    <children>
+        <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Spisak prijavljenih studenata" />
+        <TableView fx:id="tablePrijavljeni" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="colIndeks" prefWidth="150.0" text="Indeks" />
+                <TableColumn fx:id="colIme" prefWidth="150.0" text="Ime" />
+                <TableColumn fx:id="colPrezime" prefWidth="150.0" text="Prezime" />
+            </columns>
+        </TableView>
+        <HBox alignment="CENTER_RIGHT" spacing="10">
+            <children>
+                <Button text="Zatvori" onAction="#handleClose" />
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <javafx.geometry.Insets bottom="10" left="10" right="10" top="10" />
+    </padding>
+</VBox>

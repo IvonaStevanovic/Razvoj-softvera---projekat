@@ -5,6 +5,7 @@ import org.raflab.studsluzba.controllers.response.NastavnikResponse;
 import org.raflab.studsluzba.model.Nastavnik;
 import org.raflab.studsluzba.repositories.NastavnikRepository;
 import org.raflab.studsluzba.utils.EntityMappers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,13 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class NastavnikService {
+    @Autowired
+    private NastavnikRepository nastavnikRepository;
+
+    @Transactional(readOnly = true)
+    public List<Nastavnik> findAll() {
+        return (List<Nastavnik>) nastavnikRepository.findAll();
+    }
 /*
     private final NastavnikRepository nastavnikRepository;
 

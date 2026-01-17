@@ -58,4 +58,5 @@ public class StudentPodaciRequest {
     private String nacinFinansiranja;
     private String mestoStanovanja;
     private String adresaStanovanja;
+    private String napomena;
 }

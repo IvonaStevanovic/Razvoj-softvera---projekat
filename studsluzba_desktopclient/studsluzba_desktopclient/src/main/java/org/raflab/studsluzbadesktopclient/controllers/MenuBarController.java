@@ -55,6 +55,27 @@ public class MenuBarController {
         } catch (IOException e) { e.printStackTrace(); }
     }
     @FXML
+    private void otvoriIspite() {
+        try {
+            // 1. Učitavamo FXML za ispite
+            // Koristimo tvoj appFXMLLoader ili standardni loader u zavisnosti od tvoje implementacije
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ispitiPrikaz.fxml"));
+
+            // 2. Povezujemo Spring context (ako koristiš Spring)
+            loader.setControllerFactory(ClientAppConfig.getContext()::getBean);
+
+            Parent view = loader.load();
+
+            // 3. Pozivamo navigaciju
+            // navigateTo će staviti trenutni ekran na backStack i prikazati Ispite
+            navigationService.navigateTo(view);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Greška pri otvaranju ekrana za ispite!").show();
+        }
+    }
+    @FXML
     public void handleBack() {
         navigationService.goBack();
     }

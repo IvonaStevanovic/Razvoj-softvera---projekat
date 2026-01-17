@@ -13,4 +13,28 @@ public class IspitniRokResponse {
     private LocalDate pocetak;
     private LocalDate kraj;
     private Boolean aktivan;
+
+    public String getNaziv() {
+        return naziv;
+    }
+
+    public Long getSkolskaGodinaId() {
+        return skolskaGodinaId;
+    }
+
+    public String getSkolskaGodinaNaziv() {
+        return skolskaGodinaNaziv;
+    }
+
+    public LocalDate getPocetak() {
+        return pocetak;
+    }
+
+    public LocalDate getKraj() {
+        return kraj;
+    }
+
+    public Boolean getAktivan() {
+        return aktivan;
+    }
 }

@@ -38,13 +38,26 @@ public class IspitController {
     @Autowired
     private DrziPredmetService drziPredmetService;
 
-    @PostMapping("/add")
+    @PostMapping
+    public void save(@RequestBody IspitRequest request) {
+        ispitService.saveNewIspit(request);
+    }
+    @GetMapping("/search/rok")
+    public List<IspitResponse> searchByRok(@RequestParam Long ispitniRokId) {
+        // Koristimo tvoju postojeću metodu iz IspitService da dohvatimo sve
+        // i filtriramo po roku koji je klijent selektovao u ComboBox-u
+        return ispitService.findAllResponses().stream()
+                .filter(i -> i.getIspitniRokId() != null && i.getIspitniRokId().equals(ispitniRokId))
+                .collect(Collectors.toList());
+    }
+  /*  @PostMapping("/add")
     public ResponseEntity<IspitResponse> createIspit(@RequestBody @Valid IspitRequest request) {
 
         IspitResponse response = ispitService.createAndMap(request); // vraća IspitResponse
 
         return ResponseEntity.ok(response);
     }
+*/
     // Pretraga ispita po nazivu predmeta ili roku
     @GetMapping("/search")
     public ResponseEntity<List<IspitResponse>> searchIspiti(
@@ -63,7 +76,7 @@ public class IspitController {
         return ResponseEntity.ok(ispitService.findAllResponses());
     }
 
-    @PostMapping("/prijava")
+    @PostMapping("/prijavi")
     public ResponseEntity<PrijavaIspitaResponse> prijaviIspit(@RequestBody PrijavaIspitaRequest request) {
         return ResponseEntity.ok(ispitService.prijaviIspit(request));
     }
@@ -119,7 +132,7 @@ public class IspitController {
         return ResponseEntity.ok(ispitService.getBrojPolaganja(studentIndeksId, predmetId));
     }
 
-    @GetMapping("/rezultati/{ispitId}")
+    @GetMapping("/{ispitId}/rezultati")
     public ResponseEntity<List<StudentIspitRezultatiResponse>> getRezultatiIspita(@PathVariable Long ispitId) {
         return ResponseEntity.ok(ispitService.getRezultatiIspita(ispitId));
     }

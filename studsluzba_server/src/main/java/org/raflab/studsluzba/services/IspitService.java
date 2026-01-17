@@ -48,18 +48,40 @@ public class IspitService {
     @Autowired
     private PolozeniPredmetiRepository polozeniPredmetiRepository;
 
+
+    @Transactional
+    public void saveNewIspit(IspitRequest request) {
+        Ispit ispit = new Ispit();
+
+        // 1. Pronađi DrziPredmet
+        DrziPredmet dp = drziPredmetRepository.findById(request.getDrziPredmetId())
+                .orElseThrow(() -> new RuntimeException("Veza Nastavnik-Predmet nije pronađena"));
+
+        // 2. OBAVEZNO setuj predmet (ovo je falilo i bacalo 500!)
+        ispit.setPredmet(dp.getPredmet());
+        ispit.setDrziPredmet(dp);
+
+        // 3. Pronađi Ispitni Rok
+        ispit.setIspitniRok(ispitniRokRepository.findById(request.getIspitniRokId())
+                .orElseThrow(() -> new RuntimeException("Ispitni rok nije pronađen")));
+
+        ispit.setDatumOdrzavanja(request.getDatumOdrzavanja());
+        ispit.setVremePocetka(request.getVremePocetka());
+        ispit.setNapomena(request.getNapomena());
+        ispit.setZakljucen(false);
+
+        ispitRepository.save(ispit);
+    }
     @Transactional(readOnly = true)
+    // Na serveru u IspitService
     public List<IspitResponse> findAllResponses() {
-        List<Ispit> ispiti = ispitRepository.findAll();
-        return ispiti.stream().map(ispit -> {
+        return ispitRepository.findAll().stream().map(ispit -> {
             IspitResponse resp = new IspitResponse();
             resp.setId(ispit.getId());
-            resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
-            resp.setVremePocetka(ispit.getVremePocetka());
-            // ovo je safe jer je session jos uvek otvoren
             resp.setPredmetNaziv(ispit.getPredmet().getNaziv());
-            resp.setIspitniRokNaziv(ispit.getIspitniRok().getNaziv());
-            resp.setSkolskaGodinaNaziv(ispit.getIspitniRok().getSkolskaGodina().getNaziv());
+            // KLJUČNA LINIJA:
+            resp.setIspitniRokId(ispit.getIspitniRok().getId());
+            resp.setDatumOdrzavanja(ispit.getDatumOdrzavanja());
             return resp;
         }).collect(Collectors.toList());
     }
@@ -192,33 +214,50 @@ public class IspitService {
 
 
     // -------------------- PRIJAVA ISPITA --------------------
+    @Transactional
     public PrijavaIspitaResponse prijaviIspit(PrijavaIspitaRequest request) {
-        StudentIndeks student = studentIndeksRepository.findById(request.getStudentIndeksId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
+        String unos = request.getStudentIndeksUnos(); // npr. "101/2022"
+        Integer broj;
+        Integer godina;
 
+        try {
+            if (unos.contains("/")) {
+                String[] delovi = unos.split("/");
+                broj = Integer.parseInt(delovi[0].trim());
+                godina = Integer.parseInt(delovi[1].trim());
+            } else {
+                // Ako korisnik ipak ukuca samo broj, pretpostavi tekuću godinu
+                broj = Integer.parseInt(unos.trim());
+                godina = LocalDate.now().getYear();
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Format indeksa mora biti broj/godina!");
+        }
+
+        // Tražimo studenta preko oba parametra
+        StudentIndeks student = studentIndeksRepository.findByBrojAndGodina(broj, godina)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Student " + unos + " nije pronađen u bazi!"));
+
+        // --- Validacije koje smo ranije dogovorili ---
         Ispit ispit = ispitRepository.findById(request.getIspitId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ispit ne postoji"));
 
-        boolean slusa = slusaPredmetRepository.existsByStudentIndeksAndDrziPredmet(student, ispit.getDrziPredmet());
-        if (!slusa) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ne može prijaviti ispit za predmet koji ne sluša!");
+        if (polozeniPredmetiRepository.existsByStudentIndeksAndPredmet(student, ispit.getPredmet())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student je već položio ovaj predmet!");
         }
 
+        if (!slusaPredmetRepository.existsByStudentIndeksAndDrziPredmet_Predmet(student, ispit.getPredmet())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student ne sluša ovaj predmet!");
+        }
         PrijavaIspita prijava = new PrijavaIspita();
         prijava.setStudentIndeks(student);
         prijava.setIspit(ispit);
-        prijava.setDatumPrijave(request.getDatumPrijave() != null ? request.getDatumPrijave() : LocalDate.now());
+        prijava.setDatumPrijave(LocalDate.now());
         prijava.setIzasao(false);
+        prijavaIspitaRepository.save(prijava);
 
-        prijava = prijavaIspitaRepository.save(prijava);
-
-        PrijavaIspitaResponse response = new PrijavaIspitaResponse();
-        response.setId(prijava.getId());
-        response.setDatumPrijave(prijava.getDatumPrijave());
-        response.setIspitId(ispit.getId());
-        response.setStudentIndeksId(student.getId());
-
-        return response;
+        return new PrijavaIspitaResponse(prijava.getId(), student.getId(), ispit.getId(), prijava.getDatumPrijave());
     }
 
     // -------------------- IZLAZAK NA ISPIT --------------------
@@ -309,11 +348,11 @@ public class IspitService {
                 .stream()
                 .map(p -> {
                     StudentPodaciResponse r = new StudentPodaciResponse();
-                    r.setId(p.getStudentIndeks().getId());
+                    // Uzimamo podatke direktno iz povezanog indeksa i studenta
+                    r.setBrojIndeksa(p.getStudentIndeks().getBroj());
+                    r.setGodinaUpisa(p.getStudentIndeks().getGodina());
                     r.setIme(p.getStudentIndeks().getStudent().getIme());
                     r.setPrezime(p.getStudentIndeks().getStudent().getPrezime());
-                    r.setBrojIndeksa(p.getStudentIndeks().getBroj());
-                    // Ako ti treba godina, dodaj polje u Response ili je ignoriši ako nije u DTO
                     return r;
                 })
                 .collect(Collectors.toList());

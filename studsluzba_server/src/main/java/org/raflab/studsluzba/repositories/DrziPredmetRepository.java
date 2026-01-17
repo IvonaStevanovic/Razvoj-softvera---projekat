@@ -21,6 +21,9 @@ import java.util.Optional;
 
 @Repository
 public interface DrziPredmetRepository extends CrudRepository<DrziPredmet, Long> {
+    @Query("SELECT dp.id FROM DrziPredmet dp WHERE dp.predmet.id = :pId AND dp.nastavnik.id = :nId")
+    Optional<Long> findIdByPredmetAndNastavnik(@Param("pId") Long predmetId, @Param("nId") Long nastavnikId);
+}
 /*
     // Postojeće metode
     @Query("select dp.predmet from DrziPredmet dp where dp.nastavnik.id = :idNastavnika")
@@ -44,5 +47,5 @@ public interface DrziPredmetRepository extends CrudRepository<DrziPredmet, Long>
     List<DrziPredmet> findByPredmetIdIn(List<Long> predmetIds); // za mapiranje predmeta pri POST
 
  */
-}
+
 

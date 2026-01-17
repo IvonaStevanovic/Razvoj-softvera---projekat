@@ -1,4 +1,4 @@
-package org.raflab.studsluzba.controllers.response;
+package org.raflab.studsluzbadesktopclient.dtos;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ public class StudentIspitRezultatiResponse {
     private int godinaUpisa;
     private String brojIndeksa;
     private int ukupnoPoena;
-
+    
     public String getStudentImePrezime() {
         return ime + " " + prezime;
     }

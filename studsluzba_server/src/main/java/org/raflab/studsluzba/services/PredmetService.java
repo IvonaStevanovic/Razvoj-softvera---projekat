@@ -24,6 +24,11 @@ public class PredmetService {
     @Autowired
     private StudijskiProgramRepository studijskiProgramRepository;
 
+    @Transactional(readOnly = true)
+    public List<Predmet> findAll() {
+        // Kastujemo u List jer findAll() po defaultu vraća Iterable
+        return (List<Predmet>) predmetRepository.findAll();
+    }
     public List<PredmetResponse> getAllPredmeti() {
         return predmetRepository.findAll().stream()
                 .map(PredmetConverter::toResponse)
