@@ -58,7 +58,7 @@ public class StudentController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{brojIndeksa}/nepolozeni")
-    public ResponseEntity<Page<NepolozeniPredmetDTO>> getNepolozeniPredmeti(
+    public ResponseEntity<Page<NepolozeniPredmetResponse>> getNepolozeniPredmeti(
             @PathVariable Integer brojIndeksa, // Prima npr. 2021001
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

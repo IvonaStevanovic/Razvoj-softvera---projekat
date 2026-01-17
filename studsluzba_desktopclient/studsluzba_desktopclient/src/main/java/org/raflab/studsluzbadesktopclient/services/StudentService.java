@@ -130,23 +130,29 @@ public class StudentService {
         return new ArrayList<>();
     }
 
-    public List<NepolozeniPredmetDTO> getNepolozeniIspiti(Integer brojIndeksa) {
+    // --- PROMENI IMPORT: import org.raflab.studsluzbadesktopclient.dtos.NepolozeniPredmetResponse; ---
+
+    public List<NepolozeniPredmetResponse> getNepolozeniIspiti(Integer brojIndeksa) {
+        String url = baseUrl + "/api/student/" + brojIndeksa + "/nepolozeni?page=0&size=1000";
         try {
-            String url = baseUrl + "/api/student/" + brojIndeksa + "/nepolozeni?page=0&size=10";
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            // Koristimo RestPageImpl<NepolozeniPredmetResponse>
+            ParameterizedTypeReference<RestPageImpl<NepolozeniPredmetResponse>> responseType =
+                    new ParameterizedTypeReference<RestPageImpl<NepolozeniPredmetResponse>>() {};
 
-            if (response.getBody() != null && response.getBody().containsKey("content")) {
-                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+            ResponseEntity<RestPageImpl<NepolozeniPredmetResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    responseType
+            );
 
-                ObjectMapper mapper = new ObjectMapper();
-                return content.stream()
-                        .map(map -> mapper.convertValue(map, NepolozeniPredmetDTO.class))
-                        .collect(Collectors.toList());
+            if (response.getBody() != null) {
+                return response.getBody().getContent();
             }
         } catch (Exception e) {
-            System.err.println("GRESKA pri dobavljanju nepoloženih: " + e.getMessage());
+            e.printStackTrace();
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     public List<UplataResponse> getUplate(Long studentId) {
@@ -215,6 +221,26 @@ public class StudentService {
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();
+        }
+    }
+    // --- METODA ZA UPIS GODINE (POPRAVLJENA) ---
+    public boolean upisiGodinu(Long studentId, UpisGodineRequest request) {
+        String url = baseUrl + "/api/student/" + studentId + "/upis-godine";
+        try {
+            // 1. Kreiramo zaglavlja (Headers) da kažemo serveru da šaljemo JSON
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // 2. Pakujemo request objekat i zaglavlja u HttpEntity
+            HttpEntity<UpisGodineRequest> entity = new HttpEntity<>(request, headers);
+
+            // 3. Šaljemo POST zahtev
+            ResponseEntity<UpisGodineResponse> response = restTemplate.postForEntity(url, entity, UpisGodineResponse.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
