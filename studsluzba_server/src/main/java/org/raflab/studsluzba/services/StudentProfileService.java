@@ -156,14 +156,20 @@ public class StudentProfileService {
 
         List<PolozeniPredmeti> sviZapisi = polozeniPredmetiRepository.findByStudentIndeks(indeks);
 
-        Map<Long, PolozeniPredmetiResponse> unikatniPolozeni = sviZapisi.stream()
+        // Izmena: Koristimo listu umesto mape da izbegnemo probleme sa null ključevima i duplikatima
+        List<PolozeniPredmetiResponse> finalnaLista = sviZapisi.stream()
                 .filter(p -> p.getOcena() != null && p.getOcena() > 5)
                 .map(p -> {
                     PolozeniPredmetiResponse response = new PolozeniPredmetiResponse();
                     response.setId(p.getId());
-                    response.setPredmetNaziv(p.getPredmet().getNaziv());
+                    // KLJUČNA ISPRAVKA: Setujemo predmetId da bi klijent i mapa radili
+                    if (p.getPredmet() != null) {
+                        response.setPredmetId(p.getPredmet().getId());
+                        response.setPredmetNaziv(p.getPredmet().getNaziv());
+                        response.setEspb(p.getPredmet().getEspb());
+                    }
                     response.setOcena(p.getOcena());
-                    response.setEspb(p.getPredmet().getEspb());
+
                     if (p.getIzlazakNaIspit() != null &&
                             p.getIzlazakNaIspit().getPrijavaIspita() != null &&
                             p.getIzlazakNaIspit().getPrijavaIspita().getIspit() != null) {
@@ -171,13 +177,9 @@ public class StudentProfileService {
                     }
                     return response;
                 })
-                .collect(Collectors.toMap(
-                        res -> res.getPredmetId(),
-                        res -> res,
-                        (stari, novi) -> stari
-                ));
+                .collect(Collectors.toList());
 
-        List<PolozeniPredmetiResponse> finalnaLista = new ArrayList<>(unikatniPolozeni.values());
+        // Paginacija ostaje ista
         int start = Math.min(page * size, finalnaLista.size());
         int end = Math.min((start + size), finalnaLista.size());
 

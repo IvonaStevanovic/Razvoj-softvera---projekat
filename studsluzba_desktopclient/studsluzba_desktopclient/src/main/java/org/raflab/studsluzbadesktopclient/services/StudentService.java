@@ -2,16 +2,14 @@ package org.raflab.studsluzbadesktopclient.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.raflab.studsluzbadesktopclient.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders; // DODATO ZBOG JSON-a
-import org.springframework.http.MediaType;   // DODATO ZBOG JSON-a
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,16 +44,35 @@ public class StudentService {
         if (indeks != null && !indeks.trim().isEmpty()) builder.queryParam("indeks", indeks);
 
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(builder.toUriString(), Map.class);
-            List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+            // 1. Postavljamo HEADERE da eksplicitno tražimo JSON
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            // 2. Koristimo exchange umesto getForEntity da bismo mogli da pošaljemo headere
+            ResponseEntity<String> response = restTemplate.exchange(
+                    builder.toUriString(),
+                    HttpMethod.GET,
+                    entity,
+                    String.class
+            );
 
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
-            return content.stream()
-                    .map(map -> mapper.convertValue(map, StudentPodaciResponse.class))
-                    .collect(Collectors.toList());
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            // 3. Parsiranje (sada će response.getBody() biti JSON string, ne XML)
+            JsonNode root = mapper.readTree(response.getBody());
+            JsonNode contentNode = root.path("content");
+
+            if (contentNode.isMissingNode() || !contentNode.isArray()) {
+                return mapper.readValue(response.getBody(), new TypeReference<List<StudentPodaciResponse>>() {});
+            }
+
+            return mapper.readValue(contentNode.toString(), new TypeReference<List<StudentPodaciResponse>>() {});
 
         } catch (Exception e) {
+            System.err.println("Greška u pretrazi:");
             e.printStackTrace();
             return Collections.emptyList();
         }
@@ -102,33 +119,48 @@ public class StudentService {
         }
     }
 
-    public List<PolozeniPredmetiResponse> getPolozeniIspiti(Long studentId) {
+    public List<PolozeniPredmetiResponse> getPolozeniIspiti(Long studentIndeksId) {
         try {
-            String url = baseUrl + "/api/student/" + studentId + "/polozeni-predmeti?page=0&size=100";
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            // 1. Ručno ubacujemo ID u URL. Ovo pretvara npr. {studentIndeksId} u broj 5.
+            // Koristimo .toUriString() da dobijemo finalni URL bez "rupa"
+            String url = UriComponentsBuilder.fromHttpUrl(baseUrl + STUDENT_URL_PATH)
+                    .pathSegment(studentIndeksId.toString(), "polozeni-predmeti")
+                    .queryParam("page", 0)
+                    .queryParam("size", 100)
+                    .build()
+                    .toUriString();
 
-            if (response.getBody() != null && response.getBody().containsKey("content")) {
-                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
+            // 2. Eksplicitno tražimo JSON (da izbegnemo XML grešku od ranije)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
+            // 3. Šaljemo zahtev
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    String.class
+            );
+
+            if (response.getBody() != null) {
                 ObjectMapper mapper = new ObjectMapper();
-                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 mapper.registerModule(new JavaTimeModule());
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-                List<PolozeniPredmetiResponse> rezultati = new ArrayList<>();
-                for (Map<String, Object> obj : content) {
-                    PolozeniPredmetiResponse dto = mapper.convertValue(obj, PolozeniPredmetiResponse.class);
-                    if (dto.getNazivPredmeta() == null && obj.containsKey("predmetNaziv")) {
-                        dto.setNazivPredmeta((String) obj.get("predmetNaziv"));
-                    }
-                    rezultati.add(dto);
-                }
-                return rezultati;
+                JsonNode root = mapper.readTree(response.getBody());
+                JsonNode contentNode = root.path("content");
+
+                return mapper.readValue(contentNode.toString(),
+                        new TypeReference<List<PolozeniPredmetiResponse>>() {});
             }
         } catch (Exception e) {
-            System.err.println("GRESKA u servisu: " + e.getMessage());
+            System.err.println("GRESKA pri pozivu /polozeni-predmeti:");
+            e.printStackTrace();
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
+
 
     // --- PROMENI IMPORT: import org.raflab.studsluzbadesktopclient.dtos.NepolozeniPredmetResponse; ---
 
