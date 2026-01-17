@@ -115,6 +115,12 @@
         <Tab text="Finansije">
             <VBox spacing="10">
                 <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+                <HBox alignment="CENTER_LEFT">
+                    <Button text="+ Nova uplata" onAction="#handleNovaUplata"
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                </HBox>
+
                 <TableView fx:id="uplateTable" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="datumUplateCol" text="Datum uplate" prefWidth="120"/>
@@ -122,6 +128,11 @@
                         <TableColumn fx:id="svrhaCol" text="Svrha uplate" prefWidth="250"/>
                     </columns>
                 </TableView>
+
+                <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 5; -fx-background-color: #f0f0f0; -fx-background-radius: 5;">
+                    <Label text="Ukupno uplaćeno:" style="-fx-font-weight: bold; -fx-font-size: 14;"/>
+                    <Label fx:id="ukupnoUplateLabel" text="0.00 RSD" style="-fx-font-weight: bold; -fx-font-size: 14; -fx-text-fill: #27ae60;"/>
+                </HBox>
             </VBox>
         </Tab>
 

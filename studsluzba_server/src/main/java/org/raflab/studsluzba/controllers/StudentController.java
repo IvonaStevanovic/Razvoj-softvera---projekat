@@ -80,6 +80,12 @@ public class StudentController {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+    @PostMapping("/uplata")
+    public ResponseEntity<Long> dodajUplatu(@RequestBody UplataRequest request) {
+        // Koristimo StudentProfileService koji već ima svu logiku za uplate
+        Long id = studentProfileService.createUplata(request);
+        return ResponseEntity.ok(id);
+    }
 
     @GetMapping("/{studentIndeksId}/obnovljene-godine")
     public ResponseEntity<List<ObnovaGodineResponse>> getObnovljeneGodine(@PathVariable Long studentIndeksId) {
@@ -144,11 +150,17 @@ public class StudentController {
         studentProfileService.obrisiStudenta(id);
         return ResponseEntity.ok("Student i svi povezani podaci su obrisani.");
     }
-    @GetMapping("uplate/student/{studentId}")
-    public ResponseEntity<List<UplataResponse>> getUplateZaStudenta(@PathVariable Long studentId) {
-        List<UplataResponse> uplate = studentProfileService.getSveUplate(studentId);
+//    @GetMapping("uplate/student/{studentId}")
+//    public ResponseEntity<List<UplataResponse>> getUplateZaStudenta(@PathVariable Long studentId) {
+//        List<UplataResponse> uplate = studentProfileService.getSveUplate(studentId);
+//
+//        return ResponseEntity.ok(uplate);
+//    }
 
-        return ResponseEntity.ok(uplate);
+    // --- DODAJ OVAJ DEO ---
+    @GetMapping("/{id}/uplate")
+    public List<UplataResponse> getUplateZaStudenta(@PathVariable Long id) {
+        return studentProfileService.getSveUplate(id);
     }
 /*
     private final StudentPodaciRepository studentPodaciRepository;
