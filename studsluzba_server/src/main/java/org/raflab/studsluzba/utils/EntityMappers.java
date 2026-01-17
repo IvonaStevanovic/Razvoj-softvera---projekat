@@ -1,6 +1,7 @@
 package org.raflab.studsluzba.utils;
 
 import org.raflab.studsluzba.controllers.request.SlusaPredmetRequest;
+import org.raflab.studsluzba.controllers.request.StudentPodaciRequest;
 import org.raflab.studsluzba.controllers.request.UpisGodineRequest;
 import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
@@ -24,6 +25,48 @@ public class EntityMappers {
         s.setPrezime(sp.getPrezime());
         return s;
 
+    }
+    // Dodaj ovo u EntityMappers.java na serveru
+
+    public static StudentPodaci fromRequestToStudentPodaci(StudentPodaciRequest req) {
+        StudentPodaci s = new StudentPodaci();
+
+        // Osnovni podaci
+        s.setIme(req.getIme());
+        s.setPrezime(req.getPrezime());
+        s.setSrednjeIme(req.getSrednjeIme());
+        s.setJmbg(req.getJmbg());
+        s.setDatumRodjenja(req.getDatumRodjenja());
+        s.setPol(req.getPol());
+
+        // Mesto i država
+        s.setMestoRodjenja(req.getMestoRodjenja());
+        s.setDrzavaRodjenja(req.getDrzavaRodjenja());
+        s.setDrzavljanstvo(req.getDrzavljanstvo());
+        s.setNacionalnost(req.getNacionalnost());
+
+        // Kontakt i adresa
+        s.setAdresa(req.getAdresa());
+        //s.setMestoPrebivalista(req.getMestoPrebivalista());
+        s.setMestoStanovanja(req.getMestoStanovanja());
+        s.setAdresaStanovanja(req.getAdresaStanovanja());
+        s.setBrojTelefonaMobilni(req.getBrojTelefonaMobilni());
+        s.setBrojTelefonaFiksni(req.getBrojTelefonaFiksni());
+        s.setEmailFakultet(req.getEmailFakultet());
+        s.setEmailPrivatni(req.getEmailPrivatni());
+
+        // Dokumenta
+        s.setBrojLicneKarte(req.getBrojLicneKarte());
+        s.setLicnuKartuIzdao(req.getLicnuKartuIzdao());
+
+        // Srednja škola i uspeh (Ovo su polja u StudentPodaci entitetu, proveriti da li postoje)
+        s.setUspehSrednjaSkola(req.getUspehSrednjaSkola());
+        s.setUspehPrijemni(req.getUspehPrijemni());
+
+        // Napomena
+        //s.setNapomena(req.getNapomena());
+
+        return s;
     }
 
     public static StudentDTO fromStudentIndeksToDTO(StudentIndeks si) {

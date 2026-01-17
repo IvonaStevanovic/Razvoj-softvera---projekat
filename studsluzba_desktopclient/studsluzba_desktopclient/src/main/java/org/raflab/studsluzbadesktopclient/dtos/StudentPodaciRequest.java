@@ -59,4 +59,6 @@ public class StudentPodaciRequest {
     private String mestoStanovanja;
     private String adresaStanovanja;
     private String napomena;
+    public StudentPodaciRequest() {
+    }
 }

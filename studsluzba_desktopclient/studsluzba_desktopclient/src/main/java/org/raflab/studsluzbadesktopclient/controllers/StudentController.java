@@ -657,10 +657,14 @@ public class StudentController {
         }
 
         if (student.getPol() != null) {
-            boolean jeMusko = String.valueOf(student.getPol()).equalsIgnoreCase("M");
-            if (muski != null) { muski.setSelected(jeMusko); muski.setDisable(true); }
-            if (zenski != null) { zenski.setSelected(!jeMusko); zenski.setDisable(true); }
-        }
+            // Ako koristiš RadioButtone:
+            if (muski != null && zenski != null) {
+                if (student.getPol().toString().equalsIgnoreCase("M")) {
+                    muski.setSelected(true);
+                } else if (student.getPol().toString().equalsIgnoreCase("Z")) {
+                    zenski.setSelected(true);
+                }
+            }}
     }
 
     private void postaviTekstIZakljucaj(TextField tf, String vrednost) {

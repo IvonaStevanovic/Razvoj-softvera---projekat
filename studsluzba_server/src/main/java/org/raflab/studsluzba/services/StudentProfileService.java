@@ -8,6 +8,7 @@ import org.raflab.studsluzba.controllers.request.UplataRequest;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
 import org.raflab.studsluzba.repositories.*;
+import org.raflab.studsluzba.utils.EntityMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
@@ -48,6 +49,10 @@ public class StudentProfileService {
     private StudijskiProgramRepository studijskiProgramRepository;
     @Autowired
     private SlusaPredmetRepository slusaPredmetRepository;
+    @Autowired
+    private StudentPodaciRepository studentPodaciRepository;
+    @Autowired
+    private EntityMappers entityMappers;
 
     private static final double SKOLARINA_EUR = 3000.0;
     private static final String KURS_API = "https://kurs.resenje.org/api/v1/currencies/eur/rates/today";
@@ -107,6 +112,7 @@ public class StudentProfileService {
     }
 
     public StudentPodaciResponse dodajStudenta(StudentPodaciRequest request) {
+        // 1. Provere postojanja
         if (studentRepository.existsByJmbg(request.getJmbg())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student sa JMBG " + request.getJmbg() + " već postoji.");
         }
@@ -115,19 +121,24 @@ public class StudentProfileService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Indeks već postoji u sistemu.");
         }
 
+        // 2. Dohvatanje šifarnika (Program i Škola)
         StudijskiProgram program = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Studijski program nije pronađen."));
 
         SrednjaSkola skola = srednjaSkolaRepository.findById(request.getSrednjaSkolaId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Srednja škola nije nađena u šifarniku."));
 
-        StudentPodaci student = new StudentPodaci();
-        student.setIme(request.getIme());
-        student.setPrezime(request.getPrezime());
-        student.setJmbg(request.getJmbg());
+        // 3. KREIRANJE STUDENTA (IZMENJENO)
+        // Koristimo mapper da pokupimo SVE podatke (ime, prezime, adresu, telefon, pol, itd.)
+        StudentPodaci student = EntityMappers.fromRequestToStudentPodaci(request);
+
+        // Moramo ručno povezati školu jer mapper radi samo sa prostim podacima, a ne sa entitetima
         student.setSrednjaSkola(skola);
+
+        // Čuvanje studenta u bazu
         student = studentRepository.save(student);
 
+        // 4. Kreiranje indeksa
         StudentIndeks indeks = new StudentIndeks();
         indeks.setBroj(request.getBrojIndeksa());
         indeks.setGodina(request.getGodinaUpisa());
@@ -569,5 +580,42 @@ public class StudentProfileService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Nije moguće obrisati studenta zbog ograničenja integriteta u bazi podataka.");
         }
+    }
+
+    // U StudentService.java na serveru
+
+    @Transactional // Obavezno da bi se sačuvali i podaci i indeks zajedno
+    public StudentPodaciResponse createStudent(StudentPodaciRequest request) {
+
+        // 1. Mapiranje podataka pomoću metode koju smo napravili u KORAKU 1
+        StudentPodaci student = EntityMappers.fromRequestToStudentPodaci(request);
+
+        // 2. Povezivanje sa Srednjom školom (ako postoji taj odnos u bazi)
+        if(request.getSrednjaSkolaId() != null) {
+            SrednjaSkola skola = srednjaSkolaRepository.findById(request.getSrednjaSkolaId())
+                    .orElseThrow(() -> new RuntimeException("Srednja škola nije pronađena"));
+            student.setSrednjaSkola(skola);
+        }
+
+        // 3. Čuvanje ličnih podataka
+        student = studentPodaciRepository.save(student);
+
+        // 4. Kreiranje i čuvanje indeksa (jer je unet na formi)
+        StudentIndeks indeks = new StudentIndeks();
+        indeks.setStudent(student); // Povezivanje sa studentom
+        indeks.setBroj(request.getBrojIndeksa());
+        indeks.setGodina(request.getGodinaUpisa());
+        indeks.setStudProgramOznaka(request.getStudProgramOznaka());
+        indeks.setAktivan(true);
+        indeks.setVaziOd(LocalDate.now());
+
+        // Ovde možda trebaš naći i StudijskiProgram entitet po oznaci, slično kao za srednju školu
+        // StudijskiProgram sp = studijskiProgramRepository.findByOznaka(request.getStudProgramOznaka());
+        // indeks.setStudijskiProgram(sp);
+
+        studentIndeksRepository.save(indeks);
+
+        // 5. Vraćanje odgovora klijentu
+        return entityMappers.fromStudentPodaciToResponse(student);
     }
 }
