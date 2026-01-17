@@ -1,4 +1,4 @@
-package org.raflab.studsluzba.controllers.response;
+package org.raflab.studsluzbadesktopclient.dtos;
 
 import lombok.Data;
 
@@ -15,9 +15,10 @@ public class IzlazakNaIspitResponse {
     private String predmetNaziv;
     private Integer poeniPredispitne;
 
-
+    
     public int getUkupnoPoena() {
         return (ostvarenoNaIspitu != null ? ostvarenoNaIspitu : 0) +
                 (poeniPredispitne != null ? poeniPredispitne : 0);
     }
+
 }

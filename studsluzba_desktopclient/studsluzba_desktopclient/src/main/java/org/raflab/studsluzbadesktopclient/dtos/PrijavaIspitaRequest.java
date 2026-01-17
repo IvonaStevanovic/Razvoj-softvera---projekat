@@ -1,6 +1,7 @@
-package org.raflab.studsluzba.controllers.request;
+package org.raflab.studsluzbadesktopclient.dtos;
 
 import lombok.Data;
+
 import java.time.LocalDate;
 
 @Data

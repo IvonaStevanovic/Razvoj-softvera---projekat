@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="20" alignment="CENTER" prefWidth="350" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.raflab.studsluzbadesktopclient.controllers.DodajIspitniRokModalController">
+
+    <padding>
+        <Insets top="25" right="25" bottom="25" left="25"/>
+    </padding>
+
+    <Label text="Novi Ispitni Rok" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <GridPane vgap="15" hgap="10">
+        <Label text="Naziv roka:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="txtNaziv" promptText="npr. Januarski 2026" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Datum početka:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dpPocetak" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Datum završetka:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dpKraj" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Otkaži" onAction="#handleCancel" style="-fx-background-color: #f44336; -fx-text-fill: white;"/>
+        <Button text="Sačuvaj" onAction="#handleSave" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    </HBox>
+</VBox>

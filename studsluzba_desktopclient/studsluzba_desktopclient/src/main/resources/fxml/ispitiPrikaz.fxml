@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="10" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.raflab.studsluzbadesktopclient.controllers.IspitiController">
+
+    <VBox spacing="5" style="-fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+        <padding>
+            <Insets top="15" right="15" bottom="15" left="15"/>
+        </padding>
+
+        <Label text="Upravljanje Ispitima" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Izaberite ispitni rok:"/>
+            <ComboBox fx:id="comboRokovi" prefWidth="200" promptText="Izaberite rok"/>
+
+            <Button text="+" onAction="#handleOpenAddRok"
+                    style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;">
+                <tooltip>
+                    <Tooltip text="Dodaj novi ispitni rok"/>
+                </tooltip>
+            </Button> </HBox>
+    </VBox>
+
+    <SplitPane dividerPositions="0.35" VBox.vgrow="ALWAYS">
+        <items>
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="Ispiti u izabranom roku" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="listIspiti" VBox.vgrow="ALWAYS" />
+                <Button text="Dodaj novi ispit" onAction="#handleOpenAddIspit"
+                        maxWidth="Infinity" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+                <Button text="Zapisnik" onAction="#handlePrikaziPrijavljene" />
+            </VBox>
+
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="Rezultati selektovanog ispita" style="-fx-font-weight: bold;"/>
+                <TableView fx:id="tableRezultati" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colProgram" text="Program" prefWidth="80"/>
+                        <TableColumn fx:id="colIndeks" text="Indeks" prefWidth="100"/>
+                        <TableColumn fx:id="colImePrezime" text="Student" prefWidth="150"/>
+                        <TableColumn fx:id="colPoeni" text="Ukupno poena" prefWidth="100"/>
+                        <TableColumn fx:id="colOcena" text="Ocena" prefWidth="70"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button text="Prijavi studenta" onAction="#handlePrijava" />
+                    <Button text="Štampaj zapisnik" onAction="#handlePrintZapisnik"
+                            style="-fx-background-color: #607D8B; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+        </items>
+    </SplitPane>
+</VBox>

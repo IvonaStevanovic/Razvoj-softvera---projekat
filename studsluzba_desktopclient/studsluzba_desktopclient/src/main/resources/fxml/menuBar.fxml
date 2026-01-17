@@ -23,6 +23,11 @@
                     <MenuItem text="Pregled programa i predmeta" onAction="#otvoriStudijskePrograme" />
                 </items>
             </Menu>
+            <Menu text="Ispiti">
+                <items>
+                    <MenuItem text="Ispitni rokovi i zapisnici" onAction="#otvoriIspite"/>
+                </items>
+            </Menu>
             <Menu text="Izveštaji">
                 <items>
                     <MenuItem onAction="#openReportsPage" text="Student reports" />

@@ -32,7 +32,7 @@ public class StudProgramService {
     // Dobavljanje predmeta za izabrani program
     public void getPredmetiByProgram(Long programId, Consumer<List<PredmetResponse>> callback) {
         webClient.get()
-                .uri("/api/predmet/program/{id}", programId)
+                .uri("/api/predmeti/program/{id}", programId)
                 .retrieve()
                 .bodyToFlux(PredmetResponse.class)
                 .collectList()
@@ -42,7 +42,7 @@ public class StudProgramService {
     // Dodavanje novog predmeta (Post zahtev)
     public void addPredmet(PredmetRequest request, Consumer<PredmetResponse> callback, Consumer<String> errorCallback) {
         webClient.post()
-                .uri("/api/predmet/add")
+                .uri("/api/predmeti/add")
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(PredmetResponse.class)
@@ -53,7 +53,7 @@ public class StudProgramService {
     }
     public void getProsekZaPredmet(Long predmetId, Integer odG, Integer doG, Consumer<Double> callback) {
         webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/api/predmet/{id}/prosek")
+                .uri(uriBuilder -> uriBuilder.path("/api/predmeti/{id}/prosek")
                         .queryParam("odGodina", odG)
                         .queryParam("doGodina", doG)
                         .build(predmetId))
@@ -63,7 +63,7 @@ public class StudProgramService {
     }
     public void deletePredmet(Long id, Runnable successCallback, Consumer<String> errorCallback) {
         webClient.delete()
-                .uri("/api/predmet/{id}", id)
+                .uri("/api/predmeti/{id}", id)
                 .retrieve()
                 .toBodilessEntity()
                 .subscribe(

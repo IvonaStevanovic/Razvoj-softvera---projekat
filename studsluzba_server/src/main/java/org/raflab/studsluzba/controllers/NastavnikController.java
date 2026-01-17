@@ -10,14 +10,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/nastavnik")
+@RequestMapping("/api/nastavnici")
 public class NastavnikController {
+    @Autowired
+    private NastavnikService nastavnikService;
+    @GetMapping("/all")
+    public List<NastavnikResponse> getAll() {
+        return nastavnikService.findAll().stream().map(n -> {
+            NastavnikResponse r = new NastavnikResponse();
+            r.setId(n.getId());
+            r.setIme(n.getIme());
+            r.setPrezime(n.getPrezime());
+            return r;
+        }).collect(Collectors.toList());
+    }
 /*
     @Autowired
     private NastavnikService nastavnikService;

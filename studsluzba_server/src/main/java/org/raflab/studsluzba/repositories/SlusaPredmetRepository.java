@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.raflab.studsluzba.model.DrziPredmet;
+import org.raflab.studsluzba.model.Predmet;
 import org.raflab.studsluzba.model.SlusaPredmet;
 import org.raflab.studsluzba.model.StudentIndeks;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +20,8 @@ public interface SlusaPredmetRepository extends CrudRepository<SlusaPredmet, Lon
     Optional<SlusaPredmet> findByStudentIndeksAndDrziPredmet(StudentIndeks studentIndeks, DrziPredmet drziPredmet);
     Optional<SlusaPredmet> findByIdAndStudentIndeks(Long id, StudentIndeks studentIndeks);
     boolean existsByStudentIndeksAndDrziPredmet(StudentIndeks studentIndeks, DrziPredmet drziPredmet);
-/*
+    boolean existsByStudentIndeksAndDrziPredmet_Predmet(StudentIndeks student, Predmet predmet);
+    /*
     @Query("SELECT sp FROM SlusaPredmet sp WHERE sp.studentIndeks.id = :indeksId AND sp.skolskaGodina.aktivna = true")
     List<SlusaPredmet> getSlusaPredmetForIndeksAktivnaGodina(@Param("indeksId") Long indeksId);
 
