@@ -297,4 +297,38 @@ public class StudentService {
     private String createURL(String pathEnd) {
         return baseUrl + STUDENT_URL_PATH + "/" + pathEnd;
     }
+
+    // --- NOVE METODE DODATE ZA OBNOVU GODINE (OVO JE NOVO) ---
+
+    public List<PredmetResponse> getPredmetiByProgram(Long programId) {
+        String url = baseUrl + "/api/predmeti/program/" + programId;
+        try {
+            ResponseEntity<List<PredmetResponse>> response = restTemplate.exchange(
+                    url,
+                    org.springframework.http.HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<PredmetResponse>>() {}
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public void obnovaGodine(Long studentIndeksId, ObnovaGodineRequest request) {
+        String url = baseUrl + "/api/student/" + studentIndeksId + "/obnova-godine";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ObnovaGodineRequest> entity = new HttpEntity<>(request, headers);
+
+        try {
+            restTemplate.postForEntity(url, entity, ObnovaGodineResponse.class);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            throw new RuntimeException("Server greška: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new RuntimeException("Neuspešna obnova: " + e.getMessage());
+        }
+    }
 }

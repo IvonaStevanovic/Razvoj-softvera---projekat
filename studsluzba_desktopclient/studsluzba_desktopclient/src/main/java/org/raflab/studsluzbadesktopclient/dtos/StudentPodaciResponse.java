@@ -33,6 +33,7 @@ public class StudentPodaciResponse {
     private Integer brojIndeksa; // Ključno za specifikaciju
     private String srednjaSkola; // Naziv škole iz šifarnika
     private Long studentIndeksId;
+    private Long studijskiProgramId;
     
     private String napomena;// Naziv škole iz šifarnika
     public StudentPodaciResponse(Long id, String ime, String prezime, Integer brojIndeksa,Integer godinaUpisa) {
