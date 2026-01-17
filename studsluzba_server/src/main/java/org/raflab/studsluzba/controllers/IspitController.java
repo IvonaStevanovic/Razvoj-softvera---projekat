@@ -1,6 +1,8 @@
 package org.raflab.studsluzba.controllers;
 
 import lombok.RequiredArgsConstructor;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.raflab.studsluzba.controllers.request.*;
 import org.raflab.studsluzba.controllers.response.*;
 import org.raflab.studsluzba.model.*;
@@ -16,10 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.io.InputStream;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -140,5 +141,31 @@ public class IspitController {
     public ResponseEntity<String> obrisiIspit(@PathVariable Long id) {
         ispitService.obrisiIspit(id);
         return ResponseEntity.ok("Ispit sa ID-jem " + id + " i svi povezani podaci su uspešno obrisani.");
+    }
+    @GetMapping("/izvestaj/zapisnik/{ispitId}")
+    public ResponseEntity<byte[]> stampajZapisnik(@PathVariable Long ispitId) throws Exception {
+        // 1. Dohvatanje podataka o studentima (već imaš ovu metodu)
+        List<StudentIspitRezultatiResponse> rezultati = ispitService.getRezultatiIspita(ispitId);
+
+        // 2. Dohvatanje podataka o ispitu za zaglavlje
+        IspitResponse ispit = ispitService.getIspitResponseById(ispitId);
+
+        // 3. Podešavanje parametara za Jasper
+        Map<String, Object> params = new HashMap<>();
+        params.put("predmetNaziv", ispit.getPredmetNaziv());
+        params.put("ispitniRok", ispit.getIspitniRokNaziv());
+
+        // 4. Kompajliranje i popunjavanje
+        InputStream reportStream = getClass().getResourceAsStream("/reports/zapisnik_ispita.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(rezultati);
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
+
+        byte[] pdfBytes = JasperExportManager.exportReportToPdf(jasperPrint);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "attachment; filename=zapisnik.pdf")
+                .body(pdfBytes);
     }
 }

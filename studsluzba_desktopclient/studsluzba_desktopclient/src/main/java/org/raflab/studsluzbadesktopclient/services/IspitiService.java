@@ -151,5 +151,36 @@ public class IspitiService {
                         err -> System.err.println("Greška pri dohvatanju zapisnika: " + err.getMessage())
                 );
     }
-
+    // U IspitiService.java (KLIJENT)
+    public void preuzmiPDF(Long predmetId, Consumer<byte[]> callback) {
+        webClient.get()
+                .uri("/api/ispit/izvestaj/prosek/{predmetId}", predmetId)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .subscribe(
+                        bytes -> Platform.runLater(() -> callback.accept(bytes)),
+                        err -> System.err.println("Greška pri preuzimanju izveštaja: " + err.getMessage())
+                );
+    }
+    public void preuzmiPDFSaParametrima(Long predmetId, Integer odG, Integer doG, Consumer<byte[]> callback) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/predmeti/izvestaj/predmet-statistika/{predmetId}")
+                        .queryParam("odG", odG)
+                        .queryParam("doG", doG)
+                        .build(predmetId))
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .subscribe(
+                        bytes -> Platform.runLater(() -> callback.accept(bytes)),
+                        err -> System.err.println("Greška pri preuzimanju PDF-a: " + err.getMessage())
+                );
+    }
+    public void preuzmiZapisnikPDF(Long ispitId, Consumer<byte[]> callback) {
+        webClient.get()
+                .uri("/api/ispit/izvestaj/zapisnik/{ispitId}", ispitId)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .subscribe(bytes -> Platform.runLater(() -> callback.accept(bytes)));
+    }
 }

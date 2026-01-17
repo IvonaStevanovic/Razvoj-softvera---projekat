@@ -1,5 +1,6 @@
 package org.raflab.studsluzba.repositories;
 
+import org.raflab.studsluzba.controllers.response.ProsekPoGodiniResponse;
 import org.raflab.studsluzba.model.Ispit;
 import org.raflab.studsluzba.model.Predmet;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -35,6 +36,21 @@ public interface IspitRepository extends JpaRepository<Ispit, Long> {
                                              @Param("nastavnikId") Long nastavnikId,
                                              @Param("rokId") Long rokId);
 
+    @Query("SELECT new org.raflab.studsluzba.controllers.response.ProsekPoGodiniResponse(" +
+            "i.ispitniRok.skolskaGodina.naziv, " +
+            "AVG(CAST(CASE " +
+            "WHEN (iz.poeniIspit + COALESCE(iz.poeniPredispitne, 0)) >= 91 THEN 10 " +
+            "WHEN (iz.poeniIspit + COALESCE(iz.poeniPredispitne, 0)) >= 81 THEN 9 " +
+            "WHEN (iz.poeniIspit + COALESCE(iz.poeniPredispitne, 0)) >= 71 THEN 8 " +
+            "WHEN (iz.poeniIspit + COALESCE(iz.poeniPredispitne, 0)) >= 61 THEN 7 " +
+            "ELSE 6 END as double))) " +
+            "FROM IzlazakNaIspit iz " +
+            "JOIN iz.prijavaIspita p " +
+            "JOIN p.ispit i " +
+            "WHERE i.predmet.id = :predmetId " +
+            "AND (iz.poeniIspit + COALESCE(iz.poeniPredispitne, 0)) >= 51 " +
+            "GROUP BY i.ispitniRok.skolskaGodina.naziv")
+    List<ProsekPoGodiniResponse> findAverageGradeByYear(@Param("predmetId") Long predmetId);
 /*
     @Query("select i from Ispit i where i.ispitniRok.id = :idRoka")
     List<Ispit> findByIspitniRok(Long idRoka);

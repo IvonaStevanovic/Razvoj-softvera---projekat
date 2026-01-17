@@ -523,6 +523,10 @@ public class IspitService {
         // 3. Brisanje - Hibernate sada sam čisti sve povezane tabele
         ispitRepository.delete(ispit);
     }
-
+    // U IspitService.java (SERVER)
+    public List<ProsekPoGodiniResponse> getProsekPoGodinama(Long predmetId) {
+        // Ovde pozivaš repository metod koji smo ranije definisali
+        return ispitRepository.findAverageGradeByYear(predmetId);
+    }
 
 }

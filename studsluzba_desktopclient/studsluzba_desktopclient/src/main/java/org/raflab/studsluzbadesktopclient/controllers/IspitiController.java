@@ -10,19 +10,25 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.raflab.studsluzbadesktopclient.ClientAppConfig;
 import org.raflab.studsluzbadesktopclient.dtos.IspitResponse;
 import org.raflab.studsluzbadesktopclient.dtos.IspitniRokResponse;
+import org.raflab.studsluzbadesktopclient.dtos.PredmetResponse;
 import org.raflab.studsluzbadesktopclient.dtos.StudentIspitRezultatiResponse;
 import org.raflab.studsluzbadesktopclient.services.IspitiService;
 import org.raflab.studsluzbadesktopclient.services.NavigationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Comparator;
 
 @Component
@@ -34,10 +40,15 @@ public class IspitiController {
 
     @FXML private TableColumn<StudentIspitRezultatiResponse, String> colProgram, colIndeks, colImePrezime, colPoeni;
     @FXML private TableColumn<StudentIspitRezultatiResponse, Integer> colOcena;
-
+    @FXML
+    private ComboBox<PredmetResponse> comboPredmet;
     @Autowired private IspitiService ispitService;
     @Autowired private NavigationService navigationService;
-
+    @FXML private TextField txtGodinaOd; // Za početnu godinu (npr. 2020)
+    @FXML private TextField txtGodinaDo; // Za krajnju godinu (npr. 2026)
+    @FXML private Label lblProsekRezultat;
+    @FXML
+    private TableView<PredmetResponse> tablePredmeti;
     @FXML
     public void initialize() {
         setupTables();
@@ -62,7 +73,19 @@ public class IspitiController {
                 navigationService.recordTabChange(null, null);
             }
         });
+        ispitService.getAllPredmeti(predmeti -> {
+            comboPredmet.setItems(FXCollections.observableArrayList(predmeti));
+        });
 
+        // Podešavanje kako se prikazuju predmeti u ComboBox-u (da piše naziv, a ne adresa u memoriji)
+        comboPredmet.setCellFactory(lv -> new ListCell<PredmetResponse>() {
+            @Override
+            protected void updateItem(PredmetResponse item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getNaziv());
+            }
+        });
+        comboPredmet.setButtonCell(comboPredmet.getCellFactory().call(null));
         // 4. Inicijalno učitaj sve rokove iz baze da bi ComboBox bio pun
         ispitService.getAllRokovi(list -> comboRokovi.getItems().setAll(list));
     }
@@ -135,10 +158,26 @@ public class IspitiController {
     }
     @FXML
     private void handlePrintZapisnik() {
-        IspitResponse selected = listIspiti.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            System.out.println("Generišem izveštaj za ispit: " + selected.getId());
+        IspitResponse selektovani = listIspiti.getSelectionModel().getSelectedItem();
+        if (selektovani == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte ispit iz liste levo!").show();
+            return;
         }
+
+        ispitService.preuzmiZapisnikPDF(selektovani.getId(), bytes -> {
+            try {
+                File tempFile = File.createTempFile("zapisnik_ispita_", ".pdf");
+                java.nio.file.Files.write(tempFile.toPath(), bytes);
+
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().open(tempFile);
+                } else {
+                    new ProcessBuilder("cmd", "/c", "start", tempFile.getAbsolutePath()).start();
+                }
+            } catch (IOException e) {
+                new Alert(Alert.AlertType.ERROR, "Greška pri otvaranju PDF-a: " + e.getMessage()).show();
+            }
+        });
     }
     @FXML
     private void handleOpenAddIspit(ActionEvent event) {
@@ -227,4 +266,37 @@ public class IspitiController {
             }
         });
     }
+    @FXML
+    private void handleStampajIzvestaj() {
+        PredmetResponse selektovani = tablePredmeti.getSelectionModel().getSelectedItem();
+
+        if (selektovani == null) {
+            new Alert(Alert.AlertType.WARNING, "Prvo selektujte predmet u tabeli!").show();
+            return;
+        }
+
+        try {
+            // Izvlačenje godina iz TextField-ova
+            Integer odG = Integer.parseInt(txtGodinaOd.getText().trim());
+            Integer doG = Integer.parseInt(txtGodinaDo.getText().trim());
+
+            ispitService.preuzmiPDFSaParametrima(selektovani.getId(), odG, doG, bytes -> {
+                try {
+                    // Pravimo privremeni fajl
+                    File tempFile = File.createTempFile("statistika_predmeta_", ".pdf");
+                    // ISPRAVKA: Koristimo java.nio.file.Files.write sa ispravnim Path-om
+                    java.nio.file.Files.write(tempFile.toPath(), bytes);
+
+                    if (java.awt.Desktop.isDesktopSupported()) {
+                        java.awt.Desktop.getDesktop().open(tempFile);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.ERROR, "Unesite ispravne godine u polja 'Od' i 'Do'!").show();
+        }
+    }
+
 }
