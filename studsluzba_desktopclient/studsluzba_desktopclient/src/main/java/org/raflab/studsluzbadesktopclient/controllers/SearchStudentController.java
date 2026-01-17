@@ -2,13 +2,11 @@ package org.raflab.studsluzbadesktopclient.controllers;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.raflab.studsluzbadesktopclient.MainView;
-import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaDTO;
 import org.raflab.studsluzbadesktopclient.dtos.SrednjaSkolaResponse;
 import org.raflab.studsluzbadesktopclient.dtos.StudentPodaciResponse;
 import org.raflab.studsluzbadesktopclient.services.NavigationService;
@@ -34,14 +32,16 @@ public class SearchStudentController {
     @FXML private TableColumn<StudentPodaciResponse, String> colSrednjaSkola;
     @FXML private TableColumn<StudentPodaciResponse, String> colJmbg;
     @FXML private ComboBox<SrednjaSkolaResponse> comboSrednjaSkola;
+
     @Autowired
-    private StudentService studentService; // Inject-ovan servis
+    private StudentService studentService;
     @Autowired
-    private NavigationService navigationService; // Dodato za istoriju
+    private NavigationService navigationService;
     @Autowired
     private SifarniciService sifarniciService;
     @Autowired
     private MainView mainView;
+
     @FXML
     public void initialize() {
         setupTableColumns();
@@ -50,36 +50,29 @@ public class SearchStudentController {
     }
 
     private void setupTableColumns() {
-        // 1. Kolona za INDEKS (Format: Broj / Godina)
         colIndeks.setCellValueFactory(cellData -> {
             StudentPodaciResponse s = cellData.getValue();
-            // Provera na null je OBAVEZNA pre poređenja sa nulom (0)
             if (s.getBrojIndeksa() != 0 && s.getGodinaUpisa() != 0) {
                 return new SimpleStringProperty(s.getBrojIndeksa() + "/" + s.getGodinaUpisa());
             }
             return new SimpleStringProperty("");
         });
 
-        // 2. Standardne kolone (Property imena moraju biti IDENTIČNA poljima u StudentPodaciResponse)
         colIme.setCellValueFactory(new PropertyValueFactory<>("ime"));
         colPrezime.setCellValueFactory(new PropertyValueFactory<>("prezime"));
 
-        // 3. Email (Sigurna provera bez obzira na vrstu pretrage)
         colEmail.setCellValueFactory(cellData -> {
             StudentPodaciResponse s = cellData.getValue();
-            // Proveri da li se getter na tvom Response-u zove tačno getEmailFakultet()
             String email = (s != null) ? s.getEmailFakultet() : "";
             return new SimpleStringProperty(email != null ? email : "");
         });
 
-        // 4. JMBG
         colJmbg.setCellValueFactory(cellData -> {
             StudentPodaciResponse s = cellData.getValue();
             String jmbg = (s != null) ? s.getJmbg() : "";
             return new SimpleStringProperty(jmbg != null ? jmbg : "");
         });
 
-        // 5. Srednja škola (Ovo je važno za tvoju novu pretragu)
         colSrednjaSkola.setCellValueFactory(new PropertyValueFactory<>("srednjaSkola"));
     }
 
@@ -101,7 +94,6 @@ public class SearchStudentController {
             List<SrednjaSkolaResponse> škole = sifarniciService.getSrednjeSkole();
             comboSrednjaSkola.setItems(FXCollections.observableArrayList(škole));
 
-            // Podesi da se u padajućem meniju vidi naziv
             comboSrednjaSkola.setCellFactory(lv -> new ListCell<SrednjaSkolaResponse>() {
                 @Override
                 protected void updateItem(SrednjaSkolaResponse item, boolean empty) {
@@ -121,7 +113,6 @@ public class SearchStudentController {
         String ime = filterIme.getText();
         String prezime = filterPrezime.getText();
 
-        // Uzimamo selektovanu vrednost
         SrednjaSkolaResponse selektovana = comboSrednjaSkola.getValue();
         String skolaNaziv = (selektovana != null) ? selektovana.getNaziv() : null;
 
@@ -132,12 +123,10 @@ public class SearchStudentController {
 
         List<StudentPodaciResponse> rezultati;
 
-        // 1. PRIORITET: Pretraga po indeksu (ako je unet)
         if (indeksUnos != null && !indeksUnos.trim().isEmpty()) {
             System.out.println("Vrsim pretragu po indeksu: " + indeksUnos);
             rezultati = studentService.searchStudents(null, null, indeksUnos, null);
 
-            // Fix za prikaz godine ako je format Broj/Godina
             if (indeksUnos.contains("/") && !rezultati.isEmpty()) {
                 try {
                     int unesenaGodina = Integer.parseInt(indeksUnos.split("/")[1].trim());
@@ -145,13 +134,10 @@ public class SearchStudentController {
                 } catch (Exception e) { }
             }
         }
-        // 2. NOVO: Pretraga po srednjoj školi (ako je izabrana, a indeks nije unet)
         else if (skolaNaziv != null) {
             System.out.println("Vrsim pretragu po srednjoj skoli: " + skolaNaziv);
-            // Koristimo namenski endpoint sa servera
             rezultati = studentService.getStudentiPoSrednjojSkoli(skolaNaziv);
         }
-        // 3. Standardna pretraga po imenu i prezimenu
         else {
             System.out.println("Vrsim standardnu pretragu: " + ime + " " + prezime);
             rezultati = studentService.searchStudents(ime, prezime, null, null);
@@ -159,6 +145,7 @@ public class SearchStudentController {
 
         studentsTable.setItems(FXCollections.observableArrayList(rezultati));
     }
+
     @FXML
     public void handleClear() {
         filterIndeks.clear();
@@ -179,10 +166,12 @@ public class SearchStudentController {
 
             // 3. Napuni ga podacima
             if (controller != null) {
-                controller.loadStudentData(student.getId());
+                // --- KLJUČNA IZMENA: Šaljemo i ID indeksa koji smo kliknuli ---
+                // Ovo rešava problem učitavanja pogrešnog (aktivnog) indeksa
+                controller.loadStudentData(student.getId(), student.getStudentIndeksId());
             }
 
-            // 4. OVO SPASAVA ISTORIJU: navigateTo gura trenutnu pretragu u Stack
+            // 4. Navigacija
             navigationService.navigateTo(profilView);
 
         } catch (Exception e) {

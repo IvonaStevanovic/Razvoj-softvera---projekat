@@ -92,6 +92,8 @@ public class StudentProfileService {
 
         if (indeks != null) {
             r.setBrojIndeksa(indeks.getBroj());
+            // --- OVO JE KLJUČNA ISPRAVKA: Šaljemo pravi ID indeksa klijentu ---
+            r.setStudentIndeksId(indeks.getId());
         }
 
         if (s.getSrednjaSkola() != null) {
@@ -121,7 +123,6 @@ public class StudentProfileService {
         student.setPrezime(request.getPrezime());
         student.setJmbg(request.getJmbg());
         student.setSrednjaSkola(skola);
-        // ... ostala polja
         student = studentRepository.save(student);
 
         StudentIndeks indeks = new StudentIndeks();
@@ -323,7 +324,6 @@ public class StudentProfileService {
         return mapToObnovaGodineResponse(obnova);
     }
 
-    // --- VRAĆENA METODA obnovaGodineSaESPB ---
     public ObnovaGodineResponse obnovaGodineSaESPB(Long studentIndeksId, ObnovaGodineRequest request) {
         StudentIndeks indeks = studentIndeksRepository.findById(studentIndeksId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student indeks ne postoji"));
@@ -371,7 +371,6 @@ public class StudentProfileService {
 
     // ------------------ UPLATE I FINANSIJE ------------------
 
-    // --- NOVA METODA ZA KREIRANJE UPLATE ---
     @Transactional
     public Long createUplata(UplataRequest request) {
         StudentPodaci student = studentRepository.findById(request.getStudentId())
@@ -417,7 +416,6 @@ public class StudentProfileService {
         return new UplataResponse(LocalDate.now(), iznosEur, iznosRsd, kurs);
     }
 
-    // --- VRAĆENA METODA getSveUplate ---
     public List<UplataResponse> getSveUplate(Long studentId) {
         StudentPodaci student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student nije nađen"));
@@ -516,6 +514,8 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
+            // --- POPUNJAVAMO ID INDEKSA I OVDE ---
+            r.setStudentIndeksId(indeks.getId());
             return r;
         });
     }
@@ -536,6 +536,8 @@ public class StudentProfileService {
             if (s.getSrednjaSkola() != null) {
                 r.setSrednjaSkola(s.getSrednjaSkola().getNaziv());
             }
+            // --- POPUNJAVAMO ID INDEKSA I OVDE ---
+            r.setStudentIndeksId(indeks.getId());
             responses.add(r);
         }
         return responses;
@@ -551,7 +553,6 @@ public class StudentProfileService {
         }).collect(Collectors.toList());
     }
 
-    // --- VRAĆENA METODA obrisiStudenta ---
     @Transactional
     public void obrisiStudenta(Long studentId) {
         StudentPodaci student = studentRepository.findById(studentId)
